@@ -131,7 +131,7 @@ disable_conda() {
 copy_fixed_files(){
   vars_export
 
-  if [ ${HOSTNAME:0:1} = 'e' ] || [ ${hpc_name} = "egeon" ]; then
+  if [ ${HOSTNAME:0:1} = 'e' ] || [ ${hpc_name} = "egeon" ] || [ ${hpc_name} = "jaci" ]; then
      echo "[INFO] Copying fixed files..."
      
      filesDataIn=(
