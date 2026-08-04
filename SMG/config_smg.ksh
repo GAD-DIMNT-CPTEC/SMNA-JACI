@@ -60,6 +60,13 @@ detect_hpc_system() {
         export LC_ALL="en_US.UTF-8"
         echo "[INFO] Detected: EGEON Cluster"
     
+    elif echo "$sys_info" | grep -q "Linux ian"; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        echo "[INFO] Detected: JACI Cluster"
+    
     else
         echo "[ERROR] Unknown machine: $(hostname)"
         echo "[ACTION] 1) Add the machine to the defined systems in etc/mach/"
