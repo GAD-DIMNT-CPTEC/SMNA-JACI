@@ -140,10 +140,11 @@ if [ "${machine,,}" == "egeon" ]; then
 
 elif [ "${machine,,}" == "jaci" ]; then
     export LC_ALL="en_US.UTF-8"
-    module purge
+    #module reset
     
     # 1. Carrega o ambiente de programação (PrgEnv) escolhido
     if [ "${compiler,,}" == "intel" ]; then
+	module swap PrgEnv-cray PrgEnv-intel
         module load PrgEnv-intel
         
        # -assume byterecl: garante alinhamento de bytes para registros de E/S
@@ -172,13 +173,13 @@ elif [ "${machine,,}" == "jaci" ]; then
     #module load cmake
 
     # Mapeie para as variáveis que o CMake do GSI costuma procurar
-    export NetCDF_Fortran_DIR=$NETCDF_DIR
-    export NetCDF_C_DIR=$NETCDF_DIR
-    export NETCDF_FORTRAN_ROOT=$NETCDF_DIR
-    export NETCDF_ROOT=$NETCDF_DIR
+    export NetCDF_Fortran_DIR="${CRAY_NETCDF_DIR}"
+    export NetCDF_C_DIR="${CRAY_NETCDF_DIR}"
+    export NETCDF_FORTRAN_ROOT="${CRAY_NETCDF_DIR}"
+    export NETCDF_ROOT="${CRAY_NETCDF_DIR}"
 
     # SOLUÇÃO AQUI: Aponta a variável que o GSI pede para a pasta do NetCDF da Cray -> JACI
-    export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
+    #export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
 
     # 3. Define os wrappers da Cray como compiladores padrão
     export FC=ftn
@@ -188,9 +189,9 @@ elif [ "${machine,,}" == "jaci" ]; then
     export CXX=CC
 
     # 4. Exporta caminhos explícitos das bibliotecas (se exigido pelos CMakeLists/Makefiles do GSI/BAM)
-    if [ -n "$NETCDF_DIR" ]; then
-        export NETCDF="$NETCDF_DIR"
-        export NETCDF_ROOT="$NETCDF_DIR"
+    if [ -n "${CRAY_NETCDF_DIR}" ]; then
+        export NETCDF="${CRAY_NETCDF_DIR}"
+        export NETCDF_ROOT="${CRAY_NETCDF_DIR}"
     fi
     if [ -n "$HDF5_DIR" ]; then
         export HDF5="$HDF5_DIR"
