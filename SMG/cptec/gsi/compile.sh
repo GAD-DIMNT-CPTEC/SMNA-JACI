@@ -143,7 +143,13 @@ detect_machine() {
     elif echo "$sys_info" | grep -q "headnode.egeon.cptec.inpe.br"; then
         export hpc_name="egeon"
         export SUB="egeon"
-        echo "[INFO] Detected: EGEON Cluster"    
+        echo "[INFO] Detected: EGEON Cluster"
+
+    elif echo "$sys_info" | grep -q "Linux ian"; then
+        export hpc_name="jaci"
+        export SUB="jaci"
+        echo "[INFO] Detected: JACI Super"
+    	
     else
         echo "[ERROR] Unknown machine: $(hostname)"
         echo "[ACTION] 1) Add the machine to the defined systems in etc/mach/"

@@ -138,6 +138,101 @@ if [ "${machine,,}" == "egeon" ]; then
     module load netcdf
     module load netcdf-fortran
 
+elif [ "${machine,,}" == "jaci" ]; then
+    export LC_ALL="en_US.UTF-8"
+    module purge
+    
+    # 1. Carrega o ambiente de programação (PrgEnv) escolhido
+    if [ "${compiler,,}" == "intel" ]; then
+        module load PrgEnv-intel
+        
+       # -assume byterecl: garante alinhamento de bytes para registros de E/S
+       export FFLAGS="-assume byterecl ${FFLAGS}"
+       export FCFLAGS="-assume byterecl ${FCFLAGS}" 
+        
+    elif [ "${compiler,,}" == "gnu" ]; then
+        module load PrgEnv-gnu
+        
+        # Incompatibilidades conhecidas de convenção de nomes no GCC/Gfortran com GSI
+        export FFLAGS="-fno-second-underscore ${FFLAGS}"
+        export FCFLAGS="-fno-second-underscore ${FCFLAGS}"
+        
+    else
+        echo "[ERROR] Compiler not recognized, use 'intel' or 'gnu'."
+        return 1
+    fi
+
+    # 2. Define o alvo de arquitetura da CPU (AMD EPYC 9745)
+    module load craype-x86-turin
+
+    # 2. Carrega as bibliotecas do ecossistema Cray e dependências extras
+    # Nota: cray-mpich e cray-libsci (BLAS/LAPACK) são vinculados automaticamente via wrappers ftn/cc
+    module load cray-netcdf
+    module load cray-hdf5
+    #module load cmake
+
+    # Mapeie para as variáveis que o CMake do GSI costuma procurar
+    export NetCDF_Fortran_DIR=$NETCDF_DIR
+    export NetCDF_C_DIR=$NETCDF_DIR
+    export NETCDF_FORTRAN_ROOT=$NETCDF_DIR
+    export NETCDF_ROOT=$NETCDF_DIR
+
+    # SOLUÇÃO AQUI: Aponta a variável que o GSI pede para a pasta do NetCDF da Cray -> JACI
+    export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
+
+    # 3. Define os wrappers da Cray como compiladores padrão
+    export FC=ftn
+    export F90=ftn
+    export F77=ftn
+    export CC=cc
+    export CXX=CC
+
+    # 4. Exporta caminhos explícitos das bibliotecas (se exigido pelos CMakeLists/Makefiles do GSI/BAM)
+    if [ -n "$NETCDF_DIR" ]; then
+        export NETCDF="$NETCDF_DIR"
+        export NETCDF_ROOT="$NETCDF_DIR"
+    fi
+    if [ -n "$HDF5_DIR" ]; then
+        export HDF5="$HDF5_DIR"
+        export HDF5_ROOT="$HDF5_DIR"
+    fi
+    
+elif [ "${machine,,}" == "jaci2" ]; then
+    export LC_ALL="en_US.UTF-8"
+    #module -q purge
+    
+    # Configuration for Intel compiler
+    if [ "${compiler,,}" == "intel" ]; then
+	module list
+	module swap  PrgEnv-cray/8.6.0 PrgEnv-intel/8.6.0
+	module load cray-libpals/1.6.1 cray-pals/1.6.1
+        module load intel impi
+        export FC=ifort
+        export F90=ifort
+        export CC=icc
+        export CXX=icx
+        
+    # Configuration for GNU compiler
+    elif [ "${compiler,,}" == "gnu" ]; then
+        module load gnu9/9.4.0 mpich
+        export FC=gfortran
+        export F90=gfortran
+        export CC=gcc
+        export CXX=g++
+        
+    # If the compiler is not recognized
+    else
+        echo "[ERROR] Compiler not recognized, use 'intel' or 'gnu'."
+        return 1
+    fi
+
+    # Loading additional necessary modules
+    module load curl-7.85.0-gcc-9.4.0-qbney7y
+    module load cmake/3.21.3
+    module load openblas
+    module load netcdf
+    module load netcdf-fortran
+
 elif [ "${machine,,}" == "xc50" ]; then
     . /opt/modules/default/etc/modules.sh
     module load pbs
@@ -169,7 +264,12 @@ SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
 RootDir="$(dirname "$SCRIPT_PATH")"
 
 # Assign necessary paths
-assign DIRGSI "$(pwd)"
+if [ "${machine,,}" == "jaci" ]; then
+    assign DIRGSI "/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/gsi"
+else 
+    assign DIRGSI "$(pwd)"
+fi
+
 assign DIRLIB "${DIRGSI}/libsrc"
 assign install_dir "${DIRGSI}"
 
