@@ -18,7 +18,7 @@ option(OPENMP "use OpenMP threading" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_4 "Build the 4-byte real version of the library, libip_4.a" ON)
 option(BUILD_D "Build the 8-byte real version of the library, libip_d.a" ON)
-option(BUILD_TESTING "Build tests of the library" ON)
+option(BUILD_TESTING "Build tests of the library" OFF)
 
 # Figure whether user wants a _4, a _d, or both libraries.
 if(BUILD_4 AND BUILD_D)

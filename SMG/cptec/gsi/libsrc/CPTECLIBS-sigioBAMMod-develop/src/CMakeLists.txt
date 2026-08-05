@@ -2,6 +2,10 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
   set(CMAKE_Fortran_FLAGS
 	  "-g -traceback -free -convert big_endian -assume byterecl -DuseMPI -I/opt/ohpc/pub/mpi/mpich-ofi-intel-ohpc/3.4.2/include ${CMAKE_Fortran_FLAGS}")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(IntelLLVM)$")
+  set(CMAKE_Fortran_FLAGS
+      "-fpp -DuseMPI -g -traceback -free -convert big_endian -assume byterecl ${CMAKE_Fortran_FLAGS}")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU)$")
   set(CMAKE_Fortran_FLAGS
 	  "-I//opt/ohpc/pub/mpi/mpich-ucx-gnu9-ohpc/3.4.2/include -DuseMPI -g -fbacktrace -ffree-form -fconvert=big-endian -funroll-loops -fno-second-underscore -fno-range-check ${CMAKE_Fortran_FLAGS}")
