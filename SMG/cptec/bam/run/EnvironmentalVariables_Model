@@ -32,6 +32,13 @@ detect_hpc_system() {
         export LC_ALL="en_US.UTF-8"
         echo "[WARNING] Detected: HEADNODE EGEON Cluster [used for compilation only]"
 
+    elif echo "$sys_info" | grep -q "Linux ian"; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        echo "[INFO] Detected: JACI Cluster"
+
     # Handle unknown machine
     else
         echo "[ERROR] Unknown machine: $short_hostname"
@@ -86,17 +93,25 @@ fi
 # Caminhos
 #
 
-# Caminho do BAM no HOME
-#export HOMEBASE="/home/${USER}/SMNA_v3.0.0.t11889/SMG/cptec/bam"
-export HOMEBASE="/home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+case ${hpc_name} in
+   egeon)
+	# Caminho do BAM no HOME  
+      export HOMEBASE="/home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+	# Caminho do BAM no scratchin (SUBMIT_HOME)
+      export SUBTBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+	# Caminho do BAM no scratchout (SUBMIT_WORK)
+      export WORKBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+      ;;
+   jaci)
+	# Caminho do BAM no HOME  
+      export HOMEBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+	# Caminho do BAM no scratchin (SUBMIT_HOME)
+      export SUBTBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+	# Caminho do BAM no scratchout (SUBMIT_WORK)
+      export WORKBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+      ;;
+esac
 
-# Caminho do BAM no scratchin (SUBMIT_HOME)
-#export SUBTBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t11889/SMG/datainout/bam"
-export SUBTBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
-
-# Caminho do BAM no scratchout (SUBMIT_WORK)
-#export WORKBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t11889/SMG/datainout/bam"
-export WORKBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
 
 # Dados Externos
 case ${hpc_name} in
@@ -107,6 +122,10 @@ case ${hpc_name} in
       dadosExternos=/stornext/oper/tempo/externos/Download
       ;;
    egeon)                       # Egeon Cluster
+      export dadosExternos=/oper/dados/ioper/tempo/NCEP/input      
+      export dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos 
+      ;;
+   jaci)                       # Jaci Cluster
       export dadosExternos=/oper/dados/ioper/tempo/NCEP/input      
       export dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos 
       ;;
@@ -147,6 +166,12 @@ case ${hpc_name} in
       # Variveis do SBATCH
       # 
        export FILA=batch 
+      ;;
+   jaci)
+	echo -e "[INFO] hpc JACI: define caminhos do DIRGRADS e wgrib 1 e 2."
+        DIRGRADS=/p/app/opengrads/2.2.1.oga.1 
+        wgrib1=/lustre/app/wgrib2/deps/install/bin/wgrib 
+        wgrib2=/lustre/app/wgrib2/deps/install/bin/wgrib2 
       ;;
 esac
 

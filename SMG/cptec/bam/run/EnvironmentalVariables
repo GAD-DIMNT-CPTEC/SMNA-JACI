@@ -82,6 +82,14 @@ detect_hpc_system() {
             printf '[WARN]  Detected: HEADNODE EGEON Cluster (build-only)\n'
         return 0
 
+    elif printf '%s' "$sys_info" | grep -qi 'Linux ian'; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        [[ ${verbose} == true ]] && printf '[INFO] Detected: JACI Cluster'
+	return 0
+	
     else
         printf '[ERROR] Unknown machine: %s\n' "$short_hostname"
         printf '[ACTION] 1) Add the machine under etc/mach/\n'
@@ -173,6 +181,7 @@ getMPIinfo() {
     local hpc=${hpc_name,,}          # lower‑case copy
     case $hpc in
         egeon) MPITasks=${MPITasks:-128}; CoresPerNode=${CoresPerNode:-128};;
+	jaci)  MPITasks=${MPITasks:-128}; CoresPerNode=${CoresPerNode:-128};;
         xc50)  MPITasks=${MPITasks:-40};  CoresPerNode=${CoresPerNode:-40};;
         *)     printf '[ERROR] Unknown HPC: %s\n' "$hpc"; return 1;;
     esac
@@ -258,9 +267,9 @@ detect_hpc_system || { printf '[FATAL] detect_hpc_system failed – aborting.\n'
 ###############################################################################
 # Paths – DO NOT EDIT the 3 lines below; they are replaced by another script! #
 ###############################################################################
-export HOMEBASE="/home/${USER}/SMNA/SMG/cptec/bam"
-export SUBTBASE="/mnt/beegfs/${USER}/SMNA/SMG/datainout/bam"
-export WORKBASE="/mnt/beegfs/${USER}/SMNA/SMG/datainout/bam"
+export HOMEBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+export SUBTBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+export WORKBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/datainout/bam"
 ###############################################################################
 
 ###############################################################################
@@ -269,6 +278,8 @@ export WORKBASE="/mnt/beegfs/${USER}/SMNA/SMG/datainout/bam"
 case ${hpc_name} in
     xc50)   dadosExternos=/lustre_xc50/ioper/data/external ;;
     egeon)  dadosExternos=/oper/dados/ioper/tempo/NCEP/input
+            dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos ;;
+    jaci)   dadosExternos=/oper/dados/ioper/tempo/NCEP/input
             dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos ;;
     eslogin*) dadosExternos=/stornext/oper/tempo/externos/Download ;;
 esac
@@ -303,6 +314,12 @@ case ${hpc_name} in
         DIRGRADS=/opt/ohpc/pub/apps/grads/2.2.1/bin
         wgrib1=/home/ioper/bin/grib2/wgrib/wgrib
         wgrib2=/home/ioper/bin/grib2/wgrib2/wgrib2
+        ;;
+    jaci)
+	echo -e "[INFO] hpc JACI: define caminhos do DIRGRADS e wgrib 1 e 2."
+        DIRGRADS=/p/app/opengrads/2.2.1.oga.1 
+        wgrib1=/lustre/app/wgrib2/deps/install/bin/wgrib 
+        wgrib2=/lustre/app/wgrib2/deps/install/bin/wgrib2 
         ;;
     *)
         echo -e "\033[31;1m[ERROR]\033[m hpc_name '${hpc_name}' não reconhecido."
