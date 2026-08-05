@@ -435,21 +435,54 @@ compile(){
   fi
 
 
+  # comp inctime como estava antes de instalacao na Jaci
+  #if [[ ${compinctime} -eq 1 ]]; then
+  #  echo "[INFO] Compiling inctime utility ..."
+  #  echo "[INFO] PATH ${home_bam}"
+  #  # This is just to ensure the intel env is loaded
+  #  module swap gnu9/9.4.0 intel/2021.4.0
+  #  cd ${util_inctime}/src
+  #  export ARCH=Darwin_intel
+  #  make
+  #  if [[ ! -e ${util_inctime}/src/inctime ]]; then
+  #    echo "[FAIL] Error: inctime utility compilation failed."
+  #    exit 1
+  #  else
+  #    cp -pvfr ${util_inctime}/src/inctime ${home_cptec}/bin/
+  #  fi
+  #fi
+
+  ### Adaptacao comp inctime considerando a maquina Jaci -> Carol 05AGT2026
   if [[ ${compinctime} -eq 1 ]]; then
     echo "[INFO] Compiling inctime utility ..."
     echo "[INFO] PATH ${home_bam}"
-    # This is just to ensure the intel env is loaded
-    module swap gnu9/9.4.0 intel/2021.4.0
+    
     cd ${util_inctime}/src
-    export ARCH=Darwin_intel
-    make
+    make clean
+
+    # Detecta se está na Jaci (por hostname ou variável de ambiente do Cray)
+    if [[ -n "${CRAY_PRGENVINTEL}" ]] || [[ ${hpc_name} = "jaci" ]]; then
+        echo "[INFO] Ambiente detectado: JACI (Cray PE)"
+        # Na Jaci: Não troca módulos e força o wrapper 'ftn'
+	export ARCH=jaci
+	make
+        #make FC=ftn F90=ftn
+    else
+        echo "[INFO] Ambiente nao eh JACI"
+        # Na Egeon: Mantém os módulos legados e a chamada padrão
+        module swap gnu9/9.4.0 intel/2021.4.0
+        export ARCH=Darwin_intel
+        make
+    fi
+
     if [[ ! -e ${util_inctime}/src/inctime ]]; then
       echo "[FAIL] Error: inctime utility compilation failed."
       exit 1
     else
+      mkdir -p ${home_cptec}/bin
       cp -pvfr ${util_inctime}/src/inctime ${home_cptec}/bin/
     fi
-  fi          
+  fi
 
   echo "[ OK ] Compilation completed successfully."
 }

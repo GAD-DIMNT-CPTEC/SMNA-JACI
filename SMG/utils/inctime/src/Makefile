@@ -29,6 +29,14 @@ srcdir = ./
 
 # preprocessor, compilers, linker & archiver
 #
+ifeq ($(ARCH),jaci)
+   FPP = cc -E
+   CC  = cc
+   FC  = ftn
+   LD  = ftn
+   AR  = ar
+endif
+
 ifeq ($(ARCH),Darwin_intel)
    FPP = gcc
    CC  = gcc
