@@ -34,6 +34,7 @@ all:
 
 	(cd w3lib-1.4;$(MAKE) -f Makefile.$@)
 	(cd .;$(MAKE) -f Makefile.$@)
+	@mkdir -p ../exec
 	(mv PostGrib $(PATH2)/PostGrib)
 	(rm  -f Makefile.$@ )
 
