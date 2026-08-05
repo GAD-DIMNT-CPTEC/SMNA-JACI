@@ -98,6 +98,13 @@ detect_hpc_system() {
         export LC_ALL="en_US.UTF-8"
         echo "[INFO] Detected: EGEON Cluster"
     
+    elif echo "$sys_info" | grep -q "Linux ian"; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        echo "[INFO] Detected: JACI Cluster"
+    
     else
         echo "[ERROR] Unknown machine: $(hostname)"
         return 1
@@ -127,7 +134,23 @@ load_env_system() {
         module load impi/2021.4.0
         module load netcdf/4.7.4
         module load pnetcdf/1.12.2 netcdf-fortran/4.5.3
-      
+
+    elif [ "${hpc_name}" == "jaci" ]; then
+        #module reset
+	#module swap PrgEnv-cray PrgEnv-intel
+        module load PrgEnv-intel
+        module load cray-mpich
+        module load cray-netcdf
+        #module load cray-pnetcdf
+
+	# Mapeamento com base nas variáveis nativas do Cray PE
+        export NETCDF_DIR="${CRAY_NETCDF_DIR}"
+        export NETCDF_C_DIR="${CRAY_NETCDF_DIR}"
+        export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
+        export NetCDF_Fortran_DIR="${CRAY_NETCDF_DIR}"
+        
+        export PNETCDF_DIR="${CRAY_PNETCDF_DIR}"
+    	
     elif [ "${hpc_name}" == "xc50" ]; then
         . /opt/modules/default/etc/modules.sh
 #        module -s purge
