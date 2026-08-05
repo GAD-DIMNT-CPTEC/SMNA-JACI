@@ -283,6 +283,12 @@ function getSST() {
         "${dadosExternos}/%y4/%m2/%d2/%h2" \
       )
       ;;
+    jaci)
+      local preDataIn=( \
+        "${SUBTBASE}/pre/datain" \
+        "${dadosExternos}/%y4/%m2/%d2/%h2" \
+      )
+      ;;
     XC50)
       local preDataIn=( \
         "${SUBTBASE}/pre/datain" \
@@ -408,6 +414,11 @@ getSoilFiles(){
                    ${dadosUmidSolo}/%Y/%m/%d/%H \
                   )
     ;;
+    jaci) local preDataIn=( \
+                   ${SUBTBASE}/pre/datain \
+                   ${dadosUmidSolo}/%Y/%m/%d/%H \
+                  )
+    ;;
     XC50) local preDataIn=( \
                    ${SUBTBASE}/pre/datain \
                    ${dadosExternos}/%Y%m%d%H/dataout/Umid_Solo \
@@ -430,6 +441,24 @@ getSoilFiles(){
   case ${hpc_name} in
 
     egeon) local count=0
+           while [ ${count} -le 3 ];do
+             for path in ${preDataIn[@]};do
+                local file=`date -u +${path}/${smcFile} -d "${LABEL:0:8} ${HH} +0 hours"`
+                echo "Search "$count"   " $file
+                      ###     $( ${inctime} ${LABEL} +0h ${path}/${smcFile} )
+                if [ -e ${file} ];then
+                   ln -s ${file} ${fileOut} > /dev/null 2>&1
+                   return 0
+                fi
+             done
+             LABEL=`date -u +%Y%m%d%H -d "${LABEL:0:8} ${HH} -6 hours"`  
+             local HH=${LABEL:8:2}
+             echo $LABEL
+             #LABEL=$( ${inctime} ${LABEL} -6h %y4%m2%d2%h2) 
+            count=$((count+1))
+          done 
+      ;;
+    jaci) local count=0
            while [ ${count} -le 3 ];do
              for path in ${preDataIn[@]};do
                 local file=`date -u +${path}/${smcFile} -d "${LABEL:0:8} ${HH} +0 hours"`
@@ -484,6 +513,13 @@ getAnlNCEP() {
   detect_hpc_system
   case "${hpc_name}" in
     egeon)
+      local YY="${runDate:0:4}"
+      local MM="${runDate:4:2}"
+      local DD="${runDate:6:2}"
+      local HH="${runDate:8:2}"
+      preInDir="${preInDir}:${dadosExternos}/${YY}/${MM}/${DD}/${HH}"
+      ;;
+    jaci)
       local YY="${runDate:0:4}"
       local MM="${runDate:4:2}"
       local DD="${runDate:6:2}"

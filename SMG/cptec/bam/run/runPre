@@ -304,6 +304,7 @@ walltime=${walltime:-00:45:00}
 # Set specific queue for each HPC system if not already defined
 case ${hpc_name} in
   egeon) queue=${queue:-PESQ1} ;;
+  jaci) queue=${queue:-pesqmidi} ;;
   XC50) queue=${queue:-pesq} ;;
 esac
 
@@ -521,6 +522,65 @@ case ${hpc_name} in
              qstatus=$?
          fi
          
+   ;;
+   jaci)
+	 {
+	    printf '%s\n' '#!/bin/bash'
+            printf '%s\n' '#PBS -V'
+            printf '%s\n' '#PBS -j oe'
+            printf '%s\n' '#PBS -S /bin/bash'
+            printf '%s\n' '#PBS -o '"${dirExec}/Out.MPI${MPITasks}"
+            printf '%s\n' '#PBS -l walltime='${walltime}
+            printf '%s\n' '#PBS -l select='${Nodes}':ncpus='${MaxCoresPerNode}':mpiprocs='${MaxCoresPerNode}
+            printf '%s\n' '#PBS -N '"${queue_name}"
+            printf '%s\n' '#PBS -q '"${queue}"
+            printf '%s\n' '#PBS -l place=scatter:excl'
+            #printf '%s\n' '#PBS -A '"${QUOTA}"
+            printf '\n'
+
+            printf '%s\n' 'set -euo pipefail'
+     
+            # Garantir navegacao para o diretorio do job
+            #printf '%s\n' 'cd $PBS_O_WORKDIR'
+            #printf '%s\n' 'cd '"${dirExec}"
+            #printf '\n'
+
+            # Configuracoes de Threads e Memoria
+            printf '%s\n' 'export OMP_NUM_THREADS=1'
+            printf '%s\n' 'export OMP_WAIT_POLICY=PASSIVE'
+            printf '%s\n' 'export KMP_AFFINITY=disabled'
+            printf '%s\n' 'export KMP_STACKSIZE=128m'
+            printf '%s\n' 'export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE'
+            printf '%s\n' 'ulimit -s unlimited'
+            printf '%s\n' 'ulimit -v unlimited'
+            printf '\n'
+
+            # Modulos do Ambiente Cray da Jaci
+            printf '%s\n' 'module swap PrgEnv-cray PrgEnv-intel'
+            printf '%s\n' 'module load cray-libpals cray-pals'
+            printf '%s\n' 'module load cray-hdf5 cray-netcdf'
+            printf '%s\n' 'module list'
+            printf '\n'
+
+            # Execucao do MPI via PALS/Cray
+	    printf '%s\n' 'cd '"${dirExec}"
+            printf '%s\n' "time mpiexec -n ${MPITasks} ./${preEXEC} > saida_${labelOut}.txt"
+            printf '%s\n' 'rm -f Dump.* > /dev/null 2>&1'
+         } > "${dirExec}/pre.pbs"
+
+	 # submit Job
+         echo -ne "\033[34;1m Running BAM \033[m"
+     
+         cd ${dirExec}
+     
+         if [[ "${DRYRUN}" == true ]]; then
+             echo "[DRYRUN] qsub -W block=true ${dirExec}/pre.pbs"
+             qstatus=0
+         else
+             PID=$(qsub -W block=true "${dirExec}/pre.pbs"; exit ${PIPESTATUS[0]})
+             qstatus=$?
+         fi
+
    ;;
    XC50)
          {
