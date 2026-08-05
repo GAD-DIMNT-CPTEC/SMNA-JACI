@@ -32,8 +32,13 @@ SRC	= $(OBJ_MOD:.o=.f) $(OBJS:.o=.f) $(OBJS_CC:.o=.c)
 # *****************************************************************
 #
 
+# Como estava na Egeon padrao antigo do ar
+#$(LIB): $(OBJ_MOD) $(OBJS) $(OBJS_CC) 
+#	$(AR) $(ARFLAGS) -ruv $(LIB) $(OBJ_MOD) $(OBJS) $(OBJS_CC)
+
+# Na Jaci utiliza padrao universal Linux (deve funcionar na Egeon tambem) (Carol 05AGT2026)
 $(LIB): $(OBJ_MOD) $(OBJS) $(OBJS_CC) 
-	$(AR) $(ARFLAGS) -ruv $(LIB) $(OBJ_MOD) $(OBJS) $(OBJS_CC)
+	$(AR) rcs $(LIB) $(OBJ_MOD) $(OBJS) $(OBJS_CC)
 
 clean:
 	rm -f $(OBJ_MOD) $(OBJS) $(OBJS_CC) *.mod *.a
