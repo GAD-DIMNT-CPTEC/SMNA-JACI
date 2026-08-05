@@ -89,7 +89,10 @@ subwrd() {
 # Set script's local directory
 LOCALDIR=$(dirname $(readlink -e ${0})) 
 #source ${LOCALDIR}
-source /home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run/EnvironmentalVariables_Model
+# Caso Egeon
+#source /home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run/EnvironmentalVariables_Model
+# Caso Jaci
+source /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run/EnvironmentalVariables_Model
 
 # Check for command-line arguments, if none, show help
 if [ $# -eq 0 ]; then
@@ -215,6 +218,7 @@ walltime=${walltime:-02:00:00}
 case ${hpc_name} in
 #  egeon) queue=${queue:-PESQ1} ;;
   egeon) queue=${queue:-batch} ;;
+  jaci) queue=${queue:-pesqmidi } ;;
   XC50) queue=${queue:-pesq} ;;
 esac
 
@@ -266,6 +270,12 @@ fi
 #  - CoresPerNode: Set the total number of cores per node
 case ${hpc_name} in
     egeon)
+        MPITasks=${MPITasks:-64}
+        TasksPerNode=${TasksPerNode:-16}
+        CoresPerNode=${CoresPerNode:-128}
+        MaxCoresPerNode=${CoresPerNode:-128}
+        ;;
+    jaci)
         MPITasks=${MPITasks:-64}
         TasksPerNode=${TasksPerNode:-16}
         CoresPerNode=${CoresPerNode:-128}
@@ -536,6 +546,53 @@ EOF1
     cd ${BAMRUN}
 
     PID=$(sbatch --wait ${BAMSCP}; exit ${PIPESTATUS[0]})
+    qstatus=$?
+  ;;
+  jaci) cat << EOF1 > ${BAMSCP}
+#!/bin/bash
+#PBS -o ${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#PBS -j oe
+#PBS -l walltime=${walltime}
+#PBS -l select=${Nodes}:ncpus=${MaxCoresPerNode}:mpiprocs=${TasksPerNode}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N BH${LABELI:4:6}
+#PBS -q ${queue}
+#PBS -l place=scatter:excl
+
+set -euo pipefail
+
+cd ${BAMRUN}
+pwd
+
+# Configuração de Threads OpenMP (Híbrido MPI + OpenMP)
+export OMP_NUM_THREADS=${ThreadsPerMPITask}
+export OMP_WAIT_POLICY=PASSIVE
+export KMP_AFFINITY=verbose,granularity=thread,compact,1
+export KMP_STACKSIZE=128m
+export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+
+ulimit -s unlimited
+ulimit -v unlimited
+
+# Modulos do Ambiente Cray da Jaci
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-libpals cray-pals
+module load cray-hdf5 cray-netcdf cray-parallel-netcdf
+module list
+
+# Execucao do Modelo BAM via Cray PALS com afinidade de CPU por thread
+echo "time mpiexec -n ${MPITasks} --depth=${ThreadsPerMPITask} ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1"
+time mpiexec -n ${MPITasks} --depth=${ThreadsPerMPITask} ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1
+
+EOF1
+
+    # Submissao do Job 
+    echo -ne "\033[34;1m Running BAM Model on JACI \033[m\n"
+
+    cd ${BAMRUN}
+
+    PID=$(qsub -W block=true ${BAMSCP}; exit ${PIPESTATUS[0]})
     qstatus=$?
   ;;
   xc50) cat << EOF > ${BAMSCP}
