@@ -231,6 +231,8 @@ for cycle in $(seq 0 ${BcCycles} ); do
 
    fi
 
+   echo " runGSI >> subGSI --> ${RunDir} ${IMax} ${JMax} ${KMax} ${AnlTrunc} ${BkgTrunc} ${AnlDate} ${ObsMod}"
+
 #   if [ ${cycle} -eq 0 -a ${BcCycles} -gt 0 ];then
    if [ ${BcCycles} -gt 0 ];then
       subGSI ${RunDir} ${IMax} ${JMax} ${KMax} ${AnlTrunc} ${BkgTrunc} ${AnlDate} ${ObsMod} .true.

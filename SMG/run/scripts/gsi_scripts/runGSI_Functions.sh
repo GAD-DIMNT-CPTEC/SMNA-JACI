@@ -66,7 +66,30 @@ constants ( ) {
     done
 
    # Define endianness
-   export BYTE_ORDER=Big_Endian
+   #export BYTE_ORDER=Big_Endian
+   export BYTE_ORDER=Little_Endian
+
+   # caminho arquivos Little -> cd /pesq/share/das/public_tmp/GSI3.4/tmp/crtm-2.4.0_emc.1/fix
+
+   ##### CAROL 12AGT2026 ---> arranjo para a JACI
+   # 1. Mantém a sua variável BYTE_ORDER do jeito que está nas várias linhas do script
+   #export BYTE_ORDER=Big_Endian
+
+   # 2. Converte para maiúsculas e remove sublinhados para o padrão da Intel
+   #    Transforma "Big_Endian" -> "BIG_ENDIAN"
+   #INTEL_BYTE_ORDER=$(echo "$BYTE_ORDER" | tr '[:lower:]' '[:upper:]' | sed 's/_ENDIAN/_ENDIAN/')
+
+   # 3. Exporta as duas variáveis que o compilador Intel (ifort/ifx/ftn) reconhece
+   #export FORT_CONVERT_BYTE_ORDER="$INTEL_BYTE_ORDER"
+   #export FORT_CONVERT_BIG_ENDIAN=1
+
+   # 1. Garante que o ambiente padrão continue Little Endian (para o BAM e Satélites)
+   #unset FORT_CONVERT_BYTE_ORDER
+   #unset FORT_CONVERT_BIG_ENDIAN
+
+   # 2. Ativa a conversão por sintaxe com parênteses/sublinhado que o Bash aceita
+   #export FORT_CONVERT_BIG_ENDIAN="10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,40,41,42,43,44,45,46,47,48,49,50"
+
 
    # PBS default variables
    #
@@ -93,6 +116,24 @@ constants ( ) {
         export MPICH_MAX_SHORT_MSG_SIZE=4096
         export MPICH_PTL_UNEX_EVENTS=50000
         export MPICH_PTL_OTHER_EVENTS=2496
+    ;;
+    jaci)
+        export MaxCoresPerNode=128
+        export MTasks=120                     # Number of Processors
+        export ThreadsPerMPITask=1             # Number of cores hosting OpenMP threads
+        export TasksPerNode=$((${MaxCoresPerNode}/${ThreadsPerMPITask})) # Number of Processors used by each MPI tasks
+        export PEs=$((${MTasks}/${ThreadsPerMPITask}))
+        export Nodes=$(((${MTasks}+${MaxCoresPerNode}-1)/${MaxCoresPerNode}))
+        #export Queue=PESQ1
+        #export Queue=PESQ2
+	export Queue=pesqmidi
+        export WallTime=01:00:00
+        export BcCycles=0
+
+        # MPI / Cray PALS environmental variables
+        export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+        export OMP_STACKSIZE=1G
+        export KMP_STACKSIZE=1G
     ;;
     XC50)
        export MaxCoresPerNode=40
@@ -391,17 +432,32 @@ FixedFiles ( ) {
 #   ln -sf ${public_crtm}/${BYTE_ORDER}/AerosolCoeff.bin               ${runDir}/AerosolCoeff.bin
 #   ln -sf ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
 
-   cp  ${public_crtm}/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin    ${runDir}/Nalli.IRwater.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin     ${runDir}/NPOESS.IRice.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin    ${runDir}/NPOESS.IRland.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin    ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin    ${runDir}/NPOESS.VISice.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin  ${runDir}/NPOESS.VISwater.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/AerosolCoeff.bin               ${runDir}/AerosolCoeff.bin
-   cp  ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
+   # como estava antes -> 12AGT2026
+   #cp  ${public_crtm}/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin    ${runDir}/Nalli.IRwater.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin     ${runDir}/NPOESS.IRice.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin    ${runDir}/NPOESS.IRland.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin    ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin    ${runDir}/NPOESS.VISice.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin  ${runDir}/NPOESS.VISwater.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/AerosolCoeff.bin               ${runDir}/AerosolCoeff.bin
+   #cp  ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
+
+
+   # Carol - test CRTM -> JACI 12AGT2026
+   cp  ${plus_crtm}/EmisCoeff/IR_Water/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin               ${runDir}/Nalli.IRwater.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/IR_Ice/SEcategory/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin       ${runDir}/NPOESS.IRice.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/IR_Land/SEcategory/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin     ${runDir}/NPOESS.IRland.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/IR_Snow/SEcategory/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin     ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/VIS_Ice/SEcategory/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin     ${runDir}/NPOESS.VISice.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/VIS_Land/SEcategory/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/VIS_Snow/SEcategory/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/VIS_Water/SEcategory/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin ${runDir}/NPOESS.VISwater.EmisCoeff.bin
+   cp  ${plus_crtm}/EmisCoeff/MW_Water/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
+   cp  ${plus_crtm}/AerosolCoeff/${BYTE_ORDER}/AerosolCoeff.bin             ${runDir}/AerosolCoeff.bin
+   cp  ${plus_crtm}/CloudCoeff/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
 
    # User fixed files
    cp -pfr ${home_gsi_fix}/global_anavinfo.l${NLevs}.txt   ${runDir}/anavinfo
@@ -680,6 +736,63 @@ EOF
     cd ${runDir}
 
     PID=$(sbatch -W  gsi.qsb; exit ${PIPESTATUS[0]})
+  ;;
+  jaci)
+     cat << EOF > ${runDir}/gsi.qsb
+#!/bin/bash
+#PBS -o ${runDir}/Out.gsi.${andt}.${runTime}.out
+#PBS -j oe
+#PBS -l walltime=${WallTime}
+#PBS -l select=${Nodes}:ncpus=${MaxCoresPerNode}:mpiprocs=${MTasks}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N GSI-SMNA
+#PBS -q ${Queue}
+#PBS -l place=scatter:excl
+
+set -euo pipefail
+
+cd ${runDir}
+pwd
+
+# Configuracoes de Threads e Memoria para o GSI
+export OMP_NUM_THREADS=${ThreadsPerMPITask}
+#export OMP_STACKSIZE=1G
+#export KMP_STACKSIZE=1G
+#export KMP_AFFINITY=disabled
+#export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+#export BYTE_ORDER=Little_Endian
+
+ulimit -c unlimited
+ulimit -s unlimited
+
+# 1. Carrega PrgEnv-cray para o 'module swap' do env.sh não falhar no nó de login
+module load PrgEnv-cray 2>/dev/null || true
+
+# 2. Inicializa as variáveis como vazias ("") apenas para o Bash não reclamar de 'unbound variable'
+export FFLAGS="${FFLAGS:-}"
+export FCFLAGS="${FCFLAGS:-}"
+
+# Carrega ambiente e modulos
+source ${home_gsi}/env.sh jaci ${compiler}
+
+# Forca a carga do PALS para garantir que o mpiexec se comunique com o PBS Pro
+module load cray-pals 2>/dev/null || true
+module load cray-libpals 2>/dev/null || true
+
+module list
+
+echo "STARTING AT $(date)"
+
+# Execucao do GSI via Cray PALS
+time mpiexec -n ${MTasks} --depth=${ThreadsPerMPITask} ./$(basename ${execGSI}) > gsiStdout_${andt}.${runTime}.log 2>&1
+
+EOF
+
+     cd ${runDir}
+
+     PID=$(qsub -W block=true gsi.qsb; exit ${PIPESTATUS[0]})
+     #qstatus=\$?
   ;;
   XC50)
      cat << EOF > ${runDir}/gsi.qsb

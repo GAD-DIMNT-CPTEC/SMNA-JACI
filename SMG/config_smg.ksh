@@ -66,6 +66,8 @@ detect_hpc_system() {
         export WRAPPER="ftn"
         export LC_ALL="en_US.UTF-8"
         echo "[INFO] Detected: JACI Cluster"
+	module swap PrgEnv-cray PrgEnv-intel
+	module list
     
     else
         echo "[ERROR] Unknown machine: $(hostname)"

@@ -179,7 +179,7 @@ elif [ "${machine,,}" == "jaci" ]; then
     export NETCDF_ROOT="${CRAY_NETCDF_DIR}"
 
     # SOLUÇÃO AQUI: Aponta a variável que o GSI pede para a pasta do NetCDF da Cray -> JACI
-    #export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
+    export NETCDF_FORTRAN_DIR="${CRAY_NETCDF_DIR}"
 
     # 3. Define os wrappers da Cray como compiladores padrão
     export FC=ftn
