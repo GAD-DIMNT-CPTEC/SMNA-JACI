@@ -157,7 +157,7 @@ set(kinds ${KINDS_LIST})
 # Compiler Flags Configuration
 #------------------------------------------------------------------------------
 # C Compiler Flags
-if(CMAKE_C_COMPILER_ID MATCHES "^(Intel)$")
+if(CMAKE_C_COMPILER_ID MATCHES "^(Intel|IntelLLVM)$")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -traceback")
   set(CMAKE_C_FLAGS_DEBUG "-O0")
   set(CMAKE_C_FLAGS_RELEASE "-O3")
@@ -170,7 +170,7 @@ endif()
 # Fortran Compiler Flags
 # Note: Even when building only the _4 version, _8 and _d flags are required
 #       for compiling test codes.
-if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
+if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel|IntelLLVM)$")
   set(fortran_8_flags "-r8 -i8 -DBUFR_INT8")
   set(fortran_d_flags "-r8")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -traceback")
