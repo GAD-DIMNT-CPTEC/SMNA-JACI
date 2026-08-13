@@ -79,6 +79,7 @@ assign(){
 #EOP
 #BOC
 vars_export(){
+  module swap PrgEnv-cray PrgEnv-intel
   FilePaths=$(dirname ${BASH_SOURCE})/mach/${hpc_name}_paths.conf
   
   if [[ ! -f ${FilePaths} ]]; then
