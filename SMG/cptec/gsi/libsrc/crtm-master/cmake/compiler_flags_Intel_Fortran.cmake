@@ -10,7 +10,9 @@
 # FLAGS COMMON TO ALL BUILD TYPES
 ####################################################################
 
-set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -convert big_endian -assume byterecl")
+#set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -convert big_endian -assume byterecl")
+
+set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -assume byterecl") # JACI
 
 if( HAVE_AUTOPROFILE )
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -finstrument-functions")
