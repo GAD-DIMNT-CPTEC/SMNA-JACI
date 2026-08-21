@@ -133,6 +133,17 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
     set(debug -g -traceback)
     set(byte_order -convert big_endian)
 
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+    #! Intel Fortran Compiler
+    #!  - Advanced optimizations: -O3, -xHost
+    #!  - Additional checks in Debug mode: -check all
+    #!  - Big-endian support: -convert big_endian
+    set(dialect -free)
+    set(optimization -O3 -xHost)
+    set(bounds -check all)
+    set(debug -g -traceback)
+    set(byte_order -convert big_endian)
+
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     #! Cray Fortran Compiler
     #!  - Optimizations for Cray architecture: -h vector0,cache0,fp2
