@@ -66,8 +66,8 @@ constants ( ) {
     done
 
    # Define endianness
-   #export BYTE_ORDER=Big_Endian
-   export BYTE_ORDER=Little_Endian
+   export BYTE_ORDER=Big_Endian
+   #export BYTE_ORDER=Little_Endian
 
    # caminho arquivos Little -> cd /pesq/share/das/public_tmp/GSI3.4/tmp/crtm-2.4.0_emc.1/fix
 
@@ -433,31 +433,31 @@ FixedFiles ( ) {
 #   ln -sf ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
 
    # como estava antes -> 12AGT2026
-   #cp  ${public_crtm}/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin    ${runDir}/Nalli.IRwater.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin     ${runDir}/NPOESS.IRice.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin    ${runDir}/NPOESS.IRland.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin    ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin    ${runDir}/NPOESS.VISice.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin  ${runDir}/NPOESS.VISwater.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/AerosolCoeff.bin               ${runDir}/AerosolCoeff.bin
-   #cp  ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin    ${runDir}/Nalli.IRwater.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin     ${runDir}/NPOESS.IRice.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin    ${runDir}/NPOESS.IRland.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin    ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin    ${runDir}/NPOESS.VISice.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin  ${runDir}/NPOESS.VISwater.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/AerosolCoeff.bin               ${runDir}/AerosolCoeff.bin
+   cp  ${public_crtm}/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
 
 
    # Carol - test CRTM -> JACI 12AGT2026
-   cp  ${plus_crtm}/EmisCoeff/IR_Water/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin               ${runDir}/Nalli.IRwater.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/IR_Ice/SEcategory/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin       ${runDir}/NPOESS.IRice.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/IR_Land/SEcategory/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin     ${runDir}/NPOESS.IRland.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/IR_Snow/SEcategory/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin     ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/VIS_Ice/SEcategory/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin     ${runDir}/NPOESS.VISice.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/VIS_Land/SEcategory/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/VIS_Snow/SEcategory/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/VIS_Water/SEcategory/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin ${runDir}/NPOESS.VISwater.EmisCoeff.bin
-   cp  ${plus_crtm}/EmisCoeff/MW_Water/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
-   cp  ${plus_crtm}/AerosolCoeff/${BYTE_ORDER}/AerosolCoeff.bin             ${runDir}/AerosolCoeff.bin
-   cp  ${plus_crtm}/CloudCoeff/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/IR_Water/${BYTE_ORDER}/Nalli.IRwater.EmisCoeff.bin               ${runDir}/Nalli.IRwater.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/IR_Ice/SEcategory/${BYTE_ORDER}/NPOESS.IRice.EmisCoeff.bin       ${runDir}/NPOESS.IRice.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/IR_Land/SEcategory/${BYTE_ORDER}/NPOESS.IRland.EmisCoeff.bin     ${runDir}/NPOESS.IRland.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/IR_Snow/SEcategory/${BYTE_ORDER}/NPOESS.IRsnow.EmisCoeff.bin     ${runDir}/NPOESS.IRsnow.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/VIS_Ice/SEcategory/${BYTE_ORDER}/NPOESS.VISice.EmisCoeff.bin     ${runDir}/NPOESS.VISice.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/VIS_Land/SEcategory/${BYTE_ORDER}/NPOESS.VISland.EmisCoeff.bin   ${runDir}/NPOESS.VISland.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/VIS_Snow/SEcategory/${BYTE_ORDER}/NPOESS.VISsnow.EmisCoeff.bin   ${runDir}/NPOESS.VISsnow.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/VIS_Water/SEcategory/${BYTE_ORDER}/NPOESS.VISwater.EmisCoeff.bin ${runDir}/NPOESS.VISwater.EmisCoeff.bin
+   #cp  ${plus_crtm}/EmisCoeff/MW_Water/${BYTE_ORDER}/FASTEM5.MWwater.EmisCoeff.bin  ${runDir}/FASTEM5.MWwater.EmisCoeff.bin
+   #cp  ${plus_crtm}/AerosolCoeff/${BYTE_ORDER}/AerosolCoeff.bin             ${runDir}/AerosolCoeff.bin
+   #cp  ${plus_crtm}/CloudCoeff/${BYTE_ORDER}/CloudCoeff.bin                 ${runDir}/CloudCoeff.bin
 
    # User fixed files
    cp -pfr ${home_gsi_fix}/global_anavinfo.l${NLevs}.txt   ${runDir}/anavinfo
