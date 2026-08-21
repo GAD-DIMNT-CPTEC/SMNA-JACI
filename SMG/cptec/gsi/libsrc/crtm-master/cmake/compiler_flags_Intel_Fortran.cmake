@@ -10,9 +10,9 @@
 # FLAGS COMMON TO ALL BUILD TYPES
 ####################################################################
 
-#set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -convert big_endian -assume byterecl")
+set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -convert big_endian -assume byterecl")
 
-set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -assume byterecl") # JACI
+#set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -assume byterecl") # JACI
 
 if( HAVE_AUTOPROFILE )
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -finstrument-functions")
@@ -22,7 +22,8 @@ endif( )
 # RELEASE FLAGS
 ####################################################################
 
-set( CMAKE_Fortran_FLAGS_RELEASE "-O3 -ip -unroll -inline -no-heap-arrays -assume byterecl" )
+#set( CMAKE_Fortran_FLAGS_RELEASE "-O3 -ip -unroll -inline -no-heap-arrays -assume byterecl" )
+set( CMAKE_Fortran_FLAGS_RELEASE "-O3 -ip -unroll -inline -heap-arrays -assume byterecl" )
 
 ####################################################################
 # DEBUG FLAGS

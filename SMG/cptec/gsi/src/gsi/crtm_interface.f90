@@ -3185,8 +3185,20 @@ subroutine get_lai(data_s,nchanl,nreal,itime,ilate,lai_type,lai)
       WEI2S = (RJDAY-DAYHF(N1))/(DAYHF(N2)-DAYHF(N1))
       IF(N2.EQ.3) N2=1
 
-      lai_season(1) = lai_min(lai_type)
-      lai_season(2) = lai_max(lai_type)
+      !Carol -> 20AGT2026
+      !lai_season(1) = lai_min(lai_type)
+      !lai_season(2) = lai_max(lai_type)
+      ! --- PROTEÇÃO CONTRA ÍNDICE INVÁLIDO DO BAM ---
+      if (lai_type < 1 .or. lai_type > 13) then
+         print *, '### [ERRO GSI-BAM] lai_type invalido detectado:', lai_type
+         print *, '### Forcando lai_type = 13 (valor padrao seguro) para evitar crash.'
+         lai_season(1) = lai_min(13)
+         lai_season(2) = lai_max(13)
+      else
+         lai_season(1) = lai_min(lai_type)
+         lai_season(2) = lai_max(lai_type)
+      endif
+      ! -----------------------------------------------
       if(data_s(ilate) < 0.0_r_kind) then
          lai = wei1s * lai_season(n2) + wei2s * lai_season(n1)
       else
