@@ -144,12 +144,38 @@ elif [ "${machine,,}" == "jaci" ]; then
     
     # 1. Carrega o ambiente de programação (PrgEnv) escolhido
     if [ "${compiler,,}" == "intel" ]; then
-	module swap PrgEnv-cray PrgEnv-intel
+	
+	# Descarrega o ambiente Cray explicitamente para evitar conflito de wrappers
+        module unload PrgEnv-cray
         module load PrgEnv-intel
         
-       # -assume byterecl: garante alinhamento de bytes para registros de E/S
-       export FFLAGS="-assume byterecl ${FFLAGS}"
-       export FCFLAGS="-assume byterecl ${FCFLAGS}" 
+        # OBRIGATÓRIO NA CRAY: Carregar o módulo do compilador Intel real.
+        # (Se o nome do módulo na sua máquina for diferente, ex: intel-oneapi, ajuste aqui)
+        module load intel 2>/dev/null || module load intel-oneapi 2>/dev/null
+        
+        # Força o wrapper da Cray a usar a árvore da Intel explicitamente
+        export CRAYPE_LINK_TYPE=dynamic
+        
+        # -assume byterecl: garante alinhamento de bytes para registros de E/S ---> Carol 20AGT2026
+        export FFLAGS="-convert big_endian -assume byterecl ${FFLAGS}"
+        export FCFLAGS="-convert big_endian -assume byterecl ${FCFLAGS}"
+
+	       # --- FLAGS DE COMPATIBILIDADE INTEL PARA O GSI-BAM ---
+        # -no-check: desativa checagem estrita de limites de matrizes (evita o SIGSEGV no LAI)
+        # -relax: relaxa a checagem estrita de tipos de dados em argumentos de sub-rotinas
+        # -convert big_endian: garante a leitura correta dos coeficientes binários do CRTM
+        #export FFLAGS="-convert big_endian -assume byterecl -no-check -relax ${FFLAGS}"
+        #export FCFLAGS="-convert big_endian -assume byterecl -no-check -relax ${FCFLAGS}" 
+	#export FFLAGS="-convert big_endian -assume byterecl -fno-bounds-check -w ${FFLAGS}"
+        #export FCFLAGS="-convert big_endian -assume byterecl -fno-bounds-check -w ${FCFLAGS}"
+	
+	# Como estava --- antes 19AGT2026
+	#module swap PrgEnv-cray PrgEnv-intel
+        #module load PrgEnv-intel
+        
+        # -assume byterecl: garante alinhamento de bytes para registros de E/S
+        #export FFLAGS="-assume byterecl ${FFLAGS}"
+        #export FCFLAGS="-assume byterecl ${FCFLAGS}" 
         
     elif [ "${compiler,,}" == "gnu" ]; then
         module load PrgEnv-gnu
