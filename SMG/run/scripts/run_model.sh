@@ -37,6 +37,15 @@ case $lognode in
     fi
     ;;
 
+  ian*)
+    STR=`uname -a`
+    SUB='jaci'
+    if [[ "$STR" == *"$SUB"* ]]; then
+      echo -n "This will run on JACI Cluster ..."
+      export hpc_name="jaci"
+    fi
+    ;;
+
   *)
     mach=`cat /proc/sys/kernel/hostname`
     echo -n "The configurations for "$mach" is not defined yet !"
@@ -100,6 +109,9 @@ then
      	egeon)  echo "setting to 64"
              	export NPROC=64  # ntasks
 	;;
+	jaci)  echo "setting to 64"
+             	export NPROC=64  # ntasks
+	;;
   	XC50)  	echo "setting to 480"
   		export NPROC=480             	
 	;;
@@ -116,6 +128,9 @@ fi
 
 case ${hpc_name} in
    egeon) tasks_per_node=16
+	        cpus_per_task=8
+	;;
+   jaci) tasks_per_node=16
 	        cpus_per_task=8
 	;;
    XC50)  tasks_per_node=10
