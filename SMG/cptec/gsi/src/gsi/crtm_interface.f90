@@ -1131,7 +1131,9 @@ subroutine call_crtm(obstype,obstime,data_s,nchanl,nreal,ich, &
 ! Constrained indexing for lai
 ! CRTM 2.1 implementation change
 ! ******************************
-  integer(i_kind):: lai_type
+!  integer(i_kind):: lai_type
+! CAROL 25AGT2026
+  integer(i_kind):: lai_type = 0
 
   real(r_kind):: wind10,wind10_direction,windratio,windangle 
   real(r_kind):: w00,w01,w10,w11,kgkg_kgm2,f10,panglr,dx,dy
@@ -1468,7 +1470,14 @@ subroutine call_crtm(obstype,obstime,data_s,nchanl,nreal,ich, &
            center = UpperCase(trim(center_name))
            select case (trim(uppercase(center)))
            case ('CPTEC')
+              !print *, '### [DIAGNOSTICO BAM] Ponto ANTES MAP_BAM_to_CRTM:'
+              !print *, 'itype:', itype 
+              !print *, 'Val lai_type:', lai_type
+                       !'Lat:', data_s(ilate), 'Lon:', data_s(ilone), 'itype:', itype, 'Val:', lai_type
               call map_bam_to_crtm(itype, istype, ChannelInfo(sensorindex)%sensor_type, lai_type, surface(1))
+              !print *, '### [DIAGNOSTICO BAM] Ponto APOS MAP_BAM_to_CRTM:'
+              !print *, 'itype:', itype, 'Val lai_type:', lai_type
+              !print *, 'Lat:', data_s(ilate), 'Lon:', data_s(ilone)
            case default
    ! **NOTE:  The model surface type --> CRTM surface type
    !          mapping below is specific to the versions NCEP
@@ -1551,7 +1560,13 @@ subroutine call_crtm(obstype,obstime,data_s,nchanl,nreal,ich, &
            surface(1)%Lai  = zero
            if (surface(1)%land_coverage>zero) then
               if(lai_type>0)then
+                !print *, '### [DIAGNOSTICO BAM] Ponto com erro GET_LAI:'
+                !print *, 'itype:', itype, 'Val:', lai_type
+                !print *, 'Lat:', data_s(ilate), 'Lon:', data_s(ilone)
                 call get_lai(data_s,nchanl,nreal,itime,ilate,lai_type,lai)
+                !print *, '### [DIAGNOSTICO BAM] Ponto APOS GET_LAI:'
+                !print *, 'itype:', itype, 'Val lai_type:', lai_type, 'Val lai:', lai
+                !print *, 'Lat:', data_s(ilate), 'Lon:', data_s(ilone)
                 surface(1)%Lai  = lai   ! LAI  
               endif     
      
@@ -3153,6 +3168,8 @@ subroutine get_lai(data_s,nchanl,nreal,itime,ilate,lai_type,lai)
   real(r_kind),dimension(2):: lai_season
   real(r_kind)    wei1s, wei2s
   integer(i_kind) n1, n2, mm, mmm, mmp
+! Declara uma variável local para o Bug lai_type (CAROL 24AGT2026)
+  integer(i_kind) :: lai_type_loc
 !
       anal_time=0
       obs_time=0
@@ -3189,16 +3206,29 @@ subroutine get_lai(data_s,nchanl,nreal,itime,ilate,lai_type,lai)
       !lai_season(1) = lai_min(lai_type)
       !lai_season(2) = lai_max(lai_type)
       ! --- PROTEÇÃO CONTRA ÍNDICE INVÁLIDO DO BAM ---
-      if (lai_type < 1 .or. lai_type > 13) then
-         print *, '### [ERRO GSI-BAM] lai_type invalido detectado:', lai_type
-         print *, '### Forcando lai_type = 13 (valor padrao seguro) para evitar crash.'
-         lai_season(1) = lai_min(13)
-         lai_season(2) = lai_max(13)
-      else
-         lai_season(1) = lai_min(lai_type)
-         lai_season(2) = lai_max(lai_type)
-      endif
+      !if (lai_type < 1 .or. lai_type > 13) then
+      !   print *, '### [ERRO GSI-BAM] lai_type invalido detectado:', lai_type
+      !   print *, '### Forcando lai_type = 13 (valor padrao seguro) para evitar crash.'
+      !   lai_season(1) = lai_min(13)
+      !   lai_season(2) = lai_max(13)
+      !else
+      !   lai_season(1) = lai_min(lai_type)
+      !   lai_season(2) = lai_max(lai_type)
+      !endif
       ! -----------------------------------------------
+      !Carol -> 24AGT2026
+      lai_type_loc = lai_type
+      ! --- PROTEÇÃO CONTRA ÍNDICE INVÁLIDO DO BAM ---
+      !if (lai_type < 1 .or. lai_type > 13) then
+      !   print *, '### [ERRO GSI-BAM] lai_type invalido detectado:', lai_type
+      !   print *, '### Forcando lai_type = 13 (valor padrao seguro) para evitar crash.'
+      !   lai_type_loc = 13
+      !endif
+
+      lai_season(1) = lai_min(lai_type_loc)
+      lai_season(2) = lai_max(lai_type_loc)
+      ! -----------------------------------------------
+
       if(data_s(ilate) < 0.0_r_kind) then
          lai = wei1s * lai_season(n2) + wei2s * lai_season(n1)
       else
