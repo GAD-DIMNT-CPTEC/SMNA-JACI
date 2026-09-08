@@ -1,3 +1,4 @@
+
 # Versão SMNA da branch SVN ajustada no GitHub
 
 Repositório de origem no SVN: SMNA_v3.0.0.t12717:  
@@ -106,3 +107,7 @@ Pós:
    ```  
    ./runPos -t 299 -l 64 -I 2025050906 -F 2025051406
    ```
+
+# SMNA-JACI
+Versão do Sistema de Modelagem Numérica e Assimilação do CPTEC desenvolvido para rodar na maquina JACI
+
