@@ -66,7 +66,7 @@ Seguir os passos:
    ./config_smg.ksh compile 
    ```
 
-7. Verifique se todos os executavies estão presentes: Ver a lista abaixo na sequencia, Pre Bam e Pos, GSI, angupdate e inctime.
+7. Verifique se todos os executavies estão presentes: Ver a lista abaixo na sequencia, Pre Bam e Pos, GSI e inctime.
    ```
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG;
    ls cptec/bam/pre/build/ParPre_MPI;
