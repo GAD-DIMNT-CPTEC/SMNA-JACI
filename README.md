@@ -21,14 +21,14 @@ Seguir os passos:
  
    ```
    cd /p/projetos/monan_das/${USER};
-   git clone https://github.com/viezelc/SMNA_v3.t12717.git SMNA_v3.0.0.t12717;
+   git clone https://github.com/GAD-DIMNT-CPTEC/SMNA-JACI.git SMNA_v3.0.0.t12717;
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717;
    ```
 
 3. Apontar para a branch de desenvolvimento da versão para a JACI:
    
    ```
-   git checkout RepoSMNA-JACI;
+   git checkout JACI-SMNAv3;
    ```
 
 4. Depois do repositório clonado fazer o lfs pull (passo importante):
