@@ -73,7 +73,6 @@ Seguir os passos:
    ls cptec/bam/model/build/ParModel_MPI;
    ls cptec/bam/pos/source/POSTIN-GRIB
    ls cptec/bin/gsi.x
-   ls cptec/bin/global_angupdate;
    ls cptec/bin/inctime
    ```
 
