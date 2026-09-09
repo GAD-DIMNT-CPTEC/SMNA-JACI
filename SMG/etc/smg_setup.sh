@@ -248,6 +248,7 @@ configure(){
     "${subt_grh_bam}/dataout"
     "${subt_gsi}/datain"
     "${subt_gsi}/dataout"
+    "${RootDir}/utils/cmake"
   )
   
   echo "Creating necessary directories..."
