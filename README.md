@@ -72,9 +72,9 @@ Seguir os passos:
    ls cptec/bam/pre/build/ParPre_MPI;
    ls cptec/bam/model/build/ParModel_MPI;
    ls cptec/bam/pos/source/POSTIN-GRIB
-   ls /cptec/bin/gsi.x
-   ls /cptec/bin/global_angupdate;
-   ls /cptec/bin/inctime
+   ls cptec/bin/gsi.x
+   ls cptec/bin/global_angupdate;
+   ls cptec/bin/inctime
    ```
 
 8. Testcase para o caso de completar a compilação:
