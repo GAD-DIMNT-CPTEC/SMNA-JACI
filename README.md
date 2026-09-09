@@ -65,14 +65,25 @@ Versão instalada na JACI, seguindo os passos abaixo:
    nohup ./config_smg.ksh compile > compile1.log &
    ```
 
-7. Testcase para o caso de completar a compilação:
+7. Verifique se todos os executavies est�o presentes: Ver a lista abaixo na sequencia, Pre Bam e Pos, GSI, angupdate e inctime.
+   ```
+   cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG;
+   ls cptec/bam/pre/build/ParPre_MPI;
+   ls cptec/bam/model/build/ParModel_MPI;
+   ls cptec/bam/pos/source/POSTIN-GRIB
+   ls /cptec/bin/gsi.x
+   ls /cptec/bin/global_angupdate;
+   ls /cptec/bin/inctime
+   ```
+
+8. Testcase para o caso de completar a compilação:
    ```
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG;
    ./config_smg.ksh testcase
    ```
    Escolher opção [2].
 
-8. Execução do pré na rodada anterior para preparação do ciclo de assimilação:
+9. Execução do pré na rodada anterior para preparação do ciclo de assimilação:
    ```
    cd  /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run;
    ./runPre -t 299 -l 64 -I 2025050900 -n 0 -O -T -G -Gt Netcdf -s
@@ -85,18 +96,19 @@ Versão instalada na JACI, seguindo os passos abaixo:
    ls /p/projetos/monan_das/public/testcaseSMNA/pre/datain
    ```
    
-9. Rodar o Modelo para essa data anterior para preparar os FirstGuess do inicio do ciclo de assimilação:
+10. Rodar o Modelo para essa data anterior para preparar os FirstGuess do inicio do ciclo de assimilação:
    ```
    ./runModel -t 299 -l 64 -I 2025050900 -F 2025050909 -ts 3 -py SMT -px CPT -das -r
    ```
 
-10. Testar o ciclo de assimilação no SMNA  
+11. Testar o ciclo de assimilação no SMNA  
    ```
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/run;
+   chmod 755 ./run_cycle.sh;
    ./run_cycle.sh -t 299 -l 64 -gt 299 -p CPT -I 2025050906 -F 2025050912
    ```
 
-11. ☑️ Arquivos de saída:
+12. ☑️ Arquivos de saída:
     
     ARQUIVOS setout modelo ->  
     modelo: /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam/model/DAS
@@ -108,7 +120,7 @@ Versão instalada na JACI, seguindo os passos abaixo:
     Saídas do GSI: /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/gsi/dataout  
     Saídas do modelo: /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam/model/dataout/TQ0299L064/DAS
 
-12. Pós-processamento das previsões (rodar o Pós):  
+13. Pós-processamento das previsões (rodar o Pós):  
     Obs.: verificar se o arquivo `POSTIN-GRIB.template` encontra-se no diretório `SMG/cptec/bam/run`. Este arquivo foi adicionado recentemente e pode ser encontrado em https://projetos.cptec.inpe.br/projects/smna/repository/revisions/162/entry/branch/SMNA_v3.0.x/SMG/cptec/bam/run/POSTIN-GRIB.template
 
    ↪️ Exemplo para previsão de 5 dias: ⬇️

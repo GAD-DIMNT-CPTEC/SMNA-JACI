@@ -387,7 +387,7 @@ compile(){
   vars_export
   echo "[INFO] Starting compilation..."
   
-  # Verify necessary directories
+  # Verify necessary direc'tories
   [[ ! -d ${home_cptec}/bin ]] && mkdir -p ${home_cptec}/bin
 
   #if [[ ${HOSTNAME:0:1} == 'e' ]] && [[ ${HOSTNAME} != "eslogin01" && ${HOSTNAME} != "eslogin02" ]]; then
@@ -508,7 +508,7 @@ testcase(){
   done
   read answer
 
-  anlfile=$(ls -1 ${public_bam}/PRE/datain/${year[$answer]}/ncep_anl/gdas*|head -n 1)
+  anlfile=$(ls -1 ${public_bam}/PRE/datain/${year[$answer]}/ncep_anl/gdas*0509*)
   cp -pvfrL ${anlfile} ${subt_pre_bam}/datain/
   cp -pvfrL ${public_bam}/PRE/datain/${year[${answer}]}/sst/* ${subt_pre_bam}/datain/
 #  cp -pvfrL ${public_bam}/PRE/datain/${year[${answer}]}/sno/* ${subt_pre_bam}/datain/

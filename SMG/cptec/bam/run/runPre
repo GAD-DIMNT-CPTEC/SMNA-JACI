@@ -569,7 +569,7 @@ case ${hpc_name} in
          } > "${dirExec}/pre.pbs"
 
 	 # submit Job
-         echo -ne "\033[34;1m Running BAM \033[m"
+         echo -ne "\033[34;1m Running preBAM \033[m"
      
          cd ${dirExec}
      
@@ -606,7 +606,7 @@ case ${hpc_name} in
          } > "${dirExec}/pre.qsb"
          
          # submit Job
-         echo -ne "\033[34;1m Running BAM \033[m"
+         echo -ne "\033[34;1m Running preBAM \033[m"
      
          cd ${dirExec}
      
