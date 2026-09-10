@@ -1,0 +1,28 @@
+#
+#  $Author: pkubota $
+#  $Date: 2006/10/30 18:42:06 $
+#  $Revision: 1.2 $
+#
+# $Id: Makefile.sx6,v 1.2 2006/10/30 18:42:06 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for SX6 Unix 4.0 and above
+#
+
+F90=sxf90
+AR=sxar
+FTRACE= 
+OPENMP=
+F90_32FLAGS = -Wf"-pvctl noassume vwork=stack"
+F90_32BITS = $(FTRACE) $(OPENMP) 
+LOADFLAG= -Wl"-Z 4G" 
+
+# OPTIONS FOR POS
+
+F77	= sxf90
+FFLAGS	= 
+CFLAGS	= -DSX6
+ARFLAGS	= 
+CC	= sxcc
+
+include Makefile.common

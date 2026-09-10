@@ -1,0 +1,342 @@
+#!/bin/ksh
+###############################################################################
+# CPTEC OPERATION launcher – EnvironmentalVariablesMCGA.ksh                    #
+#                                                                             #
+# Spectral resolution : ZZZZ (4 digits) | Vertical resolution : XXX (3 digits)#
+###############################################################################
+# Usage examples                                                               #
+#   source ./EnvironmentalVariablesMCGA.ksh            # normal mode          #
+#   source ./EnvironmentalVariablesMCGA.ksh -n         # DRY-RUN (no actions) #
+###############################################################################
+
+#IFS=$'\n\t'
+
+###############################################################################
+# Global flags
+###############################################################################
+DRYRUN=false      # set to 'true' when -n/--dry-run is passed
+verbose=false     # set to 'true' when -v is passed
+
+###############################################################################
+# Helper: printf wrapper that honours DRYRUN
+###############################################################################
+_run() {
+  if ${DRYRUN}; then
+      printf '[DRY-RUN] %s\n' "$*"
+  else
+      eval "$*"
+  fi
+}
+
+###############################################################################
+# Function: check_cmd                                                         #
+###############################################################################
+check_cmd() {
+  if ! command -v "$1" > /dev/null 2>&1; then
+    echo "ERROR: Comando '$1' não encontrado."
+    exit 1
+  fi
+}
+
+
+###############################################################################
+# Function: detect_hpc_system                                                  #
+###############################################################################
+detect_hpc_system() {
+    # keep existing variable names
+    args=$@                       # save arguments
+    while (( $# )); do            # local verbose override
+        case $1 in
+            -v) verbose=true ;;
+        esac
+        shift
+    done
+    set -- ${args}
+
+    local sys_info
+    sys_info=$(uname -a)
+    local short_hostname
+    short_hostname=$(hostname -s)
+
+    if printf '%s' "$sys_info" | grep -qi 'cray_ari_s'; then
+        export hpc_system="cray"
+        export hpc_name="xc50"
+        export WRAPPER="ftn"
+        [[ ${verbose} == true ]] && printf '[INFO] Detected: Cray XC50\n'
+        return 0
+
+    elif printf '%s' "$sys_info" | grep -qi 'egeon'; then
+        export hpc_system="linux"
+        export hpc_name="egeon"
+        export WRAPPER="mpif90"
+        export LC_ALL="en_US.UTF-8"
+        [[ ${verbose} == true ]] && printf '[INFO] Detected: EGEON Cluster\n'
+        return 0
+
+    elif printf '%s' "$short_hostname" | grep -qi 'headnode'; then
+        export hpc_system="linux"
+        export hpc_name="egeon"
+        export WRAPPER="mpif90"
+        export LC_ALL="en_US.UTF-8"
+        [[ ${verbose} == true ]] && \
+            printf '[WARN]  Detected: HEADNODE EGEON Cluster (build-only)\n'
+        return 0
+
+    elif printf '%s' "$sys_info" | grep -qi 'Linux ian'; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        [[ ${verbose} == true ]] && printf '[INFO] Detected: JACI Cluster'
+	return 0
+	
+    else
+        printf '[ERROR] Unknown machine: %s\n' "$short_hostname"
+        printf '[ACTION] 1) Add the machine under etc/mach/\n'
+        printf '[ACTION] 2) Create an entry in copy_fixed_files (etc/smg_setup.sh)\n'
+        return 1
+    fi
+}
+
+###############################################################################
+# Function: getBAMSize                                                        #
+###############################################################################
+getBAMSize() {
+    local trunc=$1
+
+    case ${trunc} in
+        21)   IM=64;   JM=32;   TimeStep=3600  ;; #  1 step /h
+        31)   IM=96;   JM=48;   TimeStep=1800  ;; #  2 steps/h
+        42)   IM=128;  JM=64;   TimeStep=1200  ;; #  3 steps/h
+        62)   IM=192;  JM=96;   TimeStep=900   ;; #  4 steps/h
+        106)  IM=320;  JM=160;  TimeStep=600   ;; #  6 steps/h
+        126)  IM=384;  JM=192;  TimeStep=450   ;; #  8 steps/h
+        133)  IM=400;  JM=200;  TimeStep=450   ;;
+        159)  IM=480;  JM=240;  TimeStep=360   ;;
+        170)  IM=512;  JM=256;  TimeStep=360   ;;
+        213)  IM=640;  JM=320;  TimeStep=300   ;;
+        254)  IM=768;  JM=384;  TimeStep=240   ;;
+        299)  IM=900;  JM=450;  TimeStep=200   ;;
+        319)  IM=960;  JM=480;  TimeStep=180   ;;
+        341)  IM=1024; JM=512;  TimeStep=180   ;;
+        382)  IM=1152; JM=576;  TimeStep=150   ;;
+        511)  IM=1536; JM=768;  TimeStep=120   ;;
+        533)  IM=1600; JM=800;  TimeStep=120   ;;
+        666)  IM=2000; JM=1000; TimeStep=90    ;;
+        863)  IM=2592; JM=1296; TimeStep=60    ;;
+        1279) IM=3840; JM=1920; TimeStep=20    ;;
+        1332) IM=4000; JM=2000; TimeStep=20    ;;
+        *) printf '[ERROR] Unknown spectral truncation: %s\n' "${trunc}"; return 1 ;;
+    esac
+}
+
+#-------------------------------------------------------------------#
+#  getMPIinfo                                                        #
+#-------------------------------------------------------------------#
+#BOP
+# !DESCRIPTION:
+#     Derives a consistent MPI × OpenMP layout (tasks, threads, nodes)
+#     for the current HPC system.  Values are exported in variables
+#        MPITasks, ThreadsPerMPITask, TotalCPUs, Nodes, CoresPerNode
+#     so that downstream scripts (job‑headers, launchers) can map them
+#     1‑to‑1 onto SLURM options:
+#         --ntasks=$MPITasks           (--tasks   in some schedulers)
+#         --cpus-per-task=$ThreadsPerMPITask
+#         --nodes=$Nodes
+#
+# !INPUT FLAGS (parsed inside the function):
+#     -np | --ntasks       <val>   # explicit number of MPI ranks
+#     -d  | --cpus-per-task <val>  # threads per rank (OpenMP)
+#     -N  | --nodes         <val>  # force number of nodes
+#     -c  | --cores-per-node <val> # override machine default
+#     -P  | --procs         <val>  # TOTAL cores desired (derive others)
+#
+# !MACHINE DEFAULTS (can be overridden by flags or env vars):
+#     EGEON :  MPITasks=128  CoresPerNode=128  ThreadsPerMPITask=1
+#     XC50  :  MPITasks=40   CoresPerNode=40   ThreadsPerMPITask=1
+#     → These defaults yield a **pure‑MPI layout** (one rank per core, no OpenMP).
+#
+# !ALGORITHM:
+#   1) Detect HPC (detect_hpc_system) → sets $hpc_name
+#   2) Apply machine defaults, then override with user flags
+#   3) If -P was supplied, back‑compute MPITasks = ⌈P / threads⌉
+#   4) Compute:
+#        TotalCPUs = MPITasks × ThreadsPerMPITask
+#        Nodes     = ⌈TotalCPUs / CoresPerNode⌉   (unless user gave -N)
+#   5) Echo a human‑readable summary.
+#
+# !RETURN VALUE:
+#     0 on success; 1 on unknown machine / invalid combo.
+#EOP
+getMPIinfo() {
+
+    #-----------------------------------------------------------------
+    # 1. Detect machine (sets $hpc_name); abort on failure
+    #-----------------------------------------------------------------
+    detect_hpc_system || return 1
+
+    #-----------------------------------------------------------------
+    # 2. Machine defaults  (pure‑MPI: 1 rank / core)
+    #-----------------------------------------------------------------
+    local hpc=${hpc_name,,}          # lower‑case copy
+    case $hpc in
+        egeon) MPITasks=${MPITasks:-128}; CoresPerNode=${CoresPerNode:-128};;
+	jaci)  MPITasks=${MPITasks:-128}; CoresPerNode=${CoresPerNode:-128};;
+        xc50)  MPITasks=${MPITasks:-40};  CoresPerNode=${CoresPerNode:-40};;
+        *)     printf '[ERROR] Unknown HPC: %s\n' "$hpc"; return 1;;
+    esac
+    ThreadsPerMPITask=${ThreadsPerMPITask:-1}
+    MaxCoresPerNode=$CoresPerNode         # legacy alias
+
+    #-----------------------------------------------------------------
+    # 3. Parse user overrides
+    #-----------------------------------------------------------------
+    local TotalCoresRequested='' args=("$@")
+    while (( $# )); do
+        case $1 in
+            -np|--ntasks)          MPITasks=$2;           shift 2 ;;
+            -d|--cpus-per-task)    ThreadsPerMPITask=$2;  shift 2 ;;
+            -N|--nodes)            Nodes=$2;              shift 2 ;;
+            -c|--cores-per-node)   CoresPerNode=$2; MaxCoresPerNode=$2; shift 2 ;;
+            -P|--procs)            TotalCoresRequested=$2; shift 2 ;;
+            -v|--verbose)     verbose=true; shift 1 ;;
+            *)  printf '\033[33;1m[WARN]\033[0m Unknown arg: %s\n' "$1"; shift ;;
+        esac
+    done
+    set -- "${args[@]}"   # restore $* just in case
+
+    #-----------------------------------------------------------------
+    # 4. Derive layout when -P (total logical cores) is supplied
+    #-----------------------------------------------------------------
+    if [[ -n $TotalCoresRequested ]]; then
+        (( ThreadsPerMPITask <= 0 )) && ThreadsPerMPITask=1
+        MPITasks=$(( (TotalCoresRequested + ThreadsPerMPITask - 1) / ThreadsPerMPITask ))
+    fi
+
+    #-----------------------------------------------------------------
+    # 5. Final totals
+    #-----------------------------------------------------------------
+    TotalCPUs=$(( MPITasks * ThreadsPerMPITask ))
+
+    # Nodes: user‑forced (-N) or auto ceil‑division
+    : "${Nodes:=$(( (TotalCPUs + CoresPerNode - 1) / CoresPerNode ))}"
+
+    # Tasks per node – recomputed from final numbers
+    TasksPerNode=$(( (MPITasks + Nodes - 1) / Nodes ))      # ceil(MPI / nodes)
+
+    # Sanity: do not exceed physical capacity
+    local max_tasks_per_node=$(( CoresPerNode / ThreadsPerMPITask ))
+    if (( TasksPerNode > max_tasks_per_node )); then
+        printf '\e[31;1m[ERROR]\e[0m Over‑subscription: %d tasks × %d threads > %d cores / node\n' \
+               "$TasksPerNode" "$ThreadsPerMPITask" "$CoresPerNode"
+        return 1
+    fi
+
+    PEs=$MPITasks   # legacy variable
+
+    if [ "${verbose}" == true ]; then
+
+        #-----------------------------------------------------------------
+        # 6. User summary
+        #-----------------------------------------------------------------
+        printf '[INFO] MPI/OpenMP layout resolved:\n'
+        printf '       MPI ranks (MPITasks)     : %d\n' "$MPITasks"
+        printf '       Threads per rank (-d)    : %d\n' "$ThreadsPerMPITask"
+        printf '       Total logical cores      : %d\n' "$TotalCPUs"
+        printf '       Cores per node           : %d\n' "$CoresPerNode"
+        printf '       Compute nodes            : %d\n' "$Nodes"
+        printf '       Tasks per node           : %d\n' "$TasksPerNode"
+        printf '       SLURM flags              : --nodes=%d --ntasks=%d --cpus-per-task=%d\n' \
+               "$Nodes" "$MPITasks" "$ThreadsPerMPITask"
+    
+        # PBS/Torque shorthand (optional)
+        printf '       PBS   flags              : -l select=%d:ncpus=%d:mpiprocs=%d:ompthreads=%d\n' \
+               "$Nodes" "$CoresPerNode" "$TasksPerNode" "$ThreadsPerMPITask"
+
+    fi
+
+    return 0
+}
+#EOC
+
+###############################################################################
+# Detect HPC system immediately; abort on failure
+###############################################################################
+detect_hpc_system || { printf '[FATAL] detect_hpc_system failed – aborting.\n'; return 1; }
+
+###############################################################################
+# Paths – DO NOT EDIT the 3 lines below; they are replaced by another script! #
+###############################################################################
+export HOMEBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+export SUBTBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+export WORKBASE="/p/projetos/monan_das/caroline.viezel/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+###############################################################################
+
+###############################################################################
+# External data directories (per machine)
+###############################################################################
+case ${hpc_name} in
+    xc50)   dadosExternos=/lustre_xc50/ioper/data/external ;;
+    egeon)  dadosExternos=/oper/dados/ioper/tempo/NCEP/input
+            dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos ;;
+    jaci)   dadosExternos=/oper/dados/ioper/tempo/NCEP/input
+            dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos ;;
+    eslogin*) dadosExternos=/stornext/oper/tempo/externos/Download ;;
+esac
+export dadosExternos dadosUmidSolo
+
+###############################################################################
+# Executables & utilities
+###############################################################################
+export preEXEC=ParPre_MPI
+export bamEXEC=ParModel_MPI
+export posEXEC=ParPos_MPI
+
+export caldate=${HOMEBASE}/utils/bin/caldate.3.0.1
+export inctime=inctime
+
+# shell-helper library (provides inctime built in bash)
+source "${HOMEBASE}/../../run/smg_functions.sh"
+
+# GrADS / wgrib utilities per machine
+case ${hpc_name} in
+    xc50)
+        DIRGRADS=/opt/grads/2.0.a9/bin
+        wgrib1=/cray_home/local/grads/grads-2.0.2.oga.2/bin/wgrib
+        wgrib2=/cray_home/local/grib2/wgrib2/wgrib2
+        ;;
+    eslogin*)
+        DIRGRADS=/opt/grads/2.1.a1/bin
+        wgrib1=${DIRGRADS}/wgrib
+        wgrib2=${DIRGRADS}/wgrib2
+        ;;
+    egeon)
+        DIRGRADS=/opt/ohpc/pub/apps/grads/2.2.1/bin
+        wgrib1=/home/ioper/bin/grib2/wgrib/wgrib
+        wgrib2=/home/ioper/bin/grib2/wgrib2/wgrib2
+        ;;
+    jaci)
+	echo -e "[INFO] hpc JACI: define caminhos do DIRGRADS e wgrib 1 e 2."
+        DIRGRADS=/p/app/opengrads/2.2.1.oga.1 
+        wgrib1=/lustre/app/wgrib2/deps/install/bin/wgrib 
+        wgrib2=/lustre/app/wgrib2/deps/install/bin/wgrib2 
+        ;;
+    *)
+        echo -e "\033[31;1m[ERROR]\033[m hpc_name '${hpc_name}' não reconhecido."
+        exit 1
+        ;;
+esac
+export DIRGRADS wgrib1 wgrib2
+
+###############################################################################
+# PBS/SLURM generic environment
+###############################################################################
+export QUOTA=CPTEC
+export PBS_TUPA=eslogin13
+export PBS_AUX=pesq
+export HSTMAQ=$(uname -n)
+export MAQUI=$(uname -s)
+export tmstp=$(date +'%s')
+
+[[ ${verbose} == true ]] && printf '[INFO] EnvironmentVariablesMCGA loaded (DRY-RUN=%s)\n' "${DRYRUN}"
+

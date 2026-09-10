@@ -1,0 +1,263 @@
+LIB	= rrtmg_lw.a
+
+.SUFFIXES: .o .f90 .F90 .c
+#
+# *****************************************************************
+#
+
+OBJS	= \
+	shr_kind_mod.o \
+	shr_const_mod.o \
+	abortutils.o \
+	radconstants.o\
+	parrrtm.o \
+	rrlw_cld.o \
+	rrlw_con.o \
+	rrlw_kg01.o \
+	rrlw_kg02.o \
+	rrlw_kg03.o \
+	rrlw_kg04.o \
+	rrlw_kg05.o \
+	rrlw_kg06.o \
+	rrlw_kg07.o \
+	rrlw_kg08.o \
+	rrlw_kg09.o \
+	rrlw_kg10.o \
+	rrlw_kg11.o \
+	rrlw_kg12.o \
+	rrlw_kg13.o \
+	rrlw_kg14.o \
+	rrlw_kg15.o \
+	rrlw_kg16.o \
+	rrlw_ref.o \
+	rrlw_tbl.o \
+	rrlw_vsn.o \
+	rrlw_wvn.o \
+	rrtmg_lw_cldprop.o \
+	lw_kgb01.o \
+	lw_kgb02.o \
+	lw_kgb03.o \
+	lw_kgb04.o \
+	lw_kgb05.o \
+	lw_kgb06.o \
+	lw_kgb07.o \
+	lw_kgb08.o \
+	lw_kgb09.o \
+	lw_kgb10.o \
+	lw_kgb11.o \
+	lw_kgb12.o \
+	lw_kgb13.o \
+	lw_kgb14.o \
+	lw_kgb15.o \
+	lw_kgb16.o \
+	rrtmg_lw_taumol.o \
+	rrtmg_lw_setcoef.o \
+	rrtmg_lw_rtrnmr.o \
+	rrtmg_lw_rtrn.o \
+	rrtmg_lw_init.o \
+	rrtmg_lw_cldprmc.o\
+	mcica_subcol_gen_lw.o\
+	mcica_random_numbers.o \
+	rrtmg_lw_rtrnmc.o \
+	rrtmg_lw_rad.o \
+	radlw.o
+
+SRC	= $(OBJ_MOD:.o=.f90) $(OBJS:.o=.f90)
+#
+# *****************************************************************
+#
+
+$(LIB): $(OBJ_MOD) $(OBJS)
+	$(AR) $(ARFLAGS) $(LIB) $(OBJ_MOD) $(OBJS)
+
+clean:
+	rm -f $(OBJ_MOD) $(OBJS)  *.mod *.a *"~" shr_kind_mod.o shr_kind_mod.mod Makefile.*_* \
+				mcica_random_numbers.o mcica_random_numbers.mod abortutils.o abortutils.mod
+
+shr_kind_mod.o	:	../../csm_share/shr/shr_kind_mod.f90
+	$(F90) -c ../../csm_share/shr/shr_kind_mod.f90
+
+shr_const_mod.o	:	../../csm_share/shr/shr_const_mod.f90 shr_kind_mod.o
+	$(F90) -c ../../csm_share/shr/shr_const_mod.f90
+
+abortutils.o	:	../../csm_share/shr/abortutils.f90 shr_kind_mod.o
+	$(F90) -c ../../csm_share/shr/abortutils.f90
+
+radconstants.o	:	radconstants.f90 shr_kind_mod.o abortutils.o
+	$(F90) -c radconstants.f90
+
+parrrtm.o	:	parrrtm.f90
+	$(F90) -c parrrtm.f90
+
+rrlw_cld.o	:	rrlw_cld.f90 shr_kind_mod.o
+	$(F90) -c rrlw_cld.f90
+
+rrlw_con.o	:	rrlw_con.f90 shr_kind_mod.o
+	$(F90) -c rrlw_con.f90
+
+rrlw_kg01.o	:	rrlw_kg01.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg01.f90
+
+rrlw_kg02.o	:	rrlw_kg02.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg02.f90
+
+rrlw_kg03.o	:	rrlw_kg03.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg03.f90
+
+rrlw_kg04.o	:	rrlw_kg04.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg04.f90
+
+rrlw_kg05.o	:	rrlw_kg05.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg05.f90
+
+rrlw_kg06.o	:	rrlw_kg06.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg06.f90
+
+rrlw_kg07.o	:	rrlw_kg07.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg07.f90
+
+rrlw_kg08.o	:	rrlw_kg08.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg08.f90
+
+rrlw_kg09.o	:	rrlw_kg09.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg09.f90
+
+rrlw_kg10.o	:	rrlw_kg10.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg10.f90
+
+rrlw_kg11.o	:	rrlw_kg11.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg11.f90
+
+rrlw_kg12.o	:	rrlw_kg12.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg12.f90
+
+rrlw_kg13.o	:	rrlw_kg13.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg13.f90
+
+rrlw_kg14.o	:	rrlw_kg14.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg14.f90
+
+rrlw_kg15.o	:	rrlw_kg15.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg15.f90
+
+rrlw_kg16.o	:	rrlw_kg16.f90 shr_kind_mod.o
+	$(F90) -c rrlw_kg16.f90
+
+rrlw_ref.o	:	rrlw_ref.f90 shr_kind_mod.o
+	$(F90) -c rrlw_ref.f90
+
+rrlw_tbl.o	:	rrlw_tbl.f90 shr_kind_mod.o
+	$(F90) -c rrlw_tbl.f90
+
+rrlw_vsn.o	:	rrlw_vsn.f90 shr_kind_mod.o
+	$(F90) -c rrlw_vsn.f90
+
+rrlw_wvn.o	:	rrlw_wvn.f90 shr_kind_mod.o parrrtm.o
+	$(F90) -c rrlw_wvn.f90
+
+rrtmg_lw_cldprop.o	:	rrtmg_lw_cldprop.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_cld.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_cldprop.f90
+
+lw_kgb01.o	:	lw_kgb01.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg01.o 
+	$(F90) -c lw_kgb01.f90
+
+lw_kgb02.o	:	lw_kgb02.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg02.o 
+	$(F90) -c lw_kgb02.f90
+
+lw_kgb03.o	:	lw_kgb03.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg03.o 
+	$(F90) -c lw_kgb03.f90
+
+lw_kgb04.o	:	lw_kgb04.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg04.o 
+	$(F90) -c lw_kgb04.f90
+
+lw_kgb05.o	:	lw_kgb05.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg05.o 
+	$(F90) -c lw_kgb05.f90
+
+lw_kgb06.o	:	lw_kgb06.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg06.o 
+	$(F90) -c lw_kgb06.f90
+
+lw_kgb07.o	:	lw_kgb07.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg07.o 
+	$(F90) -c lw_kgb07.f90
+
+lw_kgb08.o	:	lw_kgb08.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg08.o 
+	$(F90) -c lw_kgb08.f90
+
+lw_kgb09.o	:	lw_kgb09.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg09.o 
+	$(F90) -c lw_kgb09.f90
+
+lw_kgb10.o	:	lw_kgb10.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg10.o 
+	$(F90) -c lw_kgb10.f90
+
+lw_kgb11.o	:	lw_kgb11.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg11.o 
+	$(F90) -c lw_kgb11.f90
+
+lw_kgb12.o	:	lw_kgb12.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg12.o 
+	$(F90) -c lw_kgb12.f90
+
+lw_kgb13.o	:	lw_kgb13.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg13.o 
+	$(F90) -c lw_kgb13.f90
+
+lw_kgb14.o	:	lw_kgb14.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg14.o 
+	$(F90) -c lw_kgb14.f90
+
+lw_kgb15.o	:	lw_kgb15.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg15.o 
+	$(F90) -c lw_kgb15.f90
+
+lw_kgb16.o	:	lw_kgb16.f90 shr_kind_mod.o rrlw_vsn.o rrlw_kg16.o 
+	$(F90) -c lw_kgb16.f90
+
+rrtmg_lw_taumol.o	:	rrtmg_lw_taumol.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_con.o rrlw_wvn.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_taumol.f90
+
+rrtmg_lw_setcoef.o	:	rrtmg_lw_setcoef.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_wvn.o rrlw_ref.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_setcoef.f90
+
+rrtmg_lw_rtrnmr.o	:	rrtmg_lw_rtrnmr.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_rtrnmr.f90
+
+rrtmg_lw_rtrn.o	:	rrtmg_lw_rtrn.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_rtrn.f90
+
+rrtmg_lw_init.o	:	rrtmg_lw_init.f90 shr_kind_mod.o parrrtm.o rrlw_tbl.o rrlw_con.o \
+			 shr_const_mod.o rrlw_cld.o  rrlw_vsn.o rrlw_wvn.o rrtmg_lw_setcoef.o \
+			 rrlw_kg01.o rrlw_kg02.o rrlw_kg03.o rrlw_kg04.o rrlw_kg05.o \
+			 rrlw_kg06.o rrlw_kg07.o rrlw_kg08.o rrlw_kg09.o rrlw_kg10.o \
+			 rrlw_kg11.o rrlw_kg12.o rrlw_kg13.o rrlw_kg14.o rrlw_kg15.o \
+			 rrlw_kg16.o 
+	$(F90) -c rrtmg_lw_init.f90
+
+mcica_random_numbers.o	:	../../ext/rrtmg_mcica/mcica_random_numbers.f90 shr_kind_mod.o
+	$(F90) -c ../../ext/rrtmg_mcica/mcica_random_numbers.f90
+
+mcica_subcol_gen_lw.o	:	../../ext/rrtmg_mcica/mcica_subcol_gen_lw.f90 parrrtm.o shr_kind_mod.o abortutils.o\
+		rrlw_con.o rrlw_wvn.o rrlw_vsn.o abortutils.o mcica_random_numbers.o
+	$(F90) -c ../../ext/rrtmg_mcica/mcica_subcol_gen_lw.f90
+
+rrtmg_lw_cldprmc.o	:	rrtmg_lw_cldprmc.f90 parrrtm.o shr_kind_mod.o \
+		rrlw_cld.o rrlw_wvn.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_cldprmc.f90
+
+rrtmg_lw_rtrnmc.o	:	rrtmg_lw_rtrnmc.f90 shr_kind_mod.o parrrtm.o \
+			rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
+	$(F90) -c rrtmg_lw_rtrnmc.f90
+
+
+rrtmg_lw_rad.o	:	rrtmg_lw_rad.f90 parrrtm.o shr_kind_mod.o \
+		rrlw_vsn.o mcica_subcol_gen_lw.o rrtmg_lw_cldprop.o rrtmg_lw_rtrn.o rrtmg_lw_rtrnmr.o \
+		rrtmg_lw_setcoef.o rrtmg_lw_taumol.o rrlw_con.o rrlw_wvn.o rrtmg_lw_rtrnmc.o
+	$(F90) -c rrtmg_lw_rad.f90
+
+radlw.o	:	radlw.f90 rrtmg_lw_rad.o parrrtm.o shr_kind_mod.o shr_const_mod.o \
+		rrlw_vsn.o mcica_subcol_gen_lw.o rrtmg_lw_cldprop.o rrtmg_lw_rtrn.o rrtmg_lw_rtrnmr.o \
+		rrtmg_lw_setcoef.o rrtmg_lw_taumol.o rrlw_con.o rrlw_wvn.o rrtmg_lw_rtrnmc.o radconstants.o
+	$(F90) -c radlw.f90
+
+.F90.o:
+	$(F90) $(FFLAGS) -c -d $< 
+.f90.o:
+	$(F90) $(FFLAGS) -c $< 

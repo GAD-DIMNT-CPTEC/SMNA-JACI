@@ -1,0 +1,442 @@
+===============================================================================
+HISTORICO:
+  OBJETIVO: 
+    Documentar todas as alteracoes nos arquivos do controle de versao
+  METODOLOGIA:
+   - Toda alteracao a ser incluida no controle de versoes devera ser comentada
+     nesta arquivo. Para simplicidade de uso, pede-se somente a data, o autor
+     e a mensagem utilizada no comando commit do cvs para o cabecalho.
+   - Este cabecalho deve ser copiado e alterado de acordo com a atualizacao.
+   - Apos o cabecalho deve ser incluido os comentarios sobre as alteracoes.
+
+  OBSERVACAO GERAL:
+   - Inclua seu historico no final destas instrucoes e antes do primeiro 
+     comentario. Desta forma, a alteracao mais recente estara' sempre no
+     inicio do arquivo e ao avancar a leitura dos historicos, tem-se 
+     acesso `as modificacoes mais recentes.
+
+Inclua seus comentarios apos esta linha, deixando os comentarios mais
+velhos abaixo.
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  15/07/2009 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao do tabela tab1.dat 2 PostLoop.f90"
+===============================================================================
+ MODULOS :
+
+  Correcao das variaveis com niveis de 2 e 10 metros acima da superficie
+
+  Modulo  PostLoop.f90
+  Na linha 1908 do modulo PostLoop foi substituido 
+     iiplev  =table2(k)%id
+  Por
+     iiplev  =table2(k)%p2
+  
+  Tabela tab1.dat 
+   subistituicao de 
+   Q02M | 199 | SPECIFIC HUMIDITY AT 2-M FROM SURFACE      | KG/KG            | float | sfc    | -999 | 16 |   |   |
+   Por
+   Q02M | 199 | SPECIFIC HUMIDITY AT 2-M FROM SURFACE      | KG/KG            | float | sfc2m  | -999 | 16 |   |   |
+   
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  02/07/2009 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao do Makefile.common da biblioteca wgrib"
+===============================================================================
+ MODULOS :
+
+  Substituicao de ar por $(AR) no Makefile.common
+
+  Ajuste da data no Modulo :FileGrib.f90
+  IF(yy_fct >= 2000) THEN
+
+  IF(yy_anl > 2000) THEN
+ 
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  02/10/2008 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "atualizacao da tabelas rfd e tab1"
+===============================================================================
+ MODULOS :
+
+     datain/rfd.clm
+     datain/tab1.dat 
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  21/11/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "bugs no posgrib"
+===============================================================================
+ MODULOS : 
+    FileGrib.f90
+
+   kpds(5)=table1(itab1)%id
+   kpds(6)=table2(itab2)%default
+!    if(l.eq.1)kpds(7)=table2(itab2)%id           ! levels
+   if(l.eq.1)kpds(7)=table2(itab2)%p2
+  END IF
+
+    mod_tables.f90
+
+
+       ELSE IF(k==2) THEN
+
+READ(63,FMT='(A8,3X,A26,2X,A8,3X,A6,3X,A4,3X,I4,2X,I2,2X,I3,3X,I2)') &
+! <---------
+                       table2(i)%level_type,   &
+                       table2(i)%level_descr,  &
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  31/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "correcao do modulo filegrib"
+===============================================================================
+ MODULOS : 
+    FileGrib.f90
+
+   do i=1,kf
+   if(bfr4(i)<=1.e-15_r4.and.bfr4(i)>=-1.e-15_r4)bfr4(i)=0._r4	! underflow if << 0., USE double precision
+!    IF ( bfr4(i) <=1.e-15 ) then
+!           bfr4(i) = 0.0
+!    ENDIF
+   enddo					! but w3lib should be in double precision
+
+
+
+
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  26/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "automatizacao do parametro kpds no namelist"
+===============================================================================
+ MODULOS : 
+    FileGrib.f90
+
+!
+! kpds(13) indicator of forecast time unit (warning should be automatic)
+! 1 hour, 2 day, 3 month, 4 year, ... ON388 TABLE 4
+! 10 3 hours, 11 6 hours, 12 12 hours, etc ...
+! for CPTEC ensemble output is 6 hours
+!
+!Code Meaning table 4
+!   0 Minute 
+!   1 Hour 
+!   2 Day 
+!   3 Month 
+!   4 Year 
+!   5 Decade  (10 years) 
+!   6 Normal  (30 years) 
+!   7 Century (100 years) 
+! 8-9 Reserved 
+!  10 3 hours 
+!  11 6 hours 
+!  12 12 hours 
+!  13-253 Reserved 
+! 254 Second 
+
+
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  24/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao na subrotina putgben para o ensamble"
+===============================================================================
+ MODULOS : 
+    putgben.f90
+
+      IF(IPDS(24).EQ.2) THEN
+        ILAST=45
+        CALL PDSENS(KENS,KPROB,XPROB,KCLUST,KMEMBR,ILAST,PDS)
+      ENDIF
+
+Para 
+
+!!!!
+!!!!   FOR CPTEC PRODUCTS 
+!!!!
+!!!!      IF(IPDS(24).EQ.2) THEN
+        ILAST=45
+        CALL PDSENS(KENS,KPROB,XPROB,KCLUST,KMEMBR,ILAST,PDS)
+!!!!   
+!!!!   FOR CPTEC PRODUCTS
+!!!!
+!!!!      ENDIF
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  18/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Padronizacao da extensao dos arquivos pos-preocessados"
+===============================================================================
+===============================================================================
+ MODULOS
+    FileAccess.f90 PostLoop.f90
+
+
+
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  18/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao da lista lst escrita pelo pos"
+
+===============================================================================
+ MODULOS
+    FileAccess.f90
+
+
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  15/10/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Introducao do pos-processamento do ensamble feita por Julio Pablo"
+
+===============================================================================
+ MODULOS
+    Correcao nan w3fi74.f
+     ---
+     >       ICOMP   = ISHFT(ICOMP,3)
+     >       GDS(17) = CHAR(IOR(IGDS(8),ICOMP))
+
+----------- 
+      
+     < C hmjb - 5 Oct 2007 
+     < C Bug fix in AMD64/INTEL64 compilers
+     < C ICOMP value should not be modified outside this routine!
+     < C      ICOMP   = ISHFT(ICOMP,3)
+     < C      GDS(17) = CHAR(IOR(IGDS(8),ICOMP))
+     <       ICOMP2   = ISHFT(ICOMP,3)
+     <       GDS(17) = CHAR(IOR(IGDS(8),ICOMP2))
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  14/08/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "correcao do seculo de referencia e da resolucao latitudinal"
+
+===============================================================================
+ MODULOS
+  FileGrib.f90 modificacao
+
+  kgds(10)=180000/(kgds(3)-1)             ! resolution lat 
+
+  IF(yy_anl >= 2000) THEN
+  kpds(8) =yy_fct-2000         ! YEAR INCLUDING (CENTURY-1) yy_anl
+  ELSE
+  kpds(8) =yy_fct-1900         ! YEAR INCLUDING (CENTURY-1) yy_anl  
+  END IF
+
+ 
+  IF(yy_anl >= 2000) THEN
+  kpds(21)=21              ! CENTURY OF REFERENCE TIME OF DATA
+  ELSE
+  kpds(21)=20              ! CENTURY OF REFERENCE TIME OF DATA
+  END IF
+
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  14/08/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "atualizacao para pos-processamento para grade Linear e Quadratica"
+
+===============================================================================
+ MODULOS
+  Constants.f90
+  FileAccess.f90
+  PrblSize.f90
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  14/08/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "atualizacao da implementacao da interpolacao linear para diferentes resolucoes"
+
+===============================================================================
+ MODULOS
+  FileGrib.f90 
+  PostLoop.f90
+  Constants.f90
+  Constants.f90
+  RegInterp.f90
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  06/03/2007 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "correcao para a grade  regular "
+
+===============================================================================
+ MODULOS
+  FileGrib.f90 
+  PostLoop.f90
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  30/10/2006 10:00:00
+  AUTOR:  PAulo Yoshio Kubota
+
+  MENSAGEM:
+  "Utilizacao de Padrao para Kind Explicito"
+
+===============================================================================
+  Todos os modulos foram modificadosi utilizando o padrao. As principais 
+  mudancas se referem a:
+
+1- Eliminacao de _i8 e KIND=i8, com uso de kind default para variaveis inteiras
+   e logicas
+2- Utilizacao de _i4, KIND=i4, _r4 e KIND=r4 so para variaveis a serem lidas ou
+   escritas
+3- Uso de variaveis comecando com nf para todos os Units de abertura, escrita,
+   leitura e fechamento de arquivos
+4- Utilizacao do padrao para abertura de todos os arquivos:
+   OPEN (UNIT=varunit, FILE=<fln>, FORM=<fm>, ACCESS=<acc>, ACTION=<act>, &
+         STATUS=<st>, IOSTAT=<ios>)
+   e teste de parada para ios /= 0.
+5- Os arquivos de leitura de namelist e print outs nao foram abertos pois eh
+   utilizado direcionamento (< e >) no script de execucao.
+
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+  DATA : 02/12/2005 11:10:00
+  AUTOR: Julio Pablo Reyes Fernandez
+
+  MENSAGEM:
+  "Inclusao de codigo GRIB"
+  "Inclusao de opcao "Binary=.FALSE." no namelist para output em formato grib"
+
+===============================================================================
+  Alguns modulos foram modificados e outros incluidos.
+===============================================================================
+
+1- modulos criados pelo PAD (Luiz Flavio) para ler as tabelas das
+   variables do CPTEC.
+2- criacao de modulos: FileGrib, Infgdspds
+3- generalizacao para diferentes resolucoes espectrais.
+4- Ainda nao implementado formato grib para grade regular.
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  30/05/2005 18:00:00
+  AUTOR:  Jose Paulo Bonatti
+
+  MENSAGEM:
+  "Eliminacao de opcao de compilacao -ew e geracao automatica de Imax, Jmax"
+
+===============================================================================
+  Todos os modulos foram modificados. As mudancas se referem a:
+
+1- Eliminacao de -ew na compilacao:
+   introducao de i4, i8, r4 e r8 com KIND para todas as variaveis nas declaracoes;
+   introducao de _i4, _i8, _r4 e _r8 para todas as constantes dentro do codigo,
+   conforme o caso.
+2- Introducao de rotina para obter Imax e Jmax em funcao de Mend e de acordo com
+   a grade linear ou quadratica.
+3- Eliminacao de restricao para Kmax.
+4- Eliminacao de bug na RegInt para comparacao de valores.
+5- Todos writes e reads com unit e fmt.
+
+OBS: resultados bateram binario no teste feito.
+
+===============================================================================
+
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  28/04/2005 07:00:00
+  AUTOR:  Jose Paulo Bonatti
+  
+  MENSAGEM:
+  "Primeira Versao Atualizada do Pos-Processamento para o Prototipo"
+
+===============================================================================
+
+Inclusao da primeira versao do pos-processamento no controle de versoes.
+No repositorio de versoes da tiete foi gerado um novo modulo chamado POSTGLOBAL
+com uma primeira versao atualizada para o prototipo. A partir desta versao,
+todos os integrantes do grupo de desenvolvimento irao realizar suas alteracoes,
+as quais serao acompanhadas pelo CVS.
+Versao entregue por J.P. Bonatti. Principais mudancas em relacao ao pos em uso:
+Contem atualizacoes adequadas ao prototipo, eliminacao do antigo first guess e 
+de alguns bugs de dimensao, opcao para saida em grade regular e com tabelas de 
+unidades e campos derivados incluidas no codigo. Permite pos-processar novos
+diagnosticos de transporte e tem algumas mudancas de estrutura.
+
+===============================================================================

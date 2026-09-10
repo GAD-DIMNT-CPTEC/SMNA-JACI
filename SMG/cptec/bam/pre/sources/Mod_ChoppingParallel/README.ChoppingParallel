@@ -1,0 +1,18 @@
+files in:
+pre/datain/gdas1.T00Z.SAnl.2015043000 or pre/datain/gdas1.T00Z.atmanl.nemsio.2019100100
+pre/dataout/TopoNavy.dat
+pre/datain/DeltaSigma.L*
+pre/dataout/Topography.TQ0299           => indirectly from Mod_TopoSpectral ( really needs ? )
+model/datain/TopographyRec.G00450       => indirectly from Mod_TopoSpectral ( really needs ? )
+
+files out:
+model/datain/GANLSMT2015043000S.unf.TQ1534L064
+model/datain/OZONSMT2015043000S.unf.TQ1534L064
+model/datain/TRACSMT2015043000S.unf.TQ1534L064
+model/datain/TRACSMT2015043000S.grd.G00450L064
+model/datain/OZONSMT2015043000S.grd.G00450L064
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADS.ctl
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADS
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADSOut.ctl
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADSOut

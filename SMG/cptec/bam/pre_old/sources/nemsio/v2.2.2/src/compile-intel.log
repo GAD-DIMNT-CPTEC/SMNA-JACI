@@ -1,0 +1,79 @@
+Currently Loaded Modulefiles:
+  1) modules/3.2.6.7
+  2) eswrap/1.1.0-1.020200.1231.0
+  3) switch/1.0-1.0502.57058.1.58.ari
+  4) craype-network-aries
+  5) ncep/1.0
+  6) xt-lsfhpc/9.1.3
+  7) craype/2.3.0
+  8) intel/15.0.3.187
+  9) cray-libsci/13.0.3
+ 10) udreg/2.3.2-1.0502.9889.2.20.ari
+ 11) ugni/6.0-1.0502.10245.9.9.ari
+ 12) pmi/5.0.6-1.0000.10439.140.2.ari
+ 13) dmapp/7.0.1-1.0502.10246.8.47.ari
+ 14) gni-headers/4.0-1.0502.10317.9.2.ari
+ 15) xpmem/0.1-2.0502.57015.1.15.ari
+ 16) dvs/2.5_0.9.0-1.0502.1958.2.55.ari
+ 17) alps/5.2.3-2.0502.9295.14.14.ari
+ 18) rca/1.0.0-2.0502.57212.2.56.ari
+ 19) atp/1.8.1
+ 20) PrgEnv-intel/5.2.56
+ 21) nemsio-intel/2.2.2
+ 22) craype-sandybridge
+ftn -O3 -axCore-AVX2 -traceback -c nemsio_openclose.f90
+nemsio_openclose.f90(654): (col. 14) remark: nemsio_openclose_mp_nemsio_rcreate_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(1232): (col. 14) remark: nemsio_openclose_mp_nemsio_wcreate_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(2384): (col. 14) remark: nemsio_openclose_mp_nemsio_getfilehead_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(3765): (col. 14) remark: nemsio_openclose_mp_nemsio_setrqst_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(5247): (col. 18) remark: nemsio_openclose_mp_nemsio_splat8_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(3905): (col. 14) remark: nemsio_openclose_mp_nemsio_makglgds_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(5139): (col. 14) remark: nemsio_openclose_mp_nemsio_splat4_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(5356): (col. 25) remark: nemsio_openclose_mp_lowercase_ has been targeted for automatic cpu dispatch
+nemsio_openclose.f90(3058): (col. 14) remark: nemsio_openclose_mp_nemsio_gfinit_ has been targeted for automatic cpu dispatch
+ftn -O3 -axCore-AVX2 -traceback -c nemsio_read.f90
+nemsio_read.f90(124): (col. 14) remark: nemsio_read_mp_nemsio_readrec4_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(196): (col. 14) remark: nemsio_read_mp_nemsio_readrec8_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(272): (col. 14) remark: nemsio_read_mp_nemsio_readrecv4_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(346): (col. 14) remark: nemsio_read_mp_nemsio_readrecv8_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(424): (col. 14) remark: nemsio_read_mp_nemsio_readrec4w34_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(502): (col. 14) remark: nemsio_read_mp_nemsio_readrec8w34_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(575): (col. 14) remark: nemsio_read_mp_nemsio_readrecv4w34_ has been targeted for automatic cpu dispatch
+nemsio_read.f90(654): (col. 14) remark: nemsio_read_mp_nemsio_readrecv8w34_ has been targeted for automatic cpu dispatch
+ftn -O3 -axCore-AVX2 -traceback -c nemsio_write.f90
+nemsio_write.f90(98): (col. 14) remark: nemsio_write_mp_nemsio_writerec4_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(144): (col. 14) remark: nemsio_write_mp_nemsio_writerec8_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(189): (col. 14) remark: nemsio_write_mp_nemsio_writerecv4_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(238): (col. 14) remark: nemsio_write_mp_nemsio_writerecv8_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(291): (col. 14) remark: nemsio_write_mp_nemsio_writerec4w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(338): (col. 14) remark: nemsio_write_mp_nemsio_writerec8w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(387): (col. 14) remark: nemsio_write_mp_nemsio_writerecv4w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(436): (col. 14) remark: nemsio_write_mp_nemsio_writerecv8w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(618): (col. 14) remark: nemsio_write_mp_nemsio_writerecgrb4w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(702): (col. 14) remark: nemsio_write_mp_nemsio_writerecgrb4_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(798): (col. 14) remark: nemsio_write_mp_nemsio_writerecgrb8_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(880): (col. 14) remark: nemsio_write_mp_nemsio_writerecvgrb4w34_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(966): (col. 14) remark: nemsio_write_mp_nemsio_writerecvgrb4_ has been targeted for automatic cpu dispatch
+nemsio_write.f90(1055): (col. 14) remark: nemsio_write_mp_nemsio_writerecvgrb8_ has been targeted for automatic cpu dispatch
+ftn -O3 -axCore-AVX2 -traceback -c nemsio_module.f90
+ftn -O3 -axCore-AVX2 -traceback -c nemsio_module_mpi.f90
+nemsio_module_mpi.f90(1112): (col. 14) remark: nemsio_module_mpi_mp_nemsio_wcreate_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(680): (col. 14) remark: nemsio_module_mpi_mp_nemsio_rcreate_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(2198): (col. 14) remark: nemsio_module_mpi_mp_nemsio_getfilehead_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3483): (col. 16) remark: nemsio_module_mpi_mp_nemsio_denseread4_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3560): (col. 16) remark: nemsio_module_mpi_mp_nemsio_denseread8_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3745): (col. 16) remark: nemsio_module_mpi_mp_set_mpimap_read_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3810): (col. 15) remark: nemsio_module_mpi_mp_set_mpimap_wrt_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3872): (col. 15) remark: nemsio_module_mpi_mp_nemsio_densewrite4_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3923): (col. 15) remark: nemsio_module_mpi_mp_mpi_densewrite4_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(4040): (col. 15) remark: nemsio_module_mpi_mp_mpi_densewrite8_ has been targeted for automatic cpu dispatch
+nemsio_module_mpi.f90(3897): (col. 15) remark: nemsio_module_mpi_mp_nemsio_densewrite8_ has been targeted for automatic cpu dispatch
+ar -rvu libnemsio.a nemsio_openclose.o nemsio_read.o nemsio_write.o nemsio_module.o nemsio_module_mpi.o
+ar: creating libnemsio.a
+a - nemsio_openclose.o
+a - nemsio_read.o
+a - nemsio_write.o
+a - nemsio_module.o
+a - nemsio_module_mpi.o
+mv *.mod ./incmod
+rm -f *.o

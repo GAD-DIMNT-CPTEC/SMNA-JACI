@@ -1,0 +1,74 @@
+!namelist
+!############################### Change Log ##################################
+! 1.0.0.0
+!
+!  $Author: pkubota $
+!  $Date: 2007/10/26 17:07:02 $
+!  $Revision: 1.9 $
+!
+!
+!#############################################################################
+!
+ &PosInput
+  nffrs=-1,            ! value to indicated if model use or not initialization
+                      !    or to indicate if it is a cold or warm start run:
+                      !    nffrs=-1 - for runs with normal mode initialization
+                      !    nffrs=0  - for runs without normal mode initialization
+                      !    nffrs=1  - for warm start runs
+  nfbeg=-1,           ! number of the first forecasted file to be post-processed
+  nfend=10,         ! number of forecasted files to be post-processed
+  nmand=32,            ! number of pressure levels listed below in format 10f8.2
+                       !    nmand=-1 means the use of default 18-levels
+  RegIntIn=.FALSE.,    ! flag to interpolate outputs on regular grid (.TRUE.)
+                       !    .FALSE. to get outputs on Gaussian grid
+  Linear=.FALSE.,      ! Flag to Gaussian grid type Linear (.TRUE.) or 
+                       !                            Quadratic (.FALSE.)
+  trunc    ='TQ0042',  !TRC   : three-digit triangular truncation
+  lev     ='L028',       ! vertical layers = LXXX
+  labeli='2003010100' , ! initial forecasting label (yyyymmddhh)
+  labelf='2003010200', ! final forecasting label (yyyymmddhh)
+  kpds13=11,           ! kpds(13) indicator of forecast time unit (warning should be automatic)
+                       ! 1 hour, 2 day, 3 month, 4 year, ... ON388 TABLE 4
+                       ! 10 3 hours, 11 6 hours, 12 12 hours, etc ...
+                       ! for CPTEC ensemble output is 6 hours
+  prefx ='NMC',        ! preffix for input  files
+  req   ='p',          ! flag to select requested field file (p, s, c, e or nothing)
+                       !   p - use file rfd.pnt
+                       !   s - use file rfd.sfc
+                       !   c - use file rfd.clm
+                       !   e - use file rfd.eta
+                       !     - use file rfd
+                       !   these files are spected to be in the directory:
+                       !   ${roperm}/pos/datain
+                       !   at the same directory there is a dft file for
+                       !   derived fields (this should be included in the
+                       !   code in future)
+  datain='/scratchin/grupos/pad/home/paulo.kubota/agcmibis/model/dataout/TQ0042L028',! main dataout directory
+  datalib='/scratchin/grupos/pad/home/paulo.kubota/agcmibis/pos/datain',! main dataout directory
+  dataout='/scratchin/grupos/pad/home/paulo.kubota/agcmibis/pos/dataout/TQ0042L028',! main dataout directory
+  Binary=.FALSE.,      ! output binary format ! False -> Grib (Default)
+  postclim=.TRUE.,    ! The Option "postclim" only is functional by grib files
+                       ! If postclim=TRUE, post-processing all files as anl.,
+                       ! should be used for climate running
+                       ! If postclim=FALSE,it differentiates anl. of the forecast      
+  res=0.5,            ! if res >  0 Define output resolution (deg)
+                       ! if res <= 0 It does not make interpolation
+  ENS=.FALSE.,          ! ensemble products => TRUE, only for AVN, 0?P, 0?N prefx
+  ExtrapoAdiabatica=.TRUE., ! .TRUE. = extrapolated adiabatically to the pressure levels 
+  RunRecort=.FALSE.,      !
+  prefy ='POS',          ! preffix for output recort files 3 character
+  RecLat= -60.0,  20.0   ! -90 ->  90
+  RecLon= -90.0,  30.0   !   0 -> 360 or -180 -> 180 
+  givenfouriergroups=.FALSE.,  ! False if processor division
+                         ! should be automatic
+  nproc_vert= = 1,       !Number of processors to be used in the
+                         ! vertical (if givenfouriergroups set to TRUE)
+  ibdim_size= 12,        ! size of basic data block (ibmax)
+  tamBlock=512,          ! number of fft's allocated in each block
+ /
+
+ 1000.00  975.00  950.00  925.00  900.00  875.00  850.00  825.00  800.00  775.00  
+  750.00  725.00  700.00  675.00  650.00  600.00  550.00  500.00  450.00  400.00
+  350.00  300.00  250.00  200.00  150.00  100.00   70.00   50.00   30.00   20.00   
+  10.00    3.00
+   

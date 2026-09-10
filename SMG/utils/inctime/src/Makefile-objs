@@ -1,0 +1,8 @@
+# Automatically generated objects. Dom Out  2 12:15:24 BRT 2011
+# fgen v0.3 (C) 1997,98 Beroud Jean-Marc
+
+OBJS = \
+	$(srcdir)/inctime.o \
+	$(srcdir)/m_stdio.o \
+	$(srcdir)/m_string.o \
+	$(srcdir)/m_time.o

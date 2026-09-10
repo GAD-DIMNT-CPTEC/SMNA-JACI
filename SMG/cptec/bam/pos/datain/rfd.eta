@@ -1,0 +1,12 @@
+SURFACE PRESSURE                          131 PSLC  
+SPECIFIC HUMIDITY                           0 UMES
+SURFACE ZONAL WIND (U)                     60 UVES
+ZONAL WIND (U)                             60 UVEL
+SURFACE MERIDIONAL WIND (V)                60 VVES
+MERIDIONAL WIND (V)                        60 VVEL
+GEOPOTENTIAL HEIGHT                        10 ZGEO
+SEA LEVEL PRESSURE                        131 PSNM
+SURFACE ABSOLUTE TEMPERATURE               40 TEMS
+ABSOLUTE TEMPERATURE                       40 TEMP
+SURFACE RELATIVE HUMIDITY                   0 UMRS
+RELATIVE HUMIDITY                           0 UMRL

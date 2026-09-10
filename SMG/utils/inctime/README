@@ -1,0 +1,13 @@
+Compilacao:
+
+- Gfortran
+$ cd src/
+$ export ARCH=gnu
+$ make
+
+- Ifort
+$ cd src/
+$ export ARCH=Darwin_intel
+$ make
+
+Ultima atualizacao: joao.gerd@inctime.inpe.br (30/10/2019)

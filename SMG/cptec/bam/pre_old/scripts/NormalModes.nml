@@ -1,0 +1,8 @@
+ &NorModNML
+  Mend=62 ,  ! Spectral Horizontal Resolution of Output Data
+  Kmax=28,    ! Number of Layers of Output Data
+  HnCut=1000.0,     ! Equivalent Depth (m) Lower Cut for Inicialization
+  PerCutDays=2.0,   ! Period (days) Lower Cut for Inicialization
+  PrtOut=.FALSE.,   ! Flag to Print Out Debug Values
+  DirMain='/scratchin/grupos/pad/home/paulo.kubota/agcm_cptec/ '  ! Main User Data Directory
+ /

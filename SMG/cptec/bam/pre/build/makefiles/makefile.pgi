@@ -1,0 +1,32 @@
+#
+#  $Author: denis eiras $
+#  $Date: 2019/04/05 11:21:00 $
+#  $Revision: 2.0 $
+#
+# $Id: Makefile.tupay,v 1.3 2007/03/06 14:43:32 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+FTRACE=
+OPENMP= -fopenmp
+F90_FLAGS= -byteswapio -traceback
+F90=pgf90 $(F90_FLAGS)
+F90_C=$(F90) -c
+MPIF90=mpif90 $(F90_FLAGS)
+MPIF90_C=$(MPIF90) -c
+
+F77_FLAGS= -byteswapio -traceback
+F77=pgf77 $(F77_FLAGS)
+
+C_FLAGS= -DLINUX
+CC=pgcc -O2 -DUNDERSCORE
+AR=ar
+
+
+# for bacio
+flagOpt="-O2"
+flag64bit="-s real64 -s integer64"
+
+
+include Makefile.common

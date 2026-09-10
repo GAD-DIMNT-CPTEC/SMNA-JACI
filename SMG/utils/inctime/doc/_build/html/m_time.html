@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>m_time &mdash; Inctime V0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'V0.01',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="m_string" href="m_string.html" />
+    <link rel="prev" title="Inctime" href="inctime.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Inctime
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                V0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="main.html">Main</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="inctime.html">Inctime</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">m_time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_string.html">m_string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_stdio.html">m_stdio</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Inctime</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="main.html">Main</a> &raquo;</li>
+        
+      <li>m_time</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/m_time.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="m-time">
+<h1>m_time<a class="headerlink" href="#m-time" title="Permalink to this headline">¶</a></h1>
+<p>Inctime is the main program.</p>
+<p class="rubric">Module</p>
+<span class="target" id="f/time_module"></span><p class="rubric">Description</p>
+<dl class="docutils">
+<dt>Description</dt>
+<dd>This module contains routines and functions to manipulate time
+periods, e.g, functions to calculate total number of hours, days,
+months and years between two dates, also contains routines to
+convert julian days to gregorian day and vice and versa.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>15 Jun 2005 - J. G. de Mattos - Initial Version</li>
+<li><dl class="first docutils">
+<dt>18 Mar 2010 - J. G. de Mattos - Include Time calculation:</dt>
+<dd><ul class="first last">
+<li>End day of Month [eom]</li>
+<li>Number of hours [noh]</li>
+<li>Number of days [nod]</li>
+<li>Number of months [nom]</li>
+<li>Number of year [moy]</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>23 Mar 2010 - J. G. de Mattos - Modified the call for Cal2Jul routine</dt>
+<dd>was created the interface block for
+use of this new Cal2Jul</dd>
+</dl>
+</li>
+<li>09 May 2013 - J. G. de Mattos - Removed Bug in Number of Hours</li>
+<li>05 Feb 2014 - J. G. de Mattos - Include day of year calculation</li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/time_module/cal2jul" title="f/time_module/cal2jul"><code class="xref f f-var docutils literal"><span class="pre">cal2jul</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/time_module/jul2cal" title="f/time_module/jul2cal"><code class="xref f f-func docutils literal"><span class="pre">jul2cal()</span></code></a>, <a class="reference internal" href="#f/time_module/cal2jul_" title="f/time_module/cal2jul_"><code class="xref f f-func docutils literal"><span class="pre">cal2jul_()</span></code></a>, <a class="reference internal" href="#f/time_module/noy" title="f/time_module/noy"><code class="xref f f-func docutils literal"><span class="pre">noy()</span></code></a>, <a class="reference internal" href="#f/time_module/nod" title="f/time_module/nod"><code class="xref f f-func docutils literal"><span class="pre">nod()</span></code></a>, <a class="reference internal" href="#f/time_module/noh" title="f/time_module/noh"><code class="xref f f-func docutils literal"><span class="pre">noh()</span></code></a>, <a class="reference internal" href="#f/time_module/nom" title="f/time_module/nom"><code class="xref f f-func docutils literal"><span class="pre">nom()</span></code></a>, <a class="reference internal" href="#f/time_module/doy" title="f/time_module/doy"><code class="xref f f-func docutils literal"><span class="pre">doy()</span></code></a>, <a class="reference internal" href="#f/time_module/eom" title="f/time_module/eom"><code class="xref f f-func docutils literal"><span class="pre">eom()</span></code></a>, <a class="reference internal" href="#f/time_module/cal2jul__" title="f/time_module/cal2jul__"><code class="xref f f-func docutils literal"><span class="pre">cal2jul__()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/time_module/cal2jul">
+<code class="descclassname">time_module/</code><code class="descname">cal2jul</code><a class="headerlink" href="#f/time_module/cal2jul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">attrs:</th><td class="field-body">public</td>
+</tr>
+</tbody>
+</table>
+<p>Convert from gregorian to julian day</p>
+</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="function">
+<dt id="f/time_module/eom">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">eom</code><span class="sig-paren">(</span><em>year</em>, <em>month</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/eom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the end day of month.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>18 Mar 2010 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>year</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>month</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>day</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/noh">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">noh</code><span class="sig-paren">(</span><em>di</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/noh" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the total number of hours between two dates.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>18 Mar 2010 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>di</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Starting Date</li>
+<li><strong>df</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Ending Date</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>nhour</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/nod">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">nod</code><span class="sig-paren">(</span><em>di</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/nod" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the total number of days between two dates.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>18 Mar 2010 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>di</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Starting Date</li>
+<li><strong>df</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Ending Date</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>nday</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/nom">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">nom</code><span class="sig-paren">(</span><em>di</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/nom" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the total number of months between two dates.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>18 Mar 2010 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>di</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Starting Date</li>
+<li><strong>df</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Ending Date</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>nmonth</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/noy">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">noy</code><span class="sig-paren">(</span><em>di</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/noy" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the total number of Years between two dates.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>18 Mar 2010 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>di</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Starting Date</li>
+<li><strong>df</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Ending Date</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>nyear</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/doy">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">doy</code><span class="sig-paren">(</span><em>nymd</em>, <em>nhms</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/doy" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the day of the year</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>05 Feb 2014 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nymd</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: year month day (yyyymmdd)</li>
+<li><strong>nhms</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: hour minute second (hhmnsd)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>day</strong><em> [</em><em>real</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="inctime.html#f/inctime" title="f/inctime"><code class="xref f f-prog docutils literal"><span class="pre">inctime</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/time_module/cal2jul__" title="f/time_module/cal2jul__"><code class="xref f f-func docutils literal"><span class="pre">cal2jul__()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/cal2jul_">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">cal2jul_</code><span class="sig-paren">(</span><em>caldate</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/cal2jul_" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the julian day from gregorian day.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>15 Jun 2005 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>caldate</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>julian</strong><em> [</em><em>real</em><em>]</em></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><a class="reference internal" href="#f/time_module/cal2jul__" title="f/time_module/cal2jul__"><code class="xref f f-func docutils literal"><span class="pre">cal2jul__()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/time_module/cal2jul__">
+<em class="property">function  </em><code class="descclassname">time_module/</code><code class="descname">cal2jul__</code><span class="sig-paren">(</span><em>ymd</em>, <em>hms</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/cal2jul__" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the julian day from gregorian day</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>15 Jun 2005 - J. G. de Mattos - Initial Version</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ymd</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hms</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>julian</strong><em> [</em><em>real</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/time_module/doy" title="f/time_module/doy"><code class="xref f f-func docutils literal"><span class="pre">doy()</span></code></a>, <a class="reference internal" href="#f/time_module/cal2jul_" title="f/time_module/cal2jul_"><code class="xref f f-func docutils literal"><span class="pre">cal2jul_()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/time_module/jul2cal">
+<em class="property">subroutine  </em><code class="descclassname">time_module/</code><code class="descname">jul2cal</code><span class="sig-paren">(</span><em>jd</em>, <em>ymd</em>, <em>hms</em><span class="sig-paren">)</span><a class="headerlink" href="#f/time_module/jul2cal" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>This function calculate the gregorian date from julian day.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>15 Jun 2005 - J. G. de Mattos - Initial Version</li>
+<li><dl class="first docutils">
+<dt>23 Mar 2011 - J. G. de Mattos - Modified Interface</dt>
+<dd>to a subroutine call</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Remarks</dt>
+<dd>This algorithm was adopted from Press et al.</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>jd</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ymd</strong><em> [</em><em>integer</em><em>]</em> :: year month day (yyyymmdd)</li>
+<li><strong>hms</strong><em> [</em><em>integer</em><em>]</em> :: hour minute second (hhmnsd)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="inctime.html#f/inctime" title="f/inctime"><code class="xref f f-prog docutils literal"><span class="pre">inctime</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="m_string.html" class="btn btn-neutral float-right" title="m_string" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="inctime.html" class="btn btn-neutral float-left" title="Inctime" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, João Gerd Zell de Mattos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

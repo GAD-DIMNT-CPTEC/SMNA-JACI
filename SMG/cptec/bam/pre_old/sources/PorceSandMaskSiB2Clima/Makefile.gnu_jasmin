@@ -1,0 +1,44 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/03/06 14:43:32 $
+#  $Revision: 1.3 $
+#
+# $Id: Makefile.tupay,v 1.3 2007/03/06 14:43:32 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+FTRACE= 
+OPENMP= 
+F90=gfortran  -ffast-math -fconvert=big-endian  -ffree-line-length-none -ffast-math -funroll-loops -ftree-vectorizer-verbose=2  ${OPENMP} 
+AR=ar
+F90_32FLAGS = 
+F90_32BITS = 
+F77=gfortran   -ffast-math -fconvert=big-endian  -ffree-line-length-none -ffast-math -funroll-loops -ftree-vectorizer-verbose=2  ${OPENMP} 
+FFLAGS = 
+CC     =gcc  -O2 -DUNDERSCORE
+flagOpt="-O2"
+flag64bit= 
+MPIF90=mpif90 -ffast-math -fconvert=big-endian  -ffree-line-length-none -ffast-math -funroll-loops -ftree-vectorizer-verbose=2  ${OPENMP} 
+MPIF90=mpif90 -ffast-math -fconvert=big-endian  -ffree-line-length-none -ffast-math -funroll-loops -ftree-vectorizer-verbose=2  ${OPENMP} 
+
+FTRACE= 
+OPENMP=
+F90_32FLAGS = 
+F90_32BITS = $(FTRACE) $(OPENMP) 
+LOADFLAG= -static
+
+# OPTIONS FOR POS
+
+FFLAGS	= 
+CFLAGS	= -DLINUX
+ARFLAGS	= 
+CC      =mpicc  -O2 -DUNDERSCORE
+# If there is a version difference between your gcc and the gcc
+# used to compile the ifort binary, you may have to add a flag
+# like -gcc-version=400 do CFLAG
+CFLAGS =  -DLINUX 
+LOADFLAG= 
+
+#
+include Makefile.common

@@ -1,0 +1,45 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+FTRACE= 
+OPENMP= -fopenmp
+F90=ftn -g -fbounds-check -fcheck=all -Wall -fbacktrace -ffpe-trap=invalid,overflow,zero  -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none ${OPENMP} -O0 -Warray-bounds
+AR=ar
+F90_32FLAGS = 
+F90_32BITS = 
+F77=ftn -g -fbounds-check -fcheck=all -Wall -fbacktrace -ffpe-trap=invalid,overflow,zero  -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none ${OPENMP} -O0 -Warray-bounds
+FFLAGS = 
+CC     =gcc  -O2 -DUNDERSCORE
+flagOpt="-O2"
+flag64bit= 
+MPIF90=ftn -g -fbounds-check -fcheck=all -Wall -fbacktrace -ffpe-trap=invalid,overflow,zero  -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none ${OPENMP} -O0 -Warray-bounds
+
+TRACE= 
+OPENMP=
+F90_32FLAGS = 
+F90_32BITS = $(FTRACE) $(OPENMP) 
+LOADFLAG= -static
+
+
+# OPTIONS FOR POS
+
+FFLAGS	= 
+CFLAGS	= -DLINUX
+ARFLAGS	= 
+CC      =gcc  -O2 -DUNDERSCORE
+# If there is a version difference between your gcc and the gcc
+# used to compile the ifort binary, you may have to add a flag
+# like -gcc-version=400 do CFLAG
+CFLAGS =  -DLINUX 
+LOADFLAG= -static
+
+
+include Makefile.common
+ 

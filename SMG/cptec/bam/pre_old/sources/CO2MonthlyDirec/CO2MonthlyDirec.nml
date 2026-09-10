@@ -1,0 +1,17 @@
+ &InputDim
+  Mend=62,             ! Spectral Resolution Horizontal Truncation
+  Kmax=28,              ! Number of Layers of the Initial Condition for the Global Model
+  Idim=360,             ! Number of Longitudes For Climatological SST Data
+  Jdim=180,             ! Number of Latitudes For Climatological SST Data
+  CO2SeaIce=-0.000,     ! SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  LatClimSouth=-50.0,   ! Southern Latitude For Climatological SST Data
+  LatClimNorth=60.0,    ! Northern Latitude For Climatological SST Data
+  ClimWindow=.FALSE.,   ! Flag to Climatological SST Data Window
+  Linear=.TRUE.,        ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  LinearGrid=.FALSE.,   ! Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  GrADS=.TRUE.,         ! Flag for GrADS Outputs
+  DateICn='2005080112', ! Date of th Initial Condition for the Global Model
+  Preffix='GANLNMC',    ! Preffix of the Initial Condition for the Global Model
+  Suffix='S.unf.',      ! Suffix of the Initial Condition for the Global Model
+  DirMain='/scratchin/grupos/pad/home/paulo.kubota/agcmibis_clima/ '             ! Main Datain/Dataout Directory
+ /

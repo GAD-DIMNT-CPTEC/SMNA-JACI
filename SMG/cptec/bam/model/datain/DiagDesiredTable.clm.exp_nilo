@@ -1,0 +1,50 @@
+TIME MEAN SURFACE PRESSURE                  1  132    0
+TIME MEAN DIVERGENCE                        2   50    0
+TIME MEAN VORTICITY                         2   50    0
+TIME MEAN SPECIFIC HUMIDITY                 2    0    0
+TIME MEAN VIRTUAL TEMPERATURE               2   40    0
+TIME MEAN SURFACE TEMPERATURE               1   40    0
+TIME MEAN OMEGA                             2  153    0
+TOTAL PRECIPITATION                         1  121    0
+CONVECTIVE PRECIPITATION                    1  121    0
+SENSIBLE HEAT FLUX FROM SURFACE             1  170    0
+LATENT HEAT FLUX FROM SURFACE               1  170    0
+SNOWFALL                                    1  121    0
+RUNOFF                                      1  121    0
+CLOUD COVER                                 1    0    0
+OUTGOING LONG WAVE AT TOP                   1  170    0
+DOWNWARD LONG WAVE AT BOTTOM                1  170    0
+UPWARD LONG WAVE AT BOTTOM                  1  170    0
+DOWNWARD SHORT WAVE AT GROUND               1  170    0
+UPWARD SHORT WAVE AT GROUND                 1  170    0
+TIME MEAN AT 10 METRE U-WIND COMPONENT      1   60    0
+TIME MEAN AT 10 METRE V-WIND COMPONENT      1   60    0
+TIME MEAN TEMP AT 2-M FROM SFC              1   40    0
+TIME MEAN SPEC HUMIDITY AT 2-M FROM SFC     1    0    0
+INSTANTANEOUS NPP                           1  280    0
+INS. NET ECOSY. EXCHANGE CO2 P TIMESTEP     1    0    0
+PLANETARY BOUNDARY LAYER HEIGHT             1   10    0
+INSTANTANEOUS GPP                           1  280    0
+VERTICAL SPECIFIC HUMIDITY TRANSPORT        2  153    0
+VERTICAL DIST TOTAL CLOUD COVER             2    0    0
+TRANSPIRATION FROM CANOPY                   1  170    0
+TRANSPIRATION FROM GROUND COVER             1  170    0
+BARE SOIL LATENT HEAT                       1  170    0
+SENSIBLE HEAT FLUX FROM CANOPY              1  170    0
+SENSIBLE HEAT FLUX FROM GROUND              1  170    0
+LIQUID MIXING RATIO KG/KG                   2    0    0 
+TURBULENT KINETIC ENERGY                    2   60    0
+ICE MIXING RATIO KG/KG                      2    0    0
+CONVECTIVE AVAIL. POT.ENERGY                1  180    0
+CONVECTIVE INHIB. ENERGY                    1  180    0
+SEVERE WEATHER THREAT                       1    0    0
+SHALLOW CONVECTIVE HEATING                  2   70    0
+SHALLOW CONV. MOISTURE SOURCE               2   50    0
+LARGE SCALE LATENT HEATING                  2   70    0
+LARGE SCALE MOISTURE SOURCE                 2   50    0
+CONVECTIVE LATENT HEATING                   2   70    0
+CONVECTIVE MOISTURE SOURCE                  2   50    0
+LONG WAVE RADIATIVE HEATING                 2   70    0
+SHORT WAVE RADIATIVE HEATING                2   70    0
+VERTICAL DIFFUSION HEATING                  2   70    0
+VERTICAL DIFF. MOISTURE SOURCE              2   50    0

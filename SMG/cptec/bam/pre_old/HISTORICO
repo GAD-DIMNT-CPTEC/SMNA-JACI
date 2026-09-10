@@ -1,0 +1,68 @@
+===============================================================================
+===============================================================================
+HISTORICO:
+  OBJETIVO:
+    Documentar todas as alteracoes nos arquivos do controle de versao
+  METODOLOGIA:
+   - Toda alteracao a ser incluida no controle de versoes devera ser comentada
+     nesta arquivo. Para simplicidade de uso, pede-se somente a data, o autor
+     e a mensagem utilizada no comando commit do cvs para o cabecalho.
+   - Este cabecalho deve ser copiado e alterado de acordo com a atualizacao.
+   - Apos o cabecalho deve ser incluido os comentarios sobre as alteracoes.
+
+  OBSERVACAO GERAL:
+   - Inclua seu historico no final destas instrucoes e antes do primeiro
+     comentario. Desta forma, a alteracao mais recente estara' sempre no
+     inicio do arquivo e ao avancar a leitura dos historicos, tem-se
+     acesso `as modificacoes mais recentes.
+
+Inclua seus comentarios apos esta linha, deixando os comentarios mais
+velhos abaixo.
+===============================================================================
+===============================================================================
+
+Versao inicial:
+ DATA: 30/07/2007
+ AUTOR: Bonatti
+ 
+ MENSAGEM: "Versao inicial do pre-processamento com novo formato para o modelo global"
+===============================================================================
+================================================================================
+
+ Data: 18/09/2007
+ Autor: Bonatti
+
+ Mensagem: "Introducao de grade linear com nomenclatura adequada e eliminacao de bugs"
+
+ Modulo InputParameters.f90 em Chopping, SSTClima, SSTWeekly e TopoSpectral:
+        Introducao de opcao para grade linear (LinearGrid=F) e nova nomenclatura
+        para aquivos espectrais (TQnnnn ou TLnnnn, Lmmmm) e em ponto de grade
+        (Gppppp, Lmmmm).
+
+ Modulo SoilMoistureClima.f90: eliminacao de "SEQUENTIAL" em OPTIONS do GrADS.
+
+ Modulo TopoWaterPercNavy.f90: eliminacao de TABS.
+
+ Scripts: run_Chopping.ksh, run_SSTClima.ksh, run_SSTWeekly.ksh, run_TopoSpectral.ksh:
+          Introducao da variavel LinearGrid=F na geracao do NameList.
+
+===============================================================================
+================================================================================
+
+ Data: 18/09/2007
+ Autor: Bonatti
+
+ Mensagem: "Introducao de leitura da resolucao em arquivos NCEP gdas1 no Chopping"
+
+ Modulo InputParameters.f90 em Chopping:
+        Introducao de leitura da resolucao (MendInp e KmaxInp) em arquivos gdas1 
+        provenientes do NCEP.
+
+ Scripts: run_Chopping.ksh:
+          Remocao das variaveis MendInp e KmaxInp na geracao do NameList.
+          configenv_pre.ksh:
+          Remocao das variaveis RESIN e KMIN, que eram usadas na geracao do 
+          NameList, para atribuir valores a MendInp e KmaxInp.
+
+===============================================================================
+================================================================================

@@ -1,0 +1,430 @@
+$RunNameList
+! List of modules names will run
+
+! run all modules
+  modulesToRun=#MODULESTORUN#
+
+/
+
+$ModulesCommonNameList
+  ! May be overlaid by Modules Name List
+  varCommon%xMax=#IM#,                     ! Default Number of Longitudes at Output Gaussian Grid
+  varCommon%yMax=#JM#,                     ! Default Number of Latitudes at Output Gaussian Grid
+  varCommon%mEnd=#RESO#,                   ! Spectral Resolution Horizontal Truncation
+  varCommon%dirPreIn='#dirdata#/pre/datain/',          ! Input Directory for input data files
+  varCommon%dirPreOut='#dirdata#/pre/dataout/',        ! Output directory for output data files
+  varCommon%dirBCs='#dirdata#/pre/databcs/',           ! BCs directory
+  varCommon%dirClmFluxCO2='#dirdata#/pre/databcs/',
+  varCommon%dirClmCO2='#dirdata#/pre/databcs/',        ! Climatological CO2 Datain Directory
+  varCommon%dirClmSST='#dirdata#/pre/databcs/',        ! Climatological SST Datain Directory
+  varCommon%dirObsSST='#dirdata#/pre/databcs/',        ! Climatological SST Datain Directory
+  varCommon%dirClmOCM='#dirdata#/pre/databcs/', 
+  varCommon%dirModelIn='#dirdata#/model/datain/',
+  varCommon%date='#DATA#',
+  varCommon%grads=#GrADS#,
+/
+
+$AlbedoNameList
+  var%xDim=72,                              ! Number of Longitudes in Climatological Albedo Data
+  var%yDim=46,                              ! Number of Latitudes in Climatological Albedo Data
+  var%linear=T,                             ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%varName='AlbedoClima',              ! <DEFAULT = 'AlbedoClima'> Input Albedo Archive Name
+  ! var%varNameOut='Albedo'                 ! <DEFAULT = 'Albedo'> Output Albedo Archive Name
+/
+
+$AlbedoClimaNameList
+  var%xDim=72,                              ! Number of Longitudes in Climatological Albedo Data
+  var%yDim=46,                              ! Number of Latitudes in Climatological Albedo Data
+  ! var%varName='AlbedoClima'               ! <DEFAULT = 'AlbedoClima'> Input Albedo Archive Name
+/
+
+$ChoppingNameList
+  var%mEndInp=#RESIN#,                     ! Spectral Horizontal Resolution of Input Data
+  var%kMaxInp=#KMIN#,                      ! Number of Layers of Input Data
+  var%mEndOut=#RESOUT#,                    ! Spectral Horizontal Resolution of Output data
+  var%kMaxOut=#KMOUT#,                     ! Number of Layers of Output Data
+  var%mEndMin=127                           ! Minimum Spectral Resolution For Doing Topography Smoothing
+  var%mEndCut=#MendCut#,                   ! Spectral Resolution Cut Off for Topography Smoothing
+  var%iter=10,                              ! Number of Iteractions in Topography Smoothing
+  var%smthPerCut=#SmthPerCut#,             ! Percentage for Topography Smoothing
+  var%getOzone=#GetOzone#,                 ! Flag to Produce Ozone Files
+  var%getTracers=#GetTracers#,             ! Flag to Produce Tracers Files
+  var%grADS=#GrADS#,                       ! Flag to Produce grADS Files
+  var%grADSOnly=#GrADSOnly#,               ! Flag to only Produce GrADS Files (do not Produce Inputs for Model)
+  var%gdasOnly=#GDASOnly#,                 ! Flag to only Produce Input CPTEC Analysis file
+  var%dataGDAS='#DataGDAS# ',              ! use 'Grid' to NCEP files above 2019, or 'Spec' for others
+  var%smoothTopo=#SmoothTopo#,             ! Flag to Performe Topography Smoothing
+  var%rmGANL=#RmGANL#,                     ! Flag to Remove GANL file, if desired
+  var%linearGrid=#SetLinear#,              ! Flag to Set Linear (T) or Quadratic Gaussian Grid (F)
+  var%dateLabel='#DATA#',                  ! Date: yyyymmddhh or dtoChp%dateLabel='        hh' If Year (yyyy), Month (mm) and Day (dd) Are Unknown
+  var%utc='#UTC#',                         ! Hour: hh, Must Be Given if dateLabel='          ', else utc=' '
+  var%nCepName='#AnlPref# ',               ! NCEP Analysis Preffix for Input file Name
+  var%StrFormat='new'  ,                    ! Get NCEP Analysis and dumping to 'old' format or 'new' format
+  var%givenfouriergroups=F,                 ! 'F' if processor division should be automatic
+  var%nProc_vert=1,                         ! Number of processors to be used in the vertical
+  var%ibdim_size=192,                       ! size of basic data block (ibmax)
+  var%tamBlock=512,                         ! number of fft's allocated in each block
+  var%dGDInp='#dirdata#/pre/datain/ ',     ! NCEP input directory
+  var%dirInp='#dirdata#/model/datain/ ',   ! Input Topo CPTEC Analysis file directory
+  var%dirOut='#dirdata#/model/datain/ ',   ! Chopping Output files directory
+  var%dirTop='#dirdata#/pre/dataTop/ ',    ! Topo Out directory
+  var%dirSig='#dirdata#/pre/datain/ ',     ! DeltaSigma input directory
+  var%dirGrd='#dirdata#/pre/dataout/ ',    ! Grads output files directory
+/
+
+$CO2MonthlyDirecNameList
+  var%zMax=#KMOUT#,        ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,             ! Number of Longitudes For Climatological SST Data
+  var%yDim=180,             ! Number of Latitudes For Climatological SST Data
+  var%co2SeaIce=-0.000,     ! ?
+  var%sstSeaIce=-1.749,     ! SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  var%latClimSouth=-50.0,   ! Southern Latitude For Climatological SST Data
+  var%latClimNorth=60.0,    ! Northern Latitude For Climatological SST Data
+  var%climWindow=.false.,   ! Flag to Climatological SST Data Window
+  var%linear=.true.,        ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  var%linearGrid=.false.,   ! Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  var%preffix='GANL#PREFIXO#',    ! Preffix of the Initial Condition for the Global Model
+  var%suffix='S.unf.',      ! Suffix of the Initial Condition for the Global Model
+  var%dirObsCO2namelist='./',          
+/
+    
+$DeepSoilTemperatureNameList
+  var%xDim=138,
+  var%yDim=116,
+  var%linear=T,                             ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  var%varName='DeepSoilTemperatureClima ',  ! <DEFAULT = 'DeepSoilTempClima'> DeepSoilTemperatureClima output file name
+  ! var%varNameOut='DeepSoilTemperature',   ! <DEFAULT = 'DeepSoilTemperature> module output filename
+/
+
+$DeepSoilTemperatureClimaNameList
+  var%xDim=138,
+  var%yDim=116,
+  ! var%fileBCs='tgdeep.form',              ! <DEFAULT = 'tgdeep.form'> module input file
+  ! var%varName='DeepSoilTemperatureClima', ! <DEFAULT = 'DeepSoilTemperatureClima'> module output filename
+/
+
+$DeltaTempColdestNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%linear=T,                             ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%varName='DeltaTempColdestClima',    ! <DEFAULT = 'DeltaTempColdestClima'> module input file name
+  ! var%varNameOut='DeltaTempColdes',       ! <DEFAULT = 'DeltaTempColdes'> module output file name
+/
+
+$DeltaTempColdestClimaNameList
+  var%xDim=720,
+  var%yDim=360,
+  ! var%fileBCs='deltat.form',              ! <DEFAULT = 'deltat.form'> module input file name
+  ! var%varName='DeltaTempColdestClima',    ! <DEFAULT = 'DeltaTempColdestClima'> module output file name
+/
+
+$FluxoCO2ClimaNameList
+  var%zMax=#KMOUT#,                        ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,                             ! Number of Longitudes For Climatological CO2 data
+  var%yDim=180,                             ! Number of Latitudes For Climatological CO2 data
+  var%linear=F,                             ! Flag to Bi-linear (T) or Area (F) Interpolation
+  var%linearGrid=F,                         ! Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  var%preffix='GANL#PREFIXO#',             ! Preffix of the Initial Condition for the Global Model
+  var%suffix='S.unf.',                      ! Suffix of the Initial Condition for the Global Model
+  ! var%sstSeaIce=-1.749,                   ! <DEFAULT = -1.749> SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  ! var%nameLSM = 'LandSeaMask',            ! <DEFAULT = 'LandSeaMask'> module output file name
+/
+
+$LandSeaMaskNameList
+  var%xDim=2160,
+  var%yDim=1080,
+  ! var%varNameIn='WaterNavy ',             ! <DEFAULT = 'WaterNavy'> module input file name
+  ! var%varNameOut='LandSeaMask ',          ! <DEFAULT = 'LandSeaMask'> module output file name
+/
+
+$OCMClimaNameList
+  var%zMax=#KMOUT#,                        ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,                             ! Number of Longitudes For Climatological OCM data
+  var%yDim=180,                             ! Number of Latitudes For Climatological OCM data
+  ! var%ocmSeaIce=-1.749,                   ! <DEFAULT = -1.749> SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  ! var%linear=F,                           ! <DEFAULT = F > Flag to Bi-linear (T) or Area (F) Interpolation
+  ! var%linearGrid=F,                       ! <DEFAULT = F > Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  ! var%nameLSM='ModelLandSeaMask',         ! <DEFAULT = 'ModelLandSeaMask'> Land Sea mask input file name
+  var%preffix='GANL#PREFIXO#',             ! <DEFAULT = 'GANLSMT'> Preffix of the Initial Condition for the Global Model
+  ! var%suffix='S.unf.',                    ! <DEFAULT = 'S.unf.'> Suffix of the Initial Condition for the Global Model
+/
+
+$PorceClayMaskIBISNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%layer=6,
+  ! var%nameLSM='LandSeaMask',              ! <DEFAULT = 'LandSeaMask'> Read  - Formatted Land Sea Mask
+  ! var%varName='PorceClayMaskIBISClima',   ! <DEFAULT = 'PorceClayMaskIBISClima'> Read - Input module file
+  ! var%nameLSMSSiB='ModelLandSeaMask',     ! <DEFAULT = 'ModelLandSeaMask'> Write - Formatted Land Sea Mask Modified by Vegetation
+  ! var%varNameVeg='PorceClayMaskIBIS',     ! <DEFAULT = 'PorceClayMaskIBIS'> Write - Unformatted Gaussian Grid Vegetation Mask
+
+/
+
+$PorceClayMaskIBISClimaNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%layer=6,
+  ! var%varName='PorceClayMaskIBISClima',   ! <DEFAULT = 'PorceClayMaskIBISClima'> output prefix file name
+  ! var%varNameG='PorceClayMaskIBISClimaG', ! <DEFAULT = 'PorceClayMaskIBISClimaG'> output grads file name
+  ! var%fileBCs='claymsk.form',             ! <DEFAULT = 'claymsk.form'> module input file
+/
+
+$PorceSandMaskIBISNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%layer=6,
+  ! var%nameLSM='LandSeaMask',              ! <DEFAULT = 'LandSeaMask'> Read - Formatted Land Sea Mask
+  ! var%varName='PorceSandMaskIBISClima',   ! <DEFAULT = 'PorceSandMaskIBISClima'> Read - Input module file
+  ! var%nameLSMSSiB='ModelLandSeaMask',     ! <DEFAULT = 'ModelLandSeaMask'> Write - Formatted Land Sea Mask Modified by Vegetation
+  ! var%varNameVeg='PorceSandMaskIBIS',     ! <DEFAULT = 'PorceSandMaskIBIS'> Write - Unformatted Gaussian Grid Vegetation Mask
+/
+
+$PorceSandMaskIBISClimaNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%layer=6,
+  ! var%varName='PorceSandMaskIBISClima',   ! <DEFAULT = 'PorceSandMaskIBISClima'> output prefix file name
+  ! var%varNameG='PorceSandMaskIBISClimaG', ! <DEFAULT = 'PorceSandMaskIBISClimaG'> output grads file name
+  ! var%fileBCs='sandmsk.form',             ! <DEFAULT = 'sandmsk.form'> input module file name
+/
+
+$RoughnessLengthNameList
+  var%xDim=144,
+  var%yDim=73,
+  var%linear=T,                             ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%varName='RoughnessLengthClima ',    ! <DEFAULT = 'RoughnessLengthClima'> input prefix file name
+  ! var%varNameOut='RoughnessLength',       ! <DEFAULT = 'RoughnessLength'> output prefix file name 
+/
+
+$RoughnessLengthClimaNameList
+  var%xDim=145,
+  var%yDim=73,
+  ! var%varName='RoughnessLengthClima',     ! <DEFAULT = 'RoughnessLengthClima'> output prefix file name
+  ! var%fileBCs='zorlng.form',              ! <DEFAULT = 'zorlng.form'> input file name
+/
+
+$SnowClimaNameList
+  ! var%nameLSM = 'LandSeaMask',            ! <DEFAULT = 'LandSeaMask'> Land Sea mask input file name
+/
+
+$SnowWeeklyNCEPNameList
+  var%xDim=720,
+  var%yDim=360,
+  !var%dateSnowWeeklyNCEP='2012123100',
+  ! var%varName='SNOWWeekly',               ! <DEFAULT = 'SNOWWeekly'> output prefix file name 
+  ! var%fileSnow='gdas1.T  Z.snogrd',       ! <DEFAULT = 'gdas1.T  Z.snogrd'> input prefix file name
+  ! var%timeGrADS='  Z         ',           ! <DEFAULT = '  Z         '> grADS time mask for ctl file
+
+/
+
+$SoilMoistureNameList
+  var%xDim=360,
+  var%yDim=181,
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F)
+  ! var%varName='SoilMoistureClima ',       ! <DEFAULT = 'SoilMoistureClima'> Read - Input module file
+  ! var%varNameOut='SoilMoisture',,         ! <DEFAULT = 'SoilMoisture'> Output prefix file Name
+  ! var%nameLSMask='ModelLandSeaMask',      ! <DEFAULT = 'ModelLandSeaMask'> Land Sea mask input file name
+/
+
+$SoilMoistureClimaNameList
+  var%xDim=360,
+  var%yDim=181,
+  ! var%varName='SoilMoistureClima',        ! <DEFAULT = 'SoilMoistureClima'> Output prefix file Name
+  ! var%fileBCs='soilms.form',              ! <DEFAULT = 'soilms.form'> input file name
+/
+
+$SoilMoistureWeeklyNameList
+  var%xDim=1440,                            ! Number of Longitudes at the NCEP SoilMoisture Weekly Grid
+  var%yDim=720,                             ! Number of Latitudes at the NCEP SoilMoisture Weekly Grid
+  var%zDim=8,                               ! Number of Levels at the NCEP SoilMoisture Weekly Grid
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%varName='SoilMoistureWeekly',       ! <DEFAULT = 'SoilMoistureWeekly'> Output prefix file Name
+/
+
+$SSTClimaNameList
+  var%zMax=#KMOUT#,                        ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,                             ! Number of Longitudes For Climatological CO2 data
+  var%yDim=180,                             ! Number of Latitudes For Climatological CO2 data
+  ! var%sstSeaIce=-1.749,                   ! <DEFAULT = -1.749> SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  ! var%linear=F,                           ! <DEFAULT = F > Flag to Bi-linear (T) or Area (F) Interpolation
+  ! var%linearGrid=F,                       ! <DEFAULT = F > Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  ! var%nameLSM='ModelLandSeaMask',         ! <DEFAULT = 'ModelLandSeaMask'> Land Sea mask input file name
+  var%preffix='GANL#PREFIXO#',             ! <DEFAULT = 'GANLSMT'> Preffix of the Initial Condition for the Global Model
+  ! var%suffix='S.unf.',                    ! <DEFAULT = 'S.unf.'> Suffix of the Initial Condition for the Global Model
+/
+
+$SSTDailyDirecNameList
+  var%zMax=64,          ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,               ! Number of Longitudes For Climatological SST Data
+  var%yDim=180,               ! Number of Latitudes For Climatological SST Data
+  var%sstSeaIce=-1.749,       ! SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  var%latClimSouth=-50.0,     ! Southern Latitude For Climatological SST Data
+  var%latClimNorth=60.0,      ! Northern Latitude For Climatological SST Data
+  var%climWindow=.FALSE.,     ! Flag to Climatological SST Data Window
+  var%linear=.TRUE.,          ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  var%linearGrid=.FALSE.,     ! Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  var%preffix='GANLSMT',      ! Preffix of the Initial Condition for the Global Model
+  var%suffix='S.unf.',        ! Suffix of the Initial Condition for the Global Model
+  var%dirObsSSTnamelist='./',          
+/
+
+$SSTMonthlyDirecNameList
+  var%zMax=#KMOUT#,                        ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,                             ! Number of Longitudes For Climatological SST Data
+  var%yDim=180,                             ! Number of Latitudes For Climatological SST Data
+  var%dirSSTnamelist='./',                  ! Observed SST Datain Directory  
+  ! var%sstSeaIce=-1.749,                   ! <DEFAULT = -1.749> SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  ! var%latClimSouth=-50.0,                 ! <DEFAULT = -50> Southern Latitude For Climatological SST Data
+  ! var%latClimNorth=60.0,                  ! <DEFAULT = 60> Northern Latitude For Climatological SST Data
+  ! var%climWindow=F,                       ! <DEFAULT = F> Flag to Climatological SST Data Window
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%linearGrid=F,                       ! <DEFAULT = F> Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  var%preffix='GANL#PREFIXO#',             ! <DEFAULT = 'GANLNMC'> Preffix of the Initial Condition for the Global Model
+  ! var%suffix='S.unf.',                    ! <DEFAULT = 'S.unf.'> Suffix of the Initial Condition for the Global Model
+/
+
+$SSTSeasonDirecNameList
+  var%zMax=64,              ! Number of Layers of the Initial Condition for the Global Model
+  var%xDim=360,             ! Number of Longitudes For Climatological SST Data
+  var%yDim=180,             ! Number of Latitudes For Climatological SST Data
+  var%firstYear=1980,       ! Initial Year of the temporal serie ( sst ) 1870 01 16 12
+  var%lastYear =2020,       ! Last  Year of the temporal serie ( sst )    2017 12
+  var%firstYearClim=1980,   ! Initial Year to sst climatology computation  1870 01 16 12
+  var%lastYearClim =2010,   ! Last    Year to sst climatology computation     2017 12
+  var%sstSeaIce=-1.749,     ! SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  var%latClimSouth=-50.0,   ! Southern Latitude For Climatological SST Data
+  var%latClimNorth=60.0,    ! Northern Latitude For Climatological SST Data
+  var%climWindow=.flse.,   ! Flag to Climatological SST Data Window
+  var%linear=.true.,        ! Flag for Linear (T) or Area Weighted (F) Interpolation
+  var%linearGrid=.false.,   ! Flag to Set Linear (T) or Quadratic Gaussian Grid (T)
+  var%preffix='GANLSMT',    ! Preffix of the Initial Condition for the Global Model
+  var%suffix='S.unf.',      ! Suffix of the Initial Condition for the Global Model
+  var%dirObsSSTnamelist='./',          
+/
+
+$SSTWeeklyNameList
+  var%zMax=#KMOUT#,
+  var%xDim=4320,
+  var%yDim=2160,
+  var%preffix='GANL#PREFIXO#',             ! <DEFAULT = 'GANLCPT> Preffix of the Initial Condition for the Global
+  ! var%sstSeaIce=-1.749,                   ! <DEFAULT = -1.749> SST Value in Celsius Degree Over Sea Ice (-1.749 NCEP, -1.799 CAC)
+  ! var%latClimSouth=-50.0,                 ! <DEFAULT = -50> Southern Latitude For Climatological SST Data
+  ! var%latClimNorth=60.0,                  ! <DEFAULT = 60> Northern Latitude For Climatological SST Data
+  ! var%climWindow=F,                       ! <DEFAULT = F> Flag to Climatological SST Data Window
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F) Interpolation
+  ! var%linearGrid=F,                       ! <DEFAULT = F> Flag to Set Linear (T) or Quadratic Gaussian Grid (T) Model
+  ! var%suffix='S.unf.',                    ! <DEFAULT = 'S.unf.'> Suffix of the Initial Condition for the Global Model
+/
+
+$SSTWeeklyNCEPNameList
+  ! var%autoDims=T,                         ! <DEFAULT = T> Auto define dims according to fileSST filename
+  var%xDim=4320,
+  var%yDim=2160,
+  ! var%fileSST='gdas1.T  Z.sstgrd',        ! <DEFAULT = 'gdas1.T  Z.sstgrd'> sst input file name prefix
+  ! varName='SSTWeekly',                    ! <DEFAULT = 'SSTWeekly'> sst output file name prefix
+/
+
+$TemperatureNameList
+  var%xDim=144,
+  var%yDim=73,
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F)
+  ! var%varName='TemperatureClima',         ! <DEFAULT = 'TemperatureClima'>  input prefix file name
+  ! var%varNameOut='Temperature',           ! <DEFAULT = 'Temperature'> output prefix file name
+/
+
+$TemperatureClimaNameList
+  var%xDim=144,
+  var%yDim=73,
+  ! var%varName='TemperatureClima',         ! <DEFAULT = 'TemperatureClima'> output prefix file name
+  ! var%fileBCs='clmt.form',                ! <DEFAULT = 'clmt.form'> climate temperature filename
+/
+
+$TopographyGradientNameList
+  var%zMax=#KMOUT#,
+  var%xDim=2161,
+  var%yDim=1081,
+  ! var%linear=T,                           ! <DEFAULT = T> Flag for Linear (T) or Area Weighted (F)
+  var%preffix='#PREFIXO#',                 ! <DEFAULT = 'SMT'> Preffix for Initial Condition File Name
+  ! var%grid='Q',                           ! <DEFAULT = 'Q'> Grid Type: Q for Quadratic and L for linear Gaussian
+/
+
+$TopoSpectralNameList
+  var%linearGrid=F,
+  ! var%varNameT='Topography',              ! <DEFAULT = 'Topography'> prefix for input and output Gaussian Grid
+/
+
+$TopoWaterPercGT30NameList
+  var%dirBCs='#dirdata#/pre/databcs/gtopo30/',
+  ! var%varNameT='TopoGT30',                ! <DEFAULT = 'TopoGT30'> TopoGT30 prefix out ilename 
+  ! var%varNameW='WaterGT30',               ! <DEFAULT = 'WaterGT30'> WaterGT30 prefix out file name
+  ! var%varNameG='TopoWaterGT30',           ! <DEFAULT = 'TopoWaterGT30'> grADS prefix out file name
+/
+
+$TopoWaterPercNavyNameList
+  ! var%varNameT='TopoNavy',                ! <DEFAULT = 'TopoNavy'> file name prefix for writing Navy Topography data
+  ! var%varNameW='WaterNavy',               ! <DEFAULT = 'WaterNavy'> file name prefix for writing Water Percentage data
+  ! var%varNameBCs='navytm.form',           ! <DEFAULT = 'navytm.form'> file name prefix for reading Navy Topography data
+  ! var%varNameG='TopoWaterNavy',           ! <DEFAULT = 'TopoWaterNavy'> file name prefix for writing GrADS Navy Topography and Water Percentage data
+/
+
+$VarTopoNameList
+  var%xDim=2160,
+  var%yDim=1080,
+  ! var%linear=F,                           ! <DEFAULT = F> Flag for Linear (T) or Area Weighted (F)
+  ! var%varName='TopoNavy',                 ! <DEFAULT = 'TopoNavy'> file name prefix for reading Navy Topography data
+  ! var%varNameG='VarTopoNavy',             ! <DEFAULT = 'VarTopoNavy'> file name prefix for writing Navy Topography data in grADS
+
+  ! create as many regions are necessary, ex: var%regionName(1), var%regionName(2) ...
+  ! use regionName ='UNDEF' to ignore region
+  var%regionName(1) = 'ANDES1_SHAP_ORIGINAL',
+  var%latIni(1)=-60,
+  var%latEnd(1)=12.5,
+  var%lonIni(1)=-82.5,
+  var%lonEnd(1)=-30,
+  var%useTopoCutOff(1)=F,
+  var%topoHeightCutOff(1)=1000.0,
+  var%useShapiroFilter(1)=F,
+  var%shapiroCoef(1)=0.0625, ! 0.25/4.0
+/
+
+$VegetationAlbedoSSiBNameList
+  ! var%albedoBCs='sibalb.form',            ! <DEFAULT = 'sibalb.form'> sib albedo input file name
+  ! var%albedoOut='AlbedoSSiB',             ! <DEFAULT = 'AlbedoSSiB'> prefix output file Albedo
+  ! var%vegetationBCs='sibveg.form',        ! <DEFAULT = 'sibveg.form'> vegetation bcs input filename
+  ! var%vegetationOut='VegetationSSiB',     ! <DEFAULT = 'VegetationSSiB'> prefix output file Vegetation
+/
+
+$VegetationMaskNameList
+  var%xDim=360,
+  var%yDim=180,
+  ! var%nameLSM='LandSeaMask',              ! <DEFAULT = 'LandSeaMask'> Land Sea Mask input file name prefix
+  ! var%varName='VegetationMaskClima',      ! <DEFAULT = 'VegetationMaskClima'> Vegetation mask clima input file name prefix
+  ! var%nameLSMSSiB='ModelLandSeaMask',     ! <DEFAULT = 'ModelLandSeaMask'> Land Sea Mask Sib output file name prefix
+  ! var%varNameVeg='VegetationMask',        ! <DEFAULT = 'VegetationMask'> Interpolated Vegetation Mask output file name prefix
+/
+
+$VegetationMaskIBISNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%varName='VegetationMaskIBISClima',    ! <DEFAULT = 'VegetationMaskClima'> VegetatioMask IBIS output file name prefix AND Vegetation Mask Input file name prefix
+  var%varNameVeg='VegetationMaskIBIS',      ! <DEFAULT = 'VegetationMask'> Interpolated Vegetation Mask output file name prefix
+  ! var%nameLSM='LandSeaMask',              ! <DEFAULT = 'LandSeaMask'> Land Sea Mask input file name prefix
+  ! var%nameLSMSSiB='ModelLandSeaMask',     ! <DEFAULT = 'ModelLandSeaMask'> Land Sea Mask Sib output file name prefix
+/
+
+$VegetationMaskIBISClimaNameList
+  var%xDim=720,
+  var%yDim=360,
+  var%fileBCs='ibismsk.form',               ! <DEFAULT = 'sibmsk.form'> SIB / IBIS Vegetation mask input file name
+  ! var%varName='VegetationMaskIBISClima',  ! <DEFAULT = 'VegetationMaskIBISClima'> VegetationMask IBIS Clima output file name prefix 
+  ! var%varNameG='VegetationMaskIBISClimaG',! <DEFAULT = 'VegetationMaskIBISClimaG'> output grads file name prefix
+/
+
+$VegetationMaskSSiBNameList
+  var%xDim=360,
+  var%yDim=180,
+  ! var%varName='VegetationMaskClima',      ! <DEFAULT = 'VegetationMaskClima'> VegetationMask SIB output file name prefix 
+  ! var%varNameG='VegetationMaskClimaG',    ! <DEFAULT = 'VegetationMaskClimaG'> output grads file name prefix
+  ! var%fileBCs='sibmsk.form',              ! <DEFAULT = 'sibmsk.form'> SIB Vegetation mask input file name
+/
+

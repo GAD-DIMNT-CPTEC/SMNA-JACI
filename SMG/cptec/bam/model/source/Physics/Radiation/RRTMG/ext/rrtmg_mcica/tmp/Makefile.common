@@ -1,0 +1,34 @@
+LIB	= rrtmg_mcica.a
+
+.SUFFIXES: .o .f90 .F90 .c
+#
+# *****************************************************************
+#
+
+OBJS	= \
+	shr_kind_mod.o \
+	shr_const_mod.o
+
+
+SRC	= $(OBJ_MOD:.o=.f90) $(OBJS:.o=.f90)
+#
+# *****************************************************************
+#
+
+$(LIB): $(OBJ_MOD) $(OBJS)
+	$(AR) $(ARFLAGS) -ruv $(LIB) $(OBJ_MOD) $(OBJS)
+
+clean:
+	rm -f $(OBJ_MOD) $(OBJS)  *.mod *.a *"~"
+
+shr_kind_mod.o	:	../../csm_share/shr/shr_kind_mod.f90
+	$(F90) -c ../../csm_share/shr/shr_kind_mod.f90
+
+shr_const_mod.o	:	../../csm_share/shr/shr_const_mod.f90 shr_kind_mod.o
+	$(F90) -c ../../csm_share/shr/shr_const_mod.f90
+
+
+.F90.o:
+	$(F90) $(FFLAGS) -c -d $< 
+.f90.o:
+	$(F90) $(FFLAGS) -c $< 

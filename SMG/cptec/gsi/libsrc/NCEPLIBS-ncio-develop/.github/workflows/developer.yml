@@ -1,0 +1,110 @@
+# This is a GitHub CI workflow for the NCEPLIBS-ncio project.
+#
+# This workflow runs the developer build, with code coverage and
+# documentation build.
+#
+# Ed Hartnett 1/12/23
+name: developer
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  developer:
+    runs-on: ubuntu-latest
+    env:
+      FC: gfortran
+      CC: gcc
+
+    strategy:
+      fail-fast: true
+
+    steps:
+
+    - name: install-dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libmpich-dev doxygen gcovr
+
+    - name: cache-netcdf
+      id: cache-netcdf
+      uses: actions/cache@v2
+      with:
+        path: ~/netcdf
+        key: netcdf-c-4.7.4-${{ runner.os }}1
+
+    - name: build-hdf5
+      if: steps.cache-netcdf.outputs.cache-hit != 'true'
+      run: |
+        export CC=mpicc
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz &> /dev/null
+        tar -xzf hdf5-1.10.7.tar.gz
+        pushd hdf5-1.10.7
+        ./configure --prefix=${HOME}/netcdf --enable-parallel --disable-tools --disable-fortran --disable-cxx --enable-parallel-tests
+        make -j2
+        make install
+           
+    - name: build-netcdf-c
+      if: steps.cache-netcdf.outputs.cache-hit != 'true'
+      run: |
+        export CC=mpicc
+        export CPPFLAGS=-I${HOME}/netcdf/include
+        export LDFLAGS=-L${HOME}/netcdf/lib
+        wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.7.4.tar.gz
+        tar -xzf v4.7.4.tar.gz
+        cd netcdf-c-4.7.4
+        ./configure --prefix=${HOME}/netcdf --disable-dap --disable-utilities
+        make -j2
+        make install
+
+    - name: build-netcdf-fortran
+      if: steps.cache-netcdf.outputs.cache-hit != 'true'
+      run: |
+        export PATH="${HOME}/netcdf/bin:$PATH"
+        export CC=mpicc
+        export FC=mpifort
+        export CPPFLAGS=-I${HOME}/netcdf/include
+        export LDFLAGS=-L${HOME}/netcdf/lib
+        wget https://github.com/Unidata/netcdf-fortran/archive/v4.5.3.tar.gz &> /dev/null
+        tar -xzf v4.5.3.tar.gz
+        pushd netcdf-fortran-4.5.3
+        ./configure --prefix=${HOME}/netcdf
+        make -j2
+        make install   
+       
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        path: ncio
+
+    - name: build
+      run: |
+        export FC=mpifort
+        export CC=mpicc
+        set -x
+        cd ncio
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_DOCS=Yes -DCMAKE_PREFIX_PATH='~;~/netcdf' -DCMAKE_Fortran_FLAGS="-g -fprofile-arcs -ftest-coverage -O0 -Wall" ..
+        make -j2 VERBOSE=1
+    
+    - name: test
+      run: |
+        cd $GITHUB_WORKSPACE/ncio/build
+        pwd
+        ls -l
+        gcovr --version
+        cp ../src/*.f90 src/CMakeFiles/ncio.dir/.
+        ctest --verbose --output-on-failure --rerun-failed
+        gcovr --root .. -v  --html-details --exclude ../tests --exclude CMakeFiles --print-summary -o test-coverage.html
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: test-coverage
+        path: |
+          ncio/build/*.html
+          ncio/build/*.css

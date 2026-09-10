@@ -1,0 +1,15 @@
+!
+!  $Author: tomita $
+!  $Date: 2007/08/01 20:09:58 $
+!  $Revision: 1.1.1.1 $
+!
+ &InputDim
+  Imax=512,     ! Number of Longitudes at Output Gaussian Grid
+  Jmax=256,     ! Number of Latitudes at Output Gaussian Grid
+  Idim=2160,    ! Number of Longitudes in Navy Water Percentage Data
+  Jdim=1080,    ! Number of Latitudes in Navy Water Percentage Data
+  GrADS=.TRUE., ! Flag for GrADS Outputs
+  VarNameIn='WaterNavy '    ! Input Navy Water Percentage Archive Name (0 to 100)
+  VarNameOut='LandSeaMaskNavy ' ! Ouput Navy Water Percentage Archive Name
+  DirMain='/gfs/dk15/bonatti/prototipo/ ' ! Main Datain/Dataout Directory
+ /

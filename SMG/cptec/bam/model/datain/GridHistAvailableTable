@@ -1,0 +1,79 @@
+SURFACE PRESSURE                            1    131  I PSLC
+CANOPY TEMPERATURE                          1     40  I TDSL
+GROUND/SURFACE COVER TEMPERATURE            1     40  I TGSC
+DEEP SOIL TEMPERATURE                       1     40  I TGDP
+SOIL WETNESS OF SURFACE ZONE                1      0  I USSL
+SOIL WETNESS OF ROOT ZONE                   1      0  I UZRS
+SOIL WETNESS OF RECHARGE ZONE               1      0  I UZDS
+MOISTURE STORE ON CANOPY                    1    110  I AUDL
+MOISTURE STORE ON GROUND COVER              1    110  I AUGC
+SNOW DEPTH                                  1    110  I PNEV
+SNOWFALL                                    1    120  C NEVE
+ROUGHNESS LENGTH                            1     10  I ZORL
+SURFACE ZONAL WIND STRESS                   1    130  C USST
+SURFACE MERIDIONAL WIND STRESS              1    130  C VSST
+SENSIBLE HEAT FLUX FROM SURFACE             1    170  P CSSF
+LATENT HEAT FLUX FROM SURFACE               1    170  P CLSF
+TOTAL PRECIPITATION                         1    120  C PREC
+CONVECTIVE PRECIPITATION                    1    120  C PRCV
+INCIDENT SHORT WAVE FLUX                    1    170  C FOCI
+OUTGOING LONG WAVE AT TOP                   1    170  C ROLE
+DOWNWARD LONG WAVE AT GROUND                1    170  C OLIS
+UPWARD LONG WAVE FLUX AT GROUND             1    170  C OLES
+UPWARD SHORT WAVE AT TOP                    1    170  C ROCE
+DOWNWARD SHORT WAVE FLUX AT GROUND (VB)     1    170  C CIVB
+DOWNWARD SHORT WAVE FLUX AT GROUND (VD)     1    170  C CIVD
+DOWNWARD SHORT WAVE FLUX AT GROUND (NB)     1    170  C CINB
+DOWNWARD SHORT WAVE FLUX AT GROUND (ND)     1    170  C CIND
+VISIBLE BEAM ALBEDO                         1      0  C ALVB 
+VISIBLE DIFFUSE ALBEDO                      1      0  C ALVD
+NEAR INFRARED BEAM ALBEDO                   1      0  C ALIB
+NEAR INFRARED DIFFUSE ALBEDO                1      0  C ALID
+VEGETATION TYPE                             1      0  C TIVG
+NET RADIATION OF CANOPY                     1    170  C SRDL
+NET RADIATION OF GROUND SURFACE/COVER       1    170  C SRGC
+COSINE OF ZENITH ANGLE                      1      0  C CAZL
+DRAG                                        1    200  C DRAG
+MOMENTUM FLUX RESISTANCE                    1    190  C RFLM
+CANOPY AIR SPC TO REF. LVL RESISTANCE       1    190  C RDNR
+CANOPY AIR SPC TO CANOPY RESISTANCE         1    190  C RDAD
+CANOPY AIR SPC TO GROUND RESISTANCE         1    190  C RDAG
+CANOPY RESISTANCE                           1    190  C RDSL
+GROUND COVER RESISTANCE                     1    190  C RSGC
+BARE SOIL SURFACE RESISTANCE                1    190  C RSBS
+VAPOR PRESSURE OF CANOPY AIR SPACE          1    131  P PVDL
+TEMPERATURE OF CANOPY AIR SPACE             1     40  P TADL
+TRANSPIRATION FROM CANOPY                   1    170  P TRDL
+INTERCEPTION LOSS FROM CANOPY               1    170  P PIDL
+TRANSPIRATION FROM GROUND COVER             1    170  P TRGC
+INTERCEPTION LOSS FROM GROUND COVER         1    170  P PIGC
+BARE SOIL EVAPORATION                       1    170  P EVBS
+SENSIBLE HEAT FLUX FROM CANOPY              1    170  P CSDL
+SENSIBLE HEAT FLUX FROM GROUND              1    170  P CSGR
+CANOPY HEATING RATE                         1    170  P TAQD
+GROUND/SURFACE COVER HEATING RATE           1    170  P TAQG
+RUNOFF                                      1    120  P RNOF
+HEAT CONDUCTION THROUGH SEA ICE             1    170  C CAGM
+HEAT STORAGE TENDENCY OVER SEA ICE          1    170  C ACGM
+ZONAL WIND (U)                              2     60  I UVEL
+MERIDIONAL WIND (V)                         2     60  I VVEL
+VIRTUAL TEMPERATURE                         2     40  I TEMV
+SPECIFIC HUMIDITY                           2      0  I UMES
+SHORT WAVE RADIATIVE HEATING                2     70  C AROC
+LONG WAVE RADIATIVE HEATING                 2     70  C AROL
+SUPERSATURATION LATENT HEATING              2     70  C CLSS
+CONVECTIVE LATENT HEATING                   2     70  C CLCV
+SHALLOW CONVECTIVE HEATING                  2     70  C ACVR
+VERTICAL DIFFUSION HEATING                  2     70  C DVAQ
+SUPERSATURATION MOISTURE SOURCE             2     50  C FUSS
+CONVECTIVE MOISTURE SOURCE                  2     50  C FUCV
+SHALLOW CONVECTIVE MOISTENING               2     50  C UCVR
+VERTICAL DIFFUSION MOISTENING               2     50  C DVUM
+VERTICAL DIFFUSION DU/DT                    2    100  C DVTU
+VERTICAL DIFFUSION DV/DT                    2    100  C DVTV
+CLOUD COVER                                 1      0  C CBNV
+VERTICAL DIST TOTAL CLOUD COVER             2      0  C VDCC
+SURFACE ZONAL WIND (U)                      1     60  I UVES
+SURFACE MERIDIONAL WIND (V)                 1     60  I VVES
+SURFACE VIRTUAL TEMPERATURE                 1     40  I TEVS
+SURFACE SPECIFIC HUMIDITY                   1      0  I UESS

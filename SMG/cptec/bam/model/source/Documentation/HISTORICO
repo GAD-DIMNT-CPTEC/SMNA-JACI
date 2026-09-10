@@ -1,0 +1,2602 @@
+===============================================================================
+===============================================================================
+HISTORICO:
+  OBJETIVO: 
+    Documentar todas as alteracoes nos arquivos do controle de versao
+  METODOLOGIA:
+   - Toda alteracao a ser incluida no controle de versoes devera ser comentada
+     nesta arquivo. Para simplicidade de uso, pede-se somente a data, o autor
+     e a mensagem utilizada no comando commit do cvs para o cabecalho.
+   - Este cabecalho deve ser copiado e alterado de acordo com a atualizacao.
+   - Apos o cabecalho deve ser incluido os comentarios sobre as alteracoes.
+
+  OBSERVACAO GERAL:
+   - Inclua seu historico no final destas instrucoes e antes do primeiro 
+     comentario. Desta forma, a alteracao mais recente estara' sempre no
+     inicio do arquivo e ao avancar a leitura dos historicos, tem-se 
+     acesso `as modificacoes mais recentes.
+
+Inclua seus comentarios apos esta linha, deixando os comentarios mais
+velhos abaixo.
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/12/2012
+  AUTOR:    "Atualizacao Paulo Kubota"
+
+MENSAGEM: "Output para arquivos de assimilacao"
+================================================================================
+
+ARQUIVO    GridDump.f90 SpecDump.f90
+
+Atmos_Model.f90: chamada para GridDump.f90 SpecDump.f90
+
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/09/2012
+  AUTOR:    "Atualizacao Paulo Kubota"
+
+MENSAGEM: "Novas Parametrizacoes"
+================================================================================
+
+ARQUIVO    GridDump.f90 SpecDump.f90
+
+Cu_ZhangMcFarlane.f90
+Shall_JHack.f90 
+Shall_UWShCu.f90
+MicroPhysics.f90
+CCM3PBL.f90
+GwddSchemeCAM.f90
+GwddSchemeCPTEC.f90
+GwddSchemeUSSP.f90
+OceanModel.f90
+Ocean.f90
+Sfc_Ibis_BioGeoChemistry.f90
+Sfc_Ibis_BioGeoPhysics.f90
+Sfc_Ibis_Fiels.f90
+Sfc_Ibis_Interface.f90
+Sfc_SiB2.f90
+SlabOceanModel.f90
+
+
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  28/09/2009
+  AUTOR:   Saulo Barros "Atualizacao Paulo Kubota"
+
+MENSAGEM: "Correcao da alocacao da variavel bufsend na subroutina Collect_Gauss"
+================================================================================
+
+ARQUIVO    Comunications.f90
+
+          Foi adicionado o seguinte trecho no código de Collect_Gauss:
+
+
+            IF (dimsendbuf.lt.ibmax*jbmax*nf) THEN
+                dimsendbuf = ibmax*jbmax*nf
+                DEALLOCATE (bufsend)
+                ALLOCATE (bufsend(dimsendbuf))
+            END IF
+
+            logo após o if que checa as dimensões de recbuf.
+            Isto deve resolver o problema de invasao de memoria quando 
+	    se pede muitos diagnosticos. 
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  06/08/2009
+  AUTOR:   Henrique Barbosa "Atualizacao Paulo Kubota"
+
+MENSAGEM: Inclusao da radiacao do UKMetOffice
+================================================================================
+
+ARQUIVO    Model.f90
+
+          Este modulo foi alterado para passar o numero de niveis
+          na estratosfera para a InitRadiationDriver()
+
+ARQUIVO    RadiationDriver.f90
+
+          Este modulo foi alterado para chamar a nova radiacao.
+             Para padronizar a troca de variaveis entre a spmrad()
+          e os varios esquemas de radiacao, tres variaveis 
+          passadas para a lwrad (Harshvardhan) foram invertidas.
+              Assim, todas as variaveis entram na spmrad com k=1 
+          no chao e sao passadas "flipped" para TODOS os esquemas,
+          ou seja, com k=1 no topo.
+
+ARQUIVO    Options.f90
+
+          Incluidas diversas variaveis para o UKMO. Montagem dos nomes
+          dos arquivos spectrais. Removida opcao nao usada co2ipcc e
+          corrigido os valores possiveis para ifco2. Layout da
+          saida da DumpOptions() foi melhorado.
+
+ARQUIVO    Makefile
+
+           Inclusao das instrucoes de compilacao para o novo modulo.
+
+ARQUIVO Rad_UKMO.f90
+
+          Inclui todos os modulos e todas as rotinas originais
+          do ESRAD, ja transformadas para F90 e optimizadas 
+          (vetorizacao) para o SX6, alem das subrotinas de
+          interface com a spmrad (modulo RadiationDriver.f90).
+
+ARQUIVO Rad_COLA.f90
+
+          Mudanca no laco do calculo da emissividade
+
+new              emis(i,k) = 1.0_r8- EXP(-1.66_r8*rkabs(i,k)*clwp(i,k))
+---
+old              emis(i,kflip) = 1.0_r8- EXP(-1.66_r8*rkabs(i,k)*clwp(i,k))
+
+new        DO k=nls+2,kmax+1
+---
+old        DO k=1,((kmax+2) - (nls+2))
+
+new              css(i,k) = css(i,k) * emis1(i,k)
+new              ccu(i,k) = ccu(i,k) * emis1(i,k)
+---
+old              css(i,nls+k+1) = css(i,nls+k+1) * emis1(i,nls+k+1)
+old              ccu(i,nls+k+1) = ccu(i,nls+k+1) * emis1(i,nls+k+1)
+
+
+ARQUIVO sp_sw_hadgem1_3r
+ARQUIVO sp_lw_hadgem1_3
+
+          Novos arquivos de dados para a nova radiacao. Devem ser
+          copiados pelos usuarios para o mesmo diretorio da condicao
+          condicao inicial. Sao arquivo texto com as propriedades
+          opticas dos gases, aerossois e etc. 
+
+ARQUIVO Cu_Grellens.f90
+           
+	   ensamble do grell
+	   
+new !        if(maxens22.eq.1)edtc(i,k) = edt(i)*0.25_r8
+---
+old          if(maxens22.eq.1)edtc(i,k) = edt(i)*0.25_r8
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  07/04/2009
+  AUTOR:   Henrique Barbosa "Atualizacao Paulo Kubota"
+
+  MENSAGEM: "Padronizacao das escritas de mensagens "
+================================================================================
+    MODULO  IOLowLevel.f90
+    Corrigidas as subroutinas ReadLandSeaMask2_r4, ReadLandSeaMask2_r8
+    LandSeaMask4 e LandSeaMask8 para usar MsgOne() r FatalError
+
+    MODULO  Utils.f90 
+    Corrigida a subroutina CreateGaussQuad para usar MsgOne()
+
+    MODULO  Makefile
+    Inclusao do arquivo Comunications.o na compilacao do modulo Transform.f90
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  10/03/2009
+  AUTOR:   Saulo Barros "Atualizacao Paulo Kubota"
+
+  MENSAGEM: "Correcao da dinamica SemiLagrangiana "
+================================================================================
+    MODULO  Options.f90
+    Neste modulo foi alterado vmax_est para 120. Este valor deve ser
+    mais que suficiente (rodei o t126 sem problemas, com ate 760
+    processadores, com deltat = 1800).
+
+    MODULO  Sizes.f90 
+    Neste modulo havia uma variavel que possivelmente ficava inicializada
+    errada num trecho do programa, dependendo do numero de processadores,
+    resolucao e ibmax. (Isto e que fazia dar problema com 1 processador).
+
+    MODULO  SpecDynamics.f90
+    Neste modulo so esta removida a declaracao de uma variavel nao
+      utilizada.
+      
+    MODULO  SemiLagrangian.f90
+     Neste modulo estava faltando uma chamada a rotina Vectorialtend,
+     que deve ter sido apagada por engano em algum ponto ... Por isto e que
+     estavam aparecendo valores muito altos de vmax e suas consequencias ...
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  18/02/2009
+  AUTOR:   Saulo Barros
+
+  MENSAGEM: Nova versao do global MPI-OMP massivamente paralela
+================================================================================
+    MODULO  Communications.f90
+
+          Este modulo foi alterado significativamente de forma a contemplar
+          novas formas de decomposicao de dominio na malha computacional, 
+          decomposicoes na vertical no espaco Espectral e de Fourier, 
+          e decomposicoes espectral para parte semi-implicita e NNMI, com
+          granularidade mais fina. Ha varias novas rotinas e outras foram
+          reescritas.
+
+    MODULO  Diagnostics.f90   
+
+          Modulo foi reformulado de forma a adaptar-se a nova estrutura de
+          paralelismo.
+
+    MODULO  FieldsDynamics.f90
+
+          Novas estruturas de dados na declaracao das variaveis.
+
+    MODULO  GridDynamics.f90
+
+          Alteracaoes na rotina para conservacao de ps na malha e modificacoes
+          para incorporacao de Semi-Lagrangeano com 2 niveis no tempo
+
+    MODULO  GridHistory.f90
+
+          Adaptacao para nova decomposicao em ponto de grade.
+
+    MODULO  Init.f90 
+
+          Adaptacoes para nova estrutura
+
+    MODULO  InputOutput.f90
+
+          Adaptacoes para nova estrutura
+
+    MODULO  IOLowLevel.f90
+         
+          Nova rotina: FWriteField
+
+            Makefile:  No SX6 foi necessario compilar Specdynamics
+                       com opcao -C vsafe para reprodutibilidade
+
+    MODULO  Model.f90
+
+          Adaptacoes de chamadas de rotinas, definicao de parametros,
+          etc
+
+            MODELIN
+
+          Algumas novas opcoes introduzidas
+
+    MODULO  NonLinearNMI.f90 
+
+          Adaptado devido a decomposicao dos campos espectrais na vertical
+
+    MODULO  Options.f90 
+
+          Algumas novas opcoes introduzidas
+    
+    MODULO  Parallelism.f90
+
+          Criacao de novos (sub) grupos de processadores
+    
+    MODULO  PhysicsDriver.f90
+
+          Algumas limpezas. Variavel nsx definida para cada ponto de malha.
+
+    MODULO  SemiLagrangian.f90 
+
+          Adaptado para nova decomposicao bidimensional de dominio. Opcao
+          de 2 niveis no tempo (ainda nao validada).
+
+    MODULO Sfc_SSiB.f90
+
+          Variavel nsx definida para cada ponto de malha, para permitir
+          reprodutibilidade binaria. (Ha solucao mais adequada?)
+
+    MODULO Sizes.f90
+
+          Cria novas decomposicoes e respectivas estruturas em espaco
+          espectral, de Fourier e na malha.
+
+    MODULO SpecDynamics.f90
+
+          Adaptado para decomposicao espectral na vertical e para calculo
+          da parte semi-implicita neste caso.
+
+    MODULO Surface.f90
+
+          Variavel nsx definida para cada ponto de malha, para permitir
+          reprodutibilidade binaria. (Ha solucao mais adequada?)
+
+    MODULO TimeStep.f90
+
+          Adaptado para novas decomposicoes
+
+    MODULO Transform.f90
+
+          Este modulo foi alterado significativamente de forma a contemplar
+          novas formas de decomposicao de dominio na malha computacional, 
+          decomposicoes na vertical no espaco Espectral e de Fourier, 
+          e decomposicoes espectral para parte semi-implicita e NNMI, com
+          granularidade mais fina.
+
+    MODULO Utils.f90
+
+          Rotinas de interpolacao na malha adaptadas para nova decomposicao de
+          dominio. 
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  25/09/2008
+  AUTOR:   Paulo Kubota
+
+  MENSAGEM: Correcao do comentario na Utils
+================================================================================
+    MODULO  Utils.f90
+
+          Utils.f90
+	     Comentario Desnecessario esquecido no Utils.f90
+    
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  23/09/2008
+  AUTOR:   Paulo Kubota
+
+  MENSAGEM: Correcao na precisao do calculo do peso gaussiano
+================================================================================
+    MODULO  Constants.f90 Utils.f90
+
+          Constants.f90 inclusao da variavel de precisao de 128-bits Real Numbers
+	    INTEGER, PARAMETER :: r16 = SELECTED_REAL_KIND(31)! Kind for 
+	                                              !128-bits Real Numbers
+
+          Utils.f90 inclusao da precisao de 128-bits Real Numbers nas sibroutinas
+	  
+	   CreateGaussQuad
+	   CreateLegPol 
+	   LegPolRootsandWeights 
+	   LegPol 
+    
+    
+    OBSERVACAO:  "Esta modificacao altera as sidas binarias"
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  18/08/2008
+  AUTOR:   Paulo Kubota e Henrique
+
+  MENSAGEM: Correcao do problema na umidade de solo
+================================================================================
+    MODULO  FieldsPhysics.f90 Sfc_SSiB.f90
+
+    Correcoes nas subroutinas de inicializacao de umidade do solo
+    Implementadas pelo DR Saulo Freitas.
+    (problemas com o restart e reprodutibilidade binaria)
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  15/08/2008
+  AUTOR:   Paulo Kubota e Henrique
+
+  MENSAGEM: Padronizacao do uso da variavel StartStoreDiag e
+            da subroutina MsgOne
+================================================================================
+    MODULO InputOutput.f90 FieldsPhysics.f90 GwddDriver.f90 PblDriver.f90
+           PhysicsDriver.f90 RadiationDriver.f90 Surface.f90 Diagnostics.f90 
+	   Model.f90
+
+    Esta modificacao nao altera o binario. 
+
+    A variavel StartStoreDiag so estava sendo usada na radiacao e convecao...
+    Esta modificacao agora, inclui o uso dessa variavel
+    nos outros modulos: surface, pbl e ggwd.
+    
+    Alguns write(*,*) foram substituidos por MsgOne()... 
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  23/06/2008
+  AUTOR:   Paulo Kubota e Henrique
+
+  MENSAGEM: Correcao da leitura do arquivo de ozonio
+================================================================================
+    MODULO InputOutput.f90 
+    
+    Na hora que o programa pega os dois meses em torno da data
+    atual para interpolar o Ozonio. Do jeito antigo,
+    o programa pega o primeiro mes certo, mas o segundo fica errado:
+    Se o mes for novembro, entao a primeira leitura
+    eh feita com mf=11... mas a segunda, eh feita com mf=1.
+    O problema eh o:
+
+    IF (mf == 12) mf=1
+
+    que deveria ser
+
+    IF (mf == 13) mf=1
+
+
+    Procedimento antigo 
+    ................
+   CALL ReadOzone(nfozone,bfr_in3,mf)
+   IF (reducedGrid) THEN
+     CALL NearestIJtoIBJB(bfr_in3 ,gozo)
+   ELSE
+     CALL IJtoIBJB(bfr_in3 ,gozo)
+   END IF
+
+   mf=mf+1
+   IF (mf == 12) mf=1
+   CALL ReadOzone(nfozone,bfr_in3,mf)
+   IF (reducedGrid) THEN
+     CALL NearestIJtoIBJB(bfr_in3 ,bfr_out3)
+   ELSE
+     CALL IJtoIBJB(bfr_in3 ,bfr_out3)
+   END IF
+
+    ................
+
+    Procedimento novo
+    ................
+
+   CALL ReadOzone(nfozone,bfr_in3,mf)
+   IF (reducedGrid) THEN
+     CALL NearestIJtoIBJB(bfr_in3 ,gozo)
+   ELSE
+     CALL IJtoIBJB(bfr_in3 ,gozo)
+   END IF
+
+   mf=mf+1
+   IF (mf == 13) mf=1
+   CALL ReadOzone(nfozone,bfr_in3,mf)
+   IF (reducedGrid) THEN
+     CALL NearestIJtoIBJB(bfr_in3 ,bfr_out3)
+   ELSE
+     CALL IJtoIBJB(bfr_in3 ,bfr_out3)
+   END IF
+
+    ................
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/06/2008
+  AUTOR:   Paulo Kubota e Henrique
+
+  MENSAGEM: Introducao da mascara de gelo no calculo da espessura optica
+================================================================================
+    MODULO Rad_Clirad.f90 
+
+    Procedimento antigo 
+    ................
+    DO i=1,m
+       ! sibmask>0 is land
+       IF (dmask(i).gt.0) THEN
+          DO ib=1,11
+             taual(i,:,ib) = tau_c(ib)*aotb_c(i,:)*hzmask(i,:)
+             ssaal(i,:,ib) = ssa_c(ib)
+             asyal(i,:,ib) = asym_c(ib)
+          ENDDO
+          ! sibmask -1 or 0 is ice/water
+       ELSE
+          DO ib=1,11
+             taual(i,:,ib) = tau_m(ib)*aotb_m(i,:)*hzmask(i,:)
+             ssaal(i,:,ib) = ssa_m(ib)
+             asyal(i,:,ib) = asym_m(ib)
+          ENDDO
+       ENDIF
+    ENDDO
+    ................
+
+    Procedimento novo
+    ................
+
+    DO i=1,m
+       ! sibmask=1..12 is land with different vegetation types
+       if (dmask(i).gt.0.and.dmask(i).le.12) then
+          DO ib=1,11
+             taual(i,:,ib) = tau_c(ib)*aotb_c(i,:)*hzmask(i,:)
+             ssaal(i,:,ib) = ssa_c(ib)
+             asyal(i,:,ib) = asym_c(ib)
+          ENDDO
+       ! sibmask -1 or 0 means ice/water and 13 is permanent ice (greenland and antartic)
+       ELSE
+          DO ib=1,11
+             taual(i,:,ib) = tau_m(ib)*aotb_m(i,:)*hzmask(i,:)
+             ssaal(i,:,ib) = ssa_m(ib)
+             asyal(i,:,ib) = asym_m(ib)
+          ENDDO
+       ENDIF
+    ENDDO
+    ................
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/06/2008
+  AUTOR:   Paulo Kubota
+
+  MENSAGEM: Correcao do nomes dos arquivos de GrisdHistory
+================================================================================
+    MODULO Options.90 
+    GFGHNMC20040326002004032800F.unf.TQ<trunc>L<lev>
+    GFGHNMC20040326002004032800F.top.TQ<trunc>L<lev>
+    GFGHNMC20040326002004032800F.dir.TQ<trunc>L<lev>
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  27/05/2008
+  AUTOR:   Paulo Kubota
+
+  MENSAGEM: Correcao dos nomes dos arquivos de entrada
+================================================================================
+    MODULO options.90 
+    
+TopoVariance.G<jMax>		  --> Variancia da Topografia
+VegetationMask.G<jMax>		  --> Mascara de Vegetacao
+DeepSoilTemperature.G<jMax>	  --> Climatologia da Temperatura para as 3
+                                      camada de solo do SSiB
+RoughnessLength.G<jMax>  	  --> Rugosidade da Superficie 
+SoilMoisture.G<jMax>		  --> Climatologia da umidade do solo
+Snow<label>S.unf.G<jMax>	  --> Climatologia espessura de neve
+SSTClima<label>.G<jMax> 	  --> Climatologia da Temperatura da Superficie
+                                      do Mar
+SSTWeekly<label>.G<jMax>	  --> Temperatura da Superficie do Mar observada
+                                      para os ultimos 7 dias
+GANLNMC<label>S.unf.<trunc>L<lev> --> Analise (condicao inicial da atmosfera
+                                      (Labels,Diverg. Vortic.,Temp. Umidade,
+				      Pres ))
+VegetationSSiB  		  --> Parametros Fisiologicos e Morfologicos da
+                                      vegetacao   
+AlbedoSSiB			  --> Albedo Climatologico   
+DiagDesiredTable.pnt		  --> Tabela das Variaveis Diagnosticas de
+                                      Saida, Campo completo
+GridHistDesiredTable		  --> Tabela das Variaveis Diagnosticas
+                                      de Saida para os pontos de grade 
+				      Selecionados
+GridHistLocations.G<jMax>	  --> Tabela de Pontos de Grades coletados
+                                      durante a integracao para Saida   
+UnitsLookUpTable		  --> Tabela com indices para conversao de 
+                                      unidades
+UnitsConvFactor2Table		  --> Tabela para conversao de unidades
+UnitsConvFactor1Table		  --> Tabela para conversao de unidades
+OZONNMC<label>S.unf.G<jMax>L<lev> --> Arquivo de ozonio atmosferico
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  11/04/2008
+  AUTOR:   Henrique e Paulo Kubota
+
+  MENSAGEM: Correcao do Output dos Diagnosticos no Modo Restart
+================================================================================
+    MODULO Model.90 Introducao do Parametro:
+          StartStorDiag=.TRUE.
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  04/04/2008
+  AUTOR:   Henrique e Paulo Kubota
+
+  MENSAGEM:  Separacao da fisica em modulos funcionais
+================================================================================
+Substituicao de tabulacoes por espacos nos modulos:
+  Convection.f90, InputOutput.f90, FieldsPhysics.f90
+  GwddDriver.f90, Model.f90, Parallelism.f90
+  PblDriver.f90, Sfc_SSiB.f90, Surface.f90 GwddSchemeAlpert.f90
+
+Makefile
+  - Adicionado diretiva para compilacao do modulo Watches.f90,
+    com dependencia explicita para o Parallelism.o. Isto foi necessario
+    pois a compilacao com varios processadores falhava ao tentar
+    compilar o watches.o sem ter gerado o parallelism.o antes.
+
+Constants.f90
+  - Adicionado fator de conversao gm2dob
+
+Convection.f90
+  - Estruracao das chamadas para o armazenamento dos diagnosticos
+    e gridhistory 
+
+Diagnostics.f90
+  - Corrigido comentario da variavel nDiag_mxr10m
+  - Corrigido nome da variavel T10m em avail()
+
+GridHistory.f90
+  - Alterado nome da variavel nGHis_swdbot para nGHis_swdtop,
+    para refletir seu conteudo: INCIDENT SHORT WAVE FLUX
+
+GwddDriver.f90
+  - Criada para ser um driver das possiveis parametrizacoes de 
+    arrasto por onda de gravidade
+  - Eliminadas variaveis nGHis_* que nao eram usadas
+
+GwddSchemeAlpert.f90
+  - Criada para conter as funcionalidade da parametrizacao por 
+    onda de gravidade
+  
+PblDriver.f90
+  - Criada para ser um driver das possiveis parametrizacoes de 
+    Camada Limite Atmosferica 
+  - Eliminadas variaveis nGHis_* e nDiag_* que nao eram usadas
+
+Sfc_SSib.f90
+  - Elimidada retorno de valor atraves da variavel rnet, pela
+    subrotina seasfc, pois o valor retornado nao era utilizado
+
+Surface.f90
+  - Eliminado variavel de entrada topo e rshort pois nao eram
+    utilizadas no modulo.
+  - Estruracao das chamadas para o armazenamento dos diagnosticos
+    e gridhistory 
+
+FieldsPhysics.f90
+  - Eliminadas as variaveis de interpolacao da radiacao (agora
+    elas sao locais ao modulo de radiaca)
+  - Eliminada variavel cloud (cada nuvem eh guardada separadamente)
+  - Organizadas as variaveis restantes da radicao, com adicao
+    de muitos comentarios.
+
+PhysicsDriver.f90
+  - Nao puxa mais variaveis as interpolacao da radiacao de dentro
+    do FieldsPhysics... Agora essas variaveis sao locais
+  - Puxa novas variavaies para radiacao absorvida no chao
+  - Chamada para RadiationDriver com novo formato (variaveis agrupadas)
+  - Remocao das chamadas para o armazenamento dos diagnosticos
+    e gridhistory 
+
+Clirad.f90
+  - Organizada as variaveis na chamada a subrotina principal
+  - Parte que calculava o "optical depth" com esquema do ccm3
+    foi movido para a subrotina cloud_micro_ccm3 que agora faz
+    todas as contas do ccm3 que precisamos.
+  - Agora todas as variaveis de entrada, em niveis, sao recebidas
+    "flipadas" ou seja, com k=1 no topo. Antes, as variaveis
+    termodinamicas entravam flipadas e as variaveis de microfisica
+    entravam com a orientacao normal
+
+RadiationDriver.f90
+  - Modificados os nomes das variaveis de radiacao. Com o f90 eh 
+    possivel usar nomes com mais de 8 caracteres.
+  - Variaveis de entrada organizadas em grupos
+  - As subrotinas do antigo modulo, nao relacionadas diretamente 
+    com a solucao da equacao de transferencia radiativa, foram
+    movidas para este driver: rqvirt, ...
+  - Criada uma subrotina cloud_micro_ccm3() que faz todas as contas
+    relativas ao esquema de microfisica simplicado do ccm3 que sao
+    necessario quando usa-se o RAS ou Clirad com nuvens CCM3, ou
+    UKMetOffice.
+  - Criada uma subrotina cloud_field() que "gera" as nuvens para a 
+    radiacao... Ela contem as varias chamadas as muitas versoes
+    da cldgen(), para cada combinacao de parametros possivel.
+  - Criada uma subrotina astropar() que calcula os parametros
+    orbitais e coseno do angulo zenital.
+  - As variaveis de microfisica, passadas para os esquemas de 
+    radiacao, agora sao "flipadas", ou seja k=1 no topo.
+
+Radiation.f90
+  - Subrotina rqvirt organizada e adicionado varios comentarios
+  - Tabela de absorcao do vapor agua em ondas curtas definada global
+    ao modulo. Antes os valores eram repetidos em cada subrotina
+    que os utilizava.
+  - As rotinas que nao tinham relacao com a solucao da equacao de
+    transferencia radiativa foram movidas para o driver de radiacao
+  - Organizados os parametros de entrada/saida das subrotinas
+    principais da radiacao: swrad e lwrad
+  - Parte que calculava o "optical depth" com esquema do ccm3
+    foi movido para a subrotina cloud_micro_ccm3 que agora faz
+    todas as contas do ccm3 que precisamos.
+  - Agora todas as variaveis de entrada, em niveis, sao recebidas
+    "flipadas" ou seja, com k=1 no topo. Antes, as variaveis
+    termodinamicas entravam flipadas e as variaveis de microfisica
+    entravam com a orientacao normal
+  - O modulo foi renomeado para Rad_COLA, pois contem as rotinas
+    de radiacao originais como vieram daquele centro.
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  21/12/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  Correcao da subroutina gwdd
+================================================================================
+MODULOS: PlanBoundLayer.f90
+
+1) PlanBoundLayer:
+
+    Correcao para o limite inferior da velocidade do vento 
+
+    !speeds(i)=SQRT(ubar(i)*ubar(i)+vbar(i)*vbar(i))
+    speeds(i)=Max(0.5_r8,SQRT(ubar(i)*ubar(i)+vbar(i)*vbar(i)))
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/11/2007
+  AUTOR:  Saulo Barros
+
+  MENSAGEM:  Correcao no codigo quando gera Normal modes
+================================================================================
+MODULOS: NonLinearNMI.f90
+
+1) NonLinearNMI:
+
+   Chamada a vereig (em vermod) usava variavel cl como
+ auxiliar, zerando seu valor na saida. Chamada foi corrigida de tal forma
+ que isto nao mais aconteca. 
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/11/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao do codigo da gwdd no calculo de tensao"
+================================================================================
+MODULOS: PlanBoundLayer.f90
+      
+      Codigo antigo linha 1667 a 1677
+      
+       Fr=nbar(i)*SQRT(var(i))/speeds(i)      
+       IF(speeds(i) == 0.0_r8 .OR. nbar(i) == 0.0_r8)THEN
+          tensio(i,1)=0.0_r8
+       ELSE
+          !
+          !     use non linear weighting function
+          !
+          gstar=g*Fr*Fr/(Fr*Fr+1.0_r8)
+          tensio(i,1)=gstar*(robar(i)*speeds(i)*speeds(i)*speeds(i))/ &
+               (nbar(i)*lstar)
+       ENDIF
+
+codigo novo linha 1667 a 1677
+       IF(speeds(i) == 0.0_r8 .OR. nbar(i) == 0.0_r8)THEN
+          tensio(i,1)=0.0_r8
+       ELSE
+          Fr=nbar(i)*SQRT(var(i))/speeds(i)
+          !
+          !     use non linear weighting function
+          !
+          gstar=g*Fr*Fr/(Fr*Fr+1.0_r8)
+          tensio(i,1)=gstar*(robar(i)*speeds(i)*speeds(i)*speeds(i))/ &
+               (nbar(i)*lstar)
+       ENDIF
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/11/2007
+  AUTOR:  Saulo Barros
+
+  MENSAGEM:  "Algumas Correcoes"
+================================================================================
+MODULOS: Radiation.f90 FieldsDynamics.f90 Communications.f90 run_multi_UNA
+
+1) Radiation:
+ Comando: x1(1:(ncols*(kmax+1)),1) = sqrt(x1(1:(ncols*(kmax+1)),1))
+ trocado por x1(1:ncols,1:kmax+1) = sqrt(x1(1:ncols,1:kmax+1))
+
+ para permitir que o programa rode com opcao de checagem de invasao de area
+
+2) FieldsDynamics: 
+   Alocacao de fgpass_scalars com tamanho minimo quando esta nao e usada
+   para permitir que o programa rode com opcao de checagem de invasao de area
+
+3) Communications:
+   Correcao em Exchange_Winds
+
+4) run_multi_UNA
+   Correcao de endian - revisao de todos os arquivos.
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  30/10/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Calibracao dos parametros para os calculos de t2mt q2mt"
+================================================================================
+MODULE: Surface.f90 IOLowLevel.f90 Diagnostics.f90 GridHistory.f90
+
+1) Surface:
+     Calibracao dos parametros para os calculos de t2mt q2mt
+     Variavel dtc3xi era usada antes de ser definida. Movido local de
+     sua definicao.
+      
+2) IOLowLevel.f90 Diagnostics.f90 GridHistory.f90
+   Alteracao dos nomes das variaveis t2mt q2mt
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  12/10/2007
+  AUTOR:  Jairo Panetta
+
+  MENSAGEM:  "Correcao invasao de area em SemiLagrangian"
+================================================================================
+MODULE: SemiLagrangian.f90
+
+1) SemiLagrangian:
+      Invasao de area corrigida pelo Saulo Barros
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  20/09/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao no modulo Convection"
+================================================================================
+MODULE: Convection.f90
+
+1) Convection:
+      Aquecimento vertical devido a conveccao profunda corrigido
+      
+    
+
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  17/09/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Atualizcao da inicializacao Ozonio "
+================================================================================
+MODULE: Options.f90
+
+1) Options:
+    Nomenclatura adotada pelo CPTEC
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  17/09/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Atualizcao da inicializacao com nova nomenclatura das tabelas diag. e gridh. "
+================================================================================
+MODULE: Options.f90 
+
+1) Options:
+    Definicao dos novos nomes dos arquivos de entrada configurados para a nova
+    Nomenclatura adotada pelo CPTEC
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  17/09/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Atualizcao da inicializacao com novos arquivos de entrada"  
+================================================================================
+Modulos: NonLinearNMI.f90 Sfc_SSiB.f90 FieldsPhysics.f90 IOLowLevel.f90
+         InputOutput.f90 Diagnostics.f90 Parallelism.f90 Model.f90 Options.f90
+ 
+1) Options:
+    Definicao dos novos nomes dos arquivos de entrada configurados para a nova
+    Nomenclatura adotada pelo CPTEC
+ 
+
+2) Sfc_SSiB:
+    Leitura dos parametros de albedo e vegetacao " mudanca de 64 para 32 bits"
+
+3) NonLinearNMI:
+    Leitura dos campos de temperatura do solo, rugosidade, umidade do solo 
+    snow, temperatura da superficie do mar, " mudanca de 64 para 32 bits "
+     e acesso direto.
+
+4) FieldsPhysics:
+    Leitura dos campos de temperatura do solo, rugosidade, umidade do solo 
+    snow, temperatura da superficie do mar mascara de vegetacao, 
+    " mudanca de 64 para 32 bits " e acesso direto.
+
+5) IOLowLevel:
+    Mudanca na subroutinas de leiura de acesso sequencial para direto
+
+6) Model:
+    Organizacao da criacao dos nomes doas arquivos de analise e restart
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/09/2007
+  AUTORES:  Jairo Panetta, Saulo Barros
+
+  MENSAGEM:  "Otimiza inicializacao, requendo novos arquivos de entrada"
+
+===============================================================================
+Finalidade das alteracoes:
+(1)Otimizacao da Inicializacao: Novos arquivos de entrada: 
+(1-a)Arquivo mwaves.TXXXXGYYYYY (ASCII e sequencial) contem a quantidade de ondas por latitude 
+   para integracoes com truncamento XXXX e numero de latitudes YYYYY apenas
+   no caso da grade reduzida. Eh desnecessario para a grade regular pois todas
+   as latitudes contem o mesmo numero de ondas.
+   O arquivo contem o array mPerLat de Init.f90. 
+(1-b)Arquivo gaussp.GYYYYY (binario e sequencial) contem pontos e pesos gausseanos 
+   (arrays CosGaussColat e GaussWeights de Utils.f90) para grades com
+   YYYYY latitudes (regular ou reduzida).
+   === PROCEDIMENTO===
+   Os dois arquivos evitam calculos repetidos em invocacoes consecutivas
+   do modelo. Inseri rotinas que escrevem esses arquivos. Inseri
+   procedimentos de forma que se mgiven=.TRUE. e gaussgiven=.TRUE. no
+   MODELIN, os arquivos sao lidos do diretorio de dados de entrada. 
+   Caso mgiven=.FALSE. e reducedGrid=.TRUE., o arquivo mwaves.TXXXXGYYYYY 
+   eh produzido no diretorio de dados de saida.
+   Caso gaussgiven=.FALSE. o arquivo gaussp.GYYYYY eh produzido no
+   diretorio de dados de saida.
+   Cabe ao usuario copia-los para o diretorio de dados entrada ao final da execucao e
+   ajustar o MODELIN de acordo para as proximas execucoes.
+   Modulos alterados: IOLowLevel, Init, Makefile, Options, Utils, MODELIN
+(2)Otimizacao da Inicializacao: Leitura de modos normais. Todos os
+   processos liam simultaneamente trechos distintos do arquivo de
+   modos normais, causando competicao pela leitura do arquivo de tal ordem
+   que a inicializacao dominava o tempo de execucao para grande numero
+   de processadores. Atualmente apenas o processo 0 le o arquivo e
+   comunica, por MPI, os dados para os restantes. Fato observado durante
+   experimentacao com o TL511L64 no SX6 e na Una.
+   Modulos alterados: NonLinearNMI
+(3)Stdout Detalhado: Impressao ao inicio de cada TimeStep, incluindo
+   os TimeSteps da inicializacao. Correcao de prints em Watches
+   Modulos alterados: TimeStep, Model, Watches
+(4)Debug: Insere, em modulos selecionados, variavel logica localDump.
+   Se verdadeira, imprime dados para debug nos arquivos Dump. Default
+   falsa. Sua alteracao requer re-compilacao.
+   Modulos alterados: Sizes
+Testes executados:
+(1)Reprodutibilidade binaria na Una em integracao de um dia do T062L28, 
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 63 processos MPI em todas
+   as configuracoes com Grade Quadratica (Euleriana Completa, Euleriana
+   Reduzida, SemiLagrangeano Reduzida e SemiLagrangeano Quadratica),
+   Resultados identicos a versao anterior.
+(2)Reprodutibilidade binaria na Una em integracao de um dia do TL095L28, 
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 63 processos MPI em todas
+   as configuracoes com Grade Linear (SemiLagrangeana Completa e
+   SemiLagrangeana Reduzida). 
+   Resultados identicos a versao anterior.
+(3)Reprodutibilidade binaria no SX6 em integracao de um dia do TL511L64,
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 32 processos MPI na
+   configuracao SemiLagrangean, Grade Linear e Reduzida. (Alvo final
+   do acordo CPTEC/NEC). Idem para 2, 4 e 8 threads OMP com 4, 2 e 1
+   processos MPI (respectivamente) em 2, 3 e 4 nos, bem como de 2 a 8
+   processos OMP em um unico processo MPI em um unico no, com
+   reprodutibilidade binaria.
+(4)Execucao de 10 dias do TL511L64 para 10 dias de integracao no SX6,
+   Kuo e Tidke, CLIRAD e Harshvardhan, com 4 processos MPI e 8 OMP (4 nos) na
+   configuracao SemiLagrangean, Grade Linear e Reduzida em 82 minutos,
+   utilizando 39.2GBytes com velocidade de 84.8GFlops(33.1% da vel. maxima).
+(5)Execucao de 10 dias do TL511L64 para 10 dias de integracao no SX6,
+   Kuo e Tidke, CLIRAD e Harshvardhan, com 32 processos MPI (4 nos)  
+   configuracao SemiLagrangean, Grade Linear e Reduzida em 80 minutos,
+   utilizando 56.8GBytes com velocidade de 88.2GFlops(34.4% da vel. maxima).
+(6)Compilacao no intel, portland e pathscale na Una, sem mensagens.
+Defeitos conhecidos:
+Nao testado: OMP na Una.
+Modulos alterados (vide obs acima): Makefile, IOLowLevel, Init, Model,
+   NonLinearNMI, Options, Sizes, TimeStep, Utils, Watches
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  27/08/2007
+  AUTORES:  Jairo Panetta, Saulo Barros, Paulo Kubota e Celso Mendes
+
+  MENSAGEM:  "OpenMP; Paralelismo SemiLagrangeano; Multiplos compiladores; Corrige stdout; Limita Paralelismo Maximo"
+
+===============================================================================
+Finalidade das alteracoes:
+(1)Multiplos compiladores: Corrigir o fonte para compilacao sem avisos
+   no intel, portland e pathscale, todos na Una e no compilador da IBM. 
+   Aderencia ao padrao F95, comentando invocacao a flush. 
+   Modulos alterados: Makefile, Parallelism, TimeStep, Watches.
+(2)Corrige stdout: Elimina prints desnecessarios em NonLinearNMI.
+(3)Paralelismo SemiLagrangeano: Escala paralelismo na formulacao
+   Semi-Lagrangeana, eliminando a restricao que quatro fatias de 
+   latitude constante estejam no mesmo processador (jovlap).
+   Restricao atual de uma fatia de latitude por processador.
+   Modulos alterados: Sizes, SemiLagrangian, Communications.
+(4)Limita Paralelismo: Numero maximo de processos MPI eh truncamento +1;
+   flaga erro e para a execucao caso contrario.
+   Modulos alterados: Sizes.
+(5)Paralelismo OpenMP: Um relogio por thread. 
+   Modulos alterados: Watches e Model
+Testes executados:
+(1)Reprodutibilidade binaria na Una e no SX6 em integracao de um dia do T062L28, 
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 63 processos MPI em todas
+   as configuracoes com Grade Quadratica (Euleriana Completa, Euleriana
+   Reduzida, SemiLagrangeano Reduzida e SemiLagrangeano Quadratica),
+   Resultados identicos a versao anterior.
+(2)Reprodutibilidade binaria na Una e no SX6 em integracao de um dia do TL95L28, 
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 63 processos MPI em todas
+   as configuracoes com Grade Linear (SemiLagrangeana Completa e
+   SemiLagrangeana Reduzida). 
+   Resultados identicos a versao anterior.
+(3)Reprodutibilidade binaria na Una em integracao de um dia do TL213L42,
+   Kuo e Tidke, CLIRAD e Harshvardhan, de 1 a 214 processos MPI na
+   configuracao Euleriana, Grade Quadratica e Reduzida. (Versao atual
+   de producao do CPTEC).
+(4)Compilacao no intel, portland e pathscale na Una, sem mensagens.
+(5)Reprodutibilidade binaria no SX6 em integracao de um dia do T062L28, 
+   Kuo e Tidke, CLIRAD e Harshvardhan, utilizando de 1 a 8 thread OMP em um
+   no do SX6 e 8 threads OMP de 2 a 7 nos (2 a 7 MPI) em todas
+   as configuracoes com Grade Quadratica (Euleriana Completa, Euleriana
+   Reduzida, SemiLagrangeano Reduzida e SemiLagrangeano Quadratica),
+(6)Reprodutibilidade binaria na Una em poucas configuracoes testadas.
+Defeitos conhecidos:
+   Nao ha reducao do tempo de execucao pelo uso da opcao OpenMP na Una. Todas as
+   threads sao associadas a um unico core de cada no.
+Nao testado:
+Modulos alterados (vide obs acima): Makefile, Parallelism, TimeStep,
+   Watches, NonLinearNMI, Sizes, SemiLagrangian, Communications.
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  20/08/2007
+  AUTOR:  Jairo Panetta, Paulo Kubota, Saulo Barros
+
+  MENSAGEM:  "Reprodutibilidade Binaria Grade Reduzida; Nomenclatura Sizes; Invasao em Diagnostico; Corrige stdout"
+
+===============================================================================
+Finalidade das alteracoes:
+(1)Obter reprodutibilidade binaria com grade reduzida. Requer introducao
+   de mascara para que a invocacao de seasfc seja independente da divisao
+   de dominio na grade. Modulos alterados: FieldsPhysics, PhysicsDriver,
+   Sfc_SSiB, Surface.
+(2)Nomenclatura de Sizes: substitui nome de variaveis mnMaxInProc e 
+   mnExtMaxInproc por mnsPerProc e mnsExtPerProc. Redireciona Dumps para
+   arquivo de dump. Modulos alterados: Sizes, com implicacoes em Communication,
+   Init e Transform. Introduz nova dependencia de Sizes no Makefile.
+(3)Invasao em Diagnostico: Invasao de area nas rotinas hbartr e hbartr2D 
+   quando algum processador possui apenas uma onda Fourier.
+(4)Corrige stdout: Troca posicao de StdDev e GlobalMean em Diagnostics,
+   elimina prints desnecessarios em Utils e aprimora saida de Options.
+Testes executados:
+   Reprodutibilidade binaria na Una em integracao de um dia do T062L28, 
+   Kuo e Tidke, Lacis e Harshvardhan, de 1 a 63 processos MPI na
+   configuracoes Euleriano com Grade Regular e Quadratica, Euleriano com
+   Grade Reduzida e Quadratica.
+   Reprodutibilidade binaria na Una em integracao de um dia do T062L28, 
+   Kuo e Tidke, Lacis e Harshvardhan, de 1 a 26 processos MPI na
+   configuracoes Euleriano com Grade Regular e Quadratica. Acima desse numero
+   de processadores a restricao de jovlap impede a execucao (vide defeitos
+   conhecidos, abaixo).
+   Reprodutibilidade binaria na Una em integracao de um dia do T062L28, 
+   Kuo e Tidke, Lacis e Harshvardhan, de 1 a 26 processos MPI na
+   configuracoes Euleriano com Grade Reduzida e Quadratica. Acima desse numero
+   de processadores a restricao de jovlap impede a execucao (vide defeitos
+   conhecidos, abaixo).
+   Reprodutibilidade binaria no SX6 no mesmo numero de processadores e nos
+   mesmos casos acima.
+   Reprodutibilidade binaria no TX7 de 1 a 11 processos MPI nas mesmas resolucao
+   e configuracao.
+   Resultados numericos identicos a versao anterior.
+Defeitos conhecidos:
+   Restricao excessiva no numero de processadores na versao SemiLagrangeana 
+   devido a variavel jovlap.
+   O programa nao para quando o numero de processadores eh maior que
+   truncamento+1 (supera o paralelismo no espectral), devendo causar
+   erros de execucao. Idem para o paralelismo na grade. O comportamento
+   nesse caso eh desconhecido.
+Nao testado:
+   Paralelismo OpenMP. Opcao comentada no Makefile.
+   
+Modulos alterados (vide obs acima): Communications, Diagnostics, FieldsPhysics,
+   Init, Options, PhysicsDriver, Sfc_SSiB, Sizes, Surface, Transform, Utils
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  11/08/2007
+  AUTOR:  Jairo Panetta
+
+  MENSAGEM:  "Unifica escrita e limpa stdout; instrumenta tempo execucao"
+
+===============================================================================
+Finalidade das alteracoes:
+(1)Introduz modulo Parallelism com operacoes e variaveis basicas MPI.
+   A rotina que inicializa MPI cria um arquivo de Dump por processador. 
+   O modulo fornece rotinas para escrever nesse arquivo e para unificar
+   escritas no stdout (multiplos processos solicitam a escrita, apenas um
+   escreve).
+(2)Limpeza de stdout - remocao de escritas desnecessarias e unificacao
+   de escritas pela invocacao da rotina adequada de Parallelism.
+(3)Insere instrumentacao do tempo de execucao pelo modulo Watches.
+   Por enquanto, apenas tempo de inicializacao e de integracao, escritos
+   no arquivo Dump.
+Testes executados:
+   Reprodutibilidade binaria na Una em integracao de um dia do T062L28, 
+   Kuo e Tidke, Lacis e Harshvardhan, de 1 a 63 processos MPI na
+   configuracao Euleriano, Grade Regular e Quadratica.
+   Reprodutibilidade binaria no SX6 de 1 a 32 processos MPI na mesma resolucao
+   e configuracao.
+   Reprodutibilidade binaria no TX7 de 1 a 12 processos MPI na mesma resolucao
+   e configuracao.
+   Resultados numericos identicos a versao anterior.
+Defeitos conhecidos:
+   Nao ha reprodutibilidade binaria na grade reduzida. 
+   Restricao excessiva no numero de processadores na versao SemiLagrangeana 
+   devido a variavel jovlap.
+   O programa nao para quando o numero de processadores eh maior que
+   truncamento+1 (supera o paralelismo no espectral), devendo causar
+   erros de execucao. Idem para o paralelismo na grade. O comportamento
+   nesse caso eh desconhecido.
+Nao testado:
+   Paralelismo OpenMP. Opcao comentada no Makefile.
+   
+Modulos: Communications
+   Modificacao:
+       Remocao da inicializacao MPI, agora feita no modulo Parallelism.
+       Move variavel global jovlap para Options.
+
+Modulos: Diagostics, InputOutput, Model, NonLinearNMI, Options,
+       PlanBoundLayer, Sfc_SSiB, Sizes, 
+   Modificacao:
+       Limpeza e organizacao de escritas no stdout
+
+Modulos: GridDynamics, GridHistory, Init, InputOutput, Model, NonLinearNMI,
+       Options, SemiLagrangean, SpecDynamics, TimeStep, Transform
+   Modificacao:
+       Move localizacao de variaveis globais de paralelismo (myid, maxnodes)
+       de USE Communications para USE Parallelism e variaveis globais do
+       Semi Lagrangeano (jovlap) de USE Communications para USE Options
+
+Modulos: Makefile
+   Modificacao:
+       Novas dependencias pela introducao de Parallelism e Watches
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  20/07/2007
+  AUTOR:  Jairo Panetta
+
+  MENSAGEM:  "Porte UNA, Reprodutibilidade e ajustes; leia Historico"
+
+===============================================================================
+Finalidade das alteracoes:
+   Porte para UNA, garantindo reprodutibilidade binaria de 1 a
+   truncamento+1 processos MPI na UNA, no TX7 e no SX6, na formulacao
+   Euleriano, Grade Quadratica Completa. 
+Defeitos conhecidos:
+   Nao ha reprodutibilidade binaria na grade reduzida. Saida (stdout)
+   repetida por todos os processadores. Restricao excessiva no numero
+   de processadores na versao SemiLagrangeana devido a variavel jovlap.
+   Nao ha restricao quando o numero de processadores eh maior que
+   truncamento+1 (supera o paralelismo no espectral), devendo causar
+   erros de execucao. Idem para o paralelismo na grade.
+Nao testado:
+   Paralelismo OpenMP. Opcao comentada no Makefile.
+   
+Modulos: SpecDynamics.f90
+   Modificacao:
+       correcao de invasao de area que ocorria apenas quando o numero
+       de processos MPI eh igual ao truncamento + 1.
+
+Modulos: GridDynamics.f90 
+   Modificacao:
+       remocao de variaveis nao utilizadas que
+       causavam "warnings" na compilacao
+
+Modulos: Sizes.f90
+   Modificacao:
+       inicializacao de variaveis nao inicializadas que
+       causavam "warnings" na compilacao
+
+Modulos: Makefile, Makefile_tx7
+   Modificacao:
+       unificacao de Makefiles (SX6, TX7, UNA) em makefile unico.
+       Usuario deve descomentar comandos da maquina escolhida.
+
+Modulos: Clirad.f90 Diagnostics.f90 FieldsPhysics.f90 GridHistory.f90
+         InputOutput.f90 Model.f90 Options.f90 PhysicsDriver.f90 
+         PlanBoundLayer.f90 Radiation.f90 Sfc_SSiB.f90 Shall_Souza.f90
+         Surface.f90 Utils.f90 
+   Modificacao:
+       remocao de caracteres graficos; fonte resultante contem
+       apenas caracteres aceitos pelo padrao Fortran 90
+
+Modulos: README_INSTALL.txt README_ClusterPC.txt README_SX6.txt
+   Modificacao:
+       unificacao de instrucoes de instalacao
+
+Modulos: run_multi_UNA run_multi_SX6 run_multi_TX7
+   Modificacao:
+       insercao de script de execucao na UNA e pequenas alteracoes
+       nos demais scripts de execucao
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  17/07/2007
+  AUTOR:  Jairo Panetta
+
+  MENSAGEM:  "Remocao de caracteres DOS"
+
+===============================================================================
+Modulos: Clirad.f90 cah.data90 coa.data90 mcai.data90
+    
+   Modificacao:
+       remocao de caracteres DOS
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  10/07/2007
+  AUTOR:  PAulo Y. Kubota
+
+  MENSAGEM:  "Ajuste do calculo da t2m e inclus~ao de novas variaveis
+              prognosticas "
+
+================================================================================
+Modulos: Convection.f90 Makefile Sfc_SSiB.f90 FieldsPhysics.f90 Model.f90
+         Diagnostics.f90 IOLowLevel.f90 Radiation.f90 Surface.f90
+         PhysicsDriver.f90 GridHistory.f90
+    
+
+Modulos: Convection.f90 Radiation.f90
+    
+   Modificacao:
+       remocao dos warn
+
+Modulos: Sfc_SSiB.f90 Surface.f90 PhysicsDriver.f90
+    
+   Modificacao:
+       Captura das Variavais para o calculo da t2m
+
+Modulos: FieldsPhysics.f90
+    
+   Modificacao:
+       Inclusao de novas variaveis
+
+Modulos: IOLowLevel.f90 Model.f90
+    
+   Modificacao:
+       modificacao nas rotinas para escrita dos labels das variaveis prognosticas
+
+
+Modulos: Diagnostics.f90
+    
+   Modificacao:
+       Inclusao das novas variaveis prognosticas
+
+
+Modulos:  GridHistory.f90.f90
+   Modificacao:
+       Inclusao das novas variaveis tp2m qq2m uv2m vv2m
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  14/06/2007
+  AUTOR:  Saulo Barros
+
+  MENSAGEM:  "Revisao de Paralelismo OPEN MP para inicializacao do modelo,
+              Insercao de rotinas para transporte e difusao de tracadores
+              e correcao do calculo do numero de pontos da malha reduzida
+              (alem de introducao de opcao para leitura de arquivo).
+              Adicionada opcao para conservacao de ps"
+
+================================================================================
+Modulos: Cu_Kuolcl.f90 Cu_RAS.f90 FieldsPhysics.f90 NonLinearNMI.f90
+         SpecDynamics.f90
+    
+   Modificacao:
+       Paralelismo OPEN MP de algumas rotinas
+
+Modulos: Communications.f90 FieldsDynamics.f90 SemiLagrangian.f90
+         TimeStep.f90
+    
+   Modificacao:
+       Mudancas para transporte de tracadores
+
+Modulos: GridDynamics.f90
+    
+   Modificacao:
+       Introducao de rotina para conservacao de ps e difusao de tracadores
+
+Modulos: Init.f90 Transform.f90
+    
+   Modificacao:
+       Correcao do calculo da malha reduzida
+       Opcao para leitura do numero de ondas a ser utilizado por latitude
+
+Modulos: IOLowLevel.f90
+    
+   Modificacao:
+       Rotinas para leitura do numero de ondas por latitude e 
+       de pesos e latitudes gaussianas.
+
+Modulos: Model.f90
+    
+   Modificacao:
+       Adequacao de chamadas de rotinas modificadas
+
+Modulos: Sizes.f90
+    
+   Modificacao:
+       Nova rotina para decomposicao Open MP dos m's
+
+Modulos: Utils.f90
+    
+   Modificacao:
+       Mudancas no Calculo das raizes dos Polinomios de Legendre
+       (metodo de Newton), Polinomios so armazenados na regiao
+       do processador MPI (caso nao se precise determinar os m's
+       por latitude) e mudancas correlatas.
+
+Modulos: MODELIN  
+    
+   Modificacao:
+       Novas opcoes: Gaussgiven, mgiven, Mascon_ps, nscalars
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  14/06/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao da subroutina updia para variavel 2D"
+================================================================================
+Modulos: Diagnostics.f90 Surface.f90 PhysicsDriver.f90 GridDynamics.f90
+
+1) Modificacao: inclusao da interface no modulo Diagnostics
+
+     INTERFACE updia
+       MODULE PROCEDURE updia2D, updia1D
+     END INTERFACE
+
+     A subroutina antiga, o primeiro argumento da subroutina updia(field,..,,,)
+     era passado com argumento (ibMax),(ibMax,kMax) ou (nCols) (nCols,kMax),
+     porem a variavel field na subroutina updia era dimensionada com (ibMax,*).
+     Assim quando passava-se (nCols,kMax) ocorria erro na opcao com grade
+     reduzida a interpolacao ocorria de forma equivocada. Pois nCols /= ibMax
+
+2) Modificacao: Os modulos Surface.f90 PhysicsDriver.f90 GridDynamics.f90
+                houve modificacao no argumento da updia
+===============================================================================
+
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  04/05/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao da subroutina cldgen2 feita por Henrique"  
+================================================================================
+Modulos: Radiation.f90
+    
+1) Modificacao:
+          !
+          !     klow change above necessary to mark inversion cloud height
+          !
+          DO lon = 1, ncols
+             IF (dthdpm(lon) < dthdpc .AND. grh(lon,invb(lon)) > f0p6) THEN
+                cinv(lon) = - f6p67 * (dthdpm(lon)-dthdpc)
+                cinv(lon) = MAX(cinv(lon),0.0_r8)
+                cinv(lon) = MIN(cinv(lon),1.0_r8)
+                IF (grh(lon,invb(lon)) > f0p8) &
+                     cinv(lon) = cinv(lon)* &
+              (1.0_r8-(f0p8 - grh(lon,invb(lon)))/f0p2)
+             END IF
+             clow(lon)=cinv(lon)
+             IF (conv(lon) <= 0.0_r8) THEN
+                cdin(lon,klow(lon))=cinv(lon)
+             END IF
+          END DO
+
+          O teste (grh(lon,invb(lon)) > f0p8) esta ERRADO! Foi algum erro de
+          traducao na hora de transformar o codigo para F90!!! Compare com
+          o mesmo trecho na subrotina cldgen:
+
+         IF (grh(lon,invb(lon)) .LT. f0p8)&
+              cinv(lon) = cinv(lon)*&
+              (1.0_r8-(f0p8 - grh(lon,invb(lon)))/f0p2)
+
+          Deveria ser .LT. e nao > !!! Verifiquei na documentacao do COLA e
+          realmente o sinal correto eh o menor que.... 
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  04/05/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao do GridHistory na versao MPI para multi nos"  
+================================================================================
+Modulos: GridHistory.f90
+    
+1) Modificacao:
+       Correcao do GridHistory na versao MPI GridHistory.f90
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  27/04/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao do GridHistory na versao MPI"  
+================================================================================
+Modulos: GridHistory.f90
+    
+1) Modificacao:
+       Correcao do GridHistory na versao MPI GridHistory.f90
+===============================================================================            
+===============================================================================
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  26/04/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Ajuste no calculo da velocidade do vento a 10 m devido ao pos-processamento"  
+================================================================================
+Modulos: Surface.f90
+    
+1) Modificacao:
+    Ajuste no calculo da velocidade do vento a 10 m devido ao pos-processamento
+        Modo antigo
+        VELC   (i) = sqrt((gu(i,1)/SIN(colrad(i)))**2.0_r8 + &
+	             (gv (i,1)/SIN( colrad(i)))**2.0_r8)    
+        Modo novo
+        VELC   (i) = MAX(sqrt((gu(i,1)/SIN(colrad(i)))**2.0_r8 +&
+	             (gv (i,1)/SIN( colrad(i)))**2.0_r8) ,0.25_r8 )  
+        
+	Modo antigo
+        um_10m (i) = VELC_10M(i)*SIN(DirWind(i))
+        vm_10m (i) = VELC_10M(i)*COS(DirWind(i))
+        Modo novo
+        um_10m (i) = MAX(MIN(VELC_10M(i)*SIN(DirWind(i)),100.0_r8),-100.0_r8)
+        vm_10m (i) = MAX(MIN(VELC_10M(i)*COS(DirWind(i)),100.0_r8),-100.0_r8)
+
+===============================================================================            
+===============================================================================
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  23/03/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Inclusao da temperatura do ponto de orvalho no Diagnostics"  
+================================================================================
+Modulos: Diagnostics.f90 Constant.f90 GridDynamics.f90
+    
+1) Modificacao:
+    Inclusao da temperatura do ponto de orvalho no Diagnostics.
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  05/03/2007
+  AUTOR:  Simone Tomita
+
+  MENSAGEM:  "Padronizacao de I/O"  
+================================================================================
+Modulos: Diagnostics.f90 GridHistory.f90 InputOutput.f90 NonLinearNMI.f90
+         Sfc_SSiB.f90  Model.f90
+    
+1) Modificacao:
+    Padronizacao de OPEN, READ, WRITE, CLOSE; Inclusao de teste de parada, 
+    verificando a existencia do arquivo.
+ 
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  02/03/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Correcao da leitura do Ozonio"  
+================================================================================
+Modulos: IOLowLevel.f90 Options.f90 InputOutput.f90
+    
+1) Modificacao:
+    IOLowLevel.f90 Options.f90 InputOutput.f90
+ 
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  14/02/2007
+  AUTOR:  Henrique Barbosa (commit feito pelo Paulo Kubota)
+
+  MENSAGEM:  "Inclusao dos novos campos de ozonio e da variacao do CO2"  
+================================================================================
+Arquivos Modificados:
+
+Makefile: corrigido as dependencias de compilacao para varios modulos
+
+Constants: Mais uma variavel de saida (ozonio integrado)
+
+Diagnostics: Mais uma variavel de saida (ozonio integrado)
+
+FieldsPhysics:
+ - Corrigido comentarios
+ - Adicionado variavel o3mix para possibilitar saida do ozonio.
+   Ja existia o diagnostico do ozonio no global, mas o campo
+   saia com zero, pois era feito de dentro da radiacao,
+   e deveria ser feito fora... agora esta correto.
+ - getsbc(), initcheckfile() e initboundcond() 
+   precisam receber kmax por causa do campo de ozonio que eh 3D
+
+IOLowLevel:
+ - Nova funcao para ler ozonio
+
+InputOutput: 
+ - Getsbc(): variavel ncols mudou de nome: imax
+ - Adicionado 'stop' em caso de problema de leitura dos
+   arquivos de: albedo, sst, snow ou soilms
+ - Leitura do ozonio
+ - Update da concentracao de co2
+
+NonLinearNMI:
+ - Adicionado ozonio
+
+Options:
+ - Nova subrotina Output_Physics_Options
+   Ela escreve no arquivo de saida as opcoes fisicas
+   utilizadas na simulacao
+ - Novas opcoes para: ozonio e variacao de co2
+
+PhysicsDriver:
+ - Variavel o3mix, que agora guarda o campo de ozonio, foi
+   passada ate chegar dentro da radiacao.
+ - Corrigido erro de logica na chamada da spmrad: OR->AND
+ - Diagnostico do ozonio (call updia) feito dentro da physcs
+ - novo diagnostico para ozonio integrado (dobson)
+
+Radiation:
+ - Mais comentarios
+ - o3mix agora entra na spmrad e eh atualizado la dentro.
+   Com isso, foi eliminada a variavel o3l18, que era local,
+   e era passada erradamente para a updia.
+ - Eliminado alguns comentarios inuteis e adicionado outros
+
+Shall_Tied:
+ - Algumas variaveis do tipo (i,k) eram acessadas como (i*k,1).
+   ... agora foram corrigidas
+
+Utils:
+ - Novas rotinas para trabalhar com matrizes 3D. Necessarias
+   para os campos de ozonio (ou qualquer outro campo 3D que
+   venha a ser usado como contorno). Funcoes:
+   IJtoIBIB3_R IJtoINIJ3_I 
+   NearestIJtoIBJB_I3D, NearestIJtoIBJB_R3D
+
+Model:
+ - Depois dos Init's das varias partes da fisica, agora 
+   existe uma chamada para a subrotina Output_Physics_Options
+ - Alteracao na chamada as subrotinas
+   getsbc(), initcheckfile() e initboundcond() 
+   para entrar o ozonio
+
+run_multi_TX7:
+ - adicionado novos numeros de arquivos que devem ser abertos
+   como big_endian
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  06/02/2007
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:  "Portabilidade para as maquinas tupay e tambau"  
+================================================================================
+Modulos: 
+    
+1) Modificacao:
+    Correcao na subroutina wheat para obter a reprodutibilidade
+    binaria modificacao nos modulos Surface.f90 e Sfc_SSiB.f90
+ 
+
+2) Modificacao:
+   Correcao do restart para as maquinas tupay e tambau, modificacao nos
+   modulos Diagnostics.f90 e Model.f90
+ 
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  20/12/2006
+  AUTOR:  Simone Tomita
+
+  MENSAGEM:  "Remocao de warning e correcao de erros de compilacao para 
+              portabilidade"  
+================================================================================
+Modulos: 
+    
+1) Remocao de warning:
+ Convection.f90,Cu_Kuolcl.f90,GridDynamics.f90,GridHistory.f90,Model.f90,
+ NonLinearNMI.f90,PhysicsDriver.f90,Radiation.f90,Shall_Souza.f90,
+ SpecDynamics.f90,Surface.f90,TimeStep.f90,Cu_RAS.f90,Cu_Grellens.f90
+ Diagnostics.f90,FieldsPhysics.f90,SemiLagrangian.f90
+
+2) Portabilidade
+ Makefile_tx7,Cu_Grellens.f90,cah.data90,mcai.data90,Diagnostics.f90,
+ Sfc_SSiB.f90,Cu_RAS.f90
+ 
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM:  "Atualizacao do MODELIN" 
+================================================================================
+Modulos: 
+    
+    MODELIN    : A opcao sousa (SOUZ) para conveccao raza tem problema na 
+                 conservacao de massa, gera resultados errados para clima
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM:  "Alteracao no calculo de t2m t10m q2m q10m u10m v10m " 
+================================================================================
+Modulos: Sfc_SSiB.f90 Surface.f90 Shall_Souza.f90
+         
+Sfc_SSiB.f90 : removido as subroutina de calculo de t2m t10m q2m q10m u10m v10m 
+
+
+Surface.f90 : inserido as subroutina de calculo de t2m t10m q2m q10m u10m v10m 
+
+Shall_Souza.f90 : incializacao das variaveis de cape, boy1 e  boy2 para zero
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM:  "Correcao da unidade de saida do vento a 10 metros" 
+================================================================================
+Modulos: Diagnostics.f90
+         
+Diagnostics.f90 troca do unit code of available diagnostic "nuavl" de 130 para 60   
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  13/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM:  "declaracao de kind explicito eliminando chave de compilacao
+              para 64 bits nos modulos da convecao" 
+================================================================================
+Modulos: Convection.f90 Options.f90 Cu_Grellens.f90 Cu_Kuolcl.f90 Cu_RAS.f90
+         Shall_Souza.f90 Shall_Tied.f90 Prec_LrgScl.f90 PlanBoundLayer.f90
+
+         declaracao de kind explicito eliminando chave de compilacao
+         para 64 bits nos modulos da convecao"
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  09/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao do calculo de temperatura e umidade a 2 e 10 metros sobre a
+            Antartida 
+================================================================================
+Modulos: Surface.f90 Sfc_SSiB.f90
+
+Surface.f90 => 
+Sfc_SSiB.f90=> Correcao do calculo de temperatura e umidade a 2 e 10 metros sobre a
+               Antartida
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/11/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Nova estrutura do modulo Surface com calculo de temperatura e 
+            umidade a 2 e 10 metros  
+================================================================================
+Modulos: Surface.f90 Model.f90 Options.f90 Surface.f90 Constants.f90
+	 Diagnostics.f90 FieldsPhysics.f90 GridDynamics.f90 PhysicsDriver.f90
+         TimeStep.f90 Makefile
+
+Surface.f90:  Inclusao da camada da subroutina para calculo de temperatura e 
+               umidade a 2 e 10 metros 
+
+Sfc_SSiB.f90: Inclusao do module Sfc_SSiB
+
+Constants.f90: Inclusao de novas variaveis diagnosticas
+Diagnostics.f90: Inclusao de  novas variaveis diagnosticas
+PhysicsDriver.f90: Restruturado
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  27/10/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Ajuste na leitura da tabela do gridhistory
+================================================================================
+Modulos: GridHistory.f90
+
+GridHistory.f90:  Inclusao da subroutina GridHistLabel constroi os label
+                  para estacoes a partir das coordenadas lat lon
+
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  26/10/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao na construcao do nome dos arquivos de output
+================================================================================
+Modulos: Model.f90
+
+Model.f90:  mudanca no labelc e labelf na opcao cold
+            WRITE(labelf,'(I4.4, 3I2.2)' ) (idatef(i),i=4,1,-1)
+            labelc  = labelf
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  25/10/2006
+  AUTOR:  Simone Tomita
+
+  MENSAGEM: Correcao na subrotina cliradintf em Clirad
+================================================================================
+Modulos: Clirad.f90
+         Correcao de Parametros nas Linhas 330 e 331;
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  03/10/2006
+  AUTOR:  Paulo Y. kubota
+
+  MENSAGEM: Inclusao do teste das opcoes de radiacao e convecao definidas
+            no MODELIN
+================================================================================
+Modulos: Shall_Tied.f90 Shall_Souza.f90 Radiation.f90 PhysicsDriver.f90
+         Cu_Kuolcl.f90 Convection.f90 SpecDynamics.f90 FieldsPhysics.f90
+         GridDynamics.f90 TimeStep.f90 Options.f90 MODELIN Model.f90
+
+Options.f90       Inclusao de subroutina para testar as opcoes do MODELIN
+
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  03/10/2006
+  AUTOR:  Paulo Y. kubota
+
+  MENSAGEM: Documentacao das variaveis globais do modulo FieldsPhysics.f90
+================================================================================
+Modulos: FieldsPhysics.f90
+
+FieldsPhysics.f90        Somente Documentacao.....
+
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  26/09/2006
+  AUTOR:  Paulo Y. kubota
+
+  MENSAGEM: Atualizacao dos parametros referentes conveccao GRELL
+================================================================================
+Modulos: MODELIN Options.f90 Cu_Grellens.f90
+
+Options.f90        Foi modificado os parametros 
+ 
+		    grepar1 = 1_i8     ! integer: 0 ensemble 1 GRE   
+                                       !    4 OMG   7 KUO  10 Chappel 13 ARA
+                                       !   24 ensemble2
+		    grepar2 = 3_i8     ! integer: number eff-ensemble (1,2,3)
+		    grepar3 = 85.0_r8  ! cpmax
+		    grepar4 = 30.0_r8  ! cpmax-diff
+
+Cu_Grellens.f90     Opcoes referentes aos parametros
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  19/09/2006
+  AUTOR:  Saulo Barros 
+
+  MENSAGEM: Paralelismo MPI e OpenMP simultaneos, grade linear
+================================================================================
+Modulos: 
+
+FieldsDynamics.f90: variavel fglnpmm2 substituida por fgps2
+
+GridDynamics.f90:   algumas declaracoes INOUT substituindo IN
+                    eliminacao das auxiliares SumMatA, SumMatB
+                    definicao de fgps2 diretamente
+
+Model.f90:          paralelismo OPENMP modificado
+                    variaveis qqp, fgqm ja eram zeradas quando ISIMP=yes
+
+Options.f90:        modificacoes para uso de grade linear     
+
+PhysicsDriver.f90:  fgps2 nao precisa ser definido a partir de fglnp
+                    eliminacao de latcoi8 (nao usada)
+
+Radiation.f90:      Alteracao de COSZMED (uma vez que e chamada em unica
+                                          latitude)
+
+SemiLagrangian.f90: Modificacao no paralelismo OpenMp
+
+SpecDynamics.f90:   remocao de variavel nao utilizada
+
+Sizes.f90:          correcao de condicao para abortar computacao
+
+TimeStep.f90:       paraleleismo openMP adequado a MPI
+
+Transform.f90:      paraleleismo openMP adequado a MPI
+
+Utils.f90:          introducao de nova variavel
+
+MODELIN:            opcao para grade linear
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  15/09/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao do modulo Convection.f90 Model.f90 GridHistory.f90 
+================================================================================
+Modulos: Convection.f90 
+
+Convection.f90:    As Declaracoes 
+                       INTEGER(KIND=i8) :: kMax8
+                       INTEGER(KIND=i8) :: iMax8,nls8,mlrg8,latco8
+                   deixaram de ser Globais ao modulo Convection   
+   
+Model.f90:    Mudanca na abertura do arquivo de GridHistory
+              
+                 OPEN (nfghou, FILE=TRIM(fileoutGH),STATUS='replace',&
+                      FORM='UNFORMATTED',ACTION='WRITE')
+              
+              Modificado para  
+              
+                IF(myid.eq.0)OPEN (nfghou, FILE=TRIM(fileoutGH),STATUS='replace',&
+                               FORM='UNFORMATTED',ACTION='WRITE')
+
+
+Model.f90:    Mudanca na abertura do arquivo de GridHistory
+              
+                OPEN (nfghtop, FILE=TRIM(TopoGridH),STATUS='replace',&
+                FORM='UNFORMATTED',ACTION='WRITE')
+              
+              Modificado para  
+              
+                IF (myid.eq.0)OPEN (nfghtop, FILE=TRIM(TopoGridH),STATUS='replace',&
+                  FORM='UNFORMATTED',ACTION='WRITE')
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  15/09/2006
+  AUTOR:  Simone Tomita
+
+  MENSAGEM: Correcao do modulo Clirad 
+================================================================================
+Modulos: Clirad.f90 
+
+Clirad.f90:      Retorno para a calculo anterior, pois ainda esta sendo testado.
+                 Correcao na linha 749.
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  04/09/2006
+  AUTOR:  Simone Tomita
+
+  MENSAGEM: Correcao da topografia para conveccao
+================================================================================
+Modulos: TimeStep.f90 PhysicsDriver.f90
+
+TimeStep.f90:      Inclusao da variavel "fgzs" do modulo FieldsDynamics para
+                   chamada da subrotina HumidPhysics;
+PhysicsDriver.f90  Substituicao da variavel "fgzsphi" por "fgzs" em HumidPhysics.
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  31/08/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao do GridHistory
+
+================================================================================
+Modulos: GridHistory.f90
+
+GridHistory.f90:    na linha 993 o calculo da dimensao foi modificado
+                    dim1 = SIZE(field,1) --- > dim1 = SIZE(imask,1)
+                    
+                    Na Linha 951 o Laco 
+                    
+                    DO j = 1, nghsl
+                       DO n=1,ngpts
+                           qwork(n,j)=GPt( n )%dignos(j)
+                       END DO
+                    END DO
+                    
+                    Foi modificado para
+                    
+                    DO j = 1, nghsl
+                       DO n=1,ngptslocal
+                           qwork(n,j)=GPt( n )%dignos(j)
+                       END DO
+                    END DO
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  29/08/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Modificacao dos campos de radiacao relacionado as nuvens salvos 
+            na inicializacao
+================================================================================
+Modulos: FieldsPhysics.f90 PhysicsDriver.f90
+
+FieldsPhysics.f90:    Inclusao do campo cloud.
+
+PhysicsDriver.f90:    remocao da abertura, escrita e leitura do arquivo dos
+		      campos de radiacao relacionado as nuvens
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  12/07/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Modificacao da leitura do arquivo de restart
+================================================================================
+Modulos: IOLowLevel.f90
+
+IOLowLevel.f90:    Foi modificado a subroutina GReadHead8. O problema estava na
+                   leitura da variavel tod, que e declarada como REAL(KIND=r8) 
+                   e era lida como INTEGER(KIND=i4).
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  07/07/2006
+  AUTOR:  Simone Tomita
+
+  MENSAGEM: Inclusao das parametrizacoes Grell e Clirad
+  OBS: 1. Os modulos do Clirad estao com kind explicitos e os modulos do Grell 
+       ainda permanecem com a chave de compilacao "-ew"
+       2. Estas atualizacoes ainda nao foram testadas no TX7 
+================================================================================
+Modulos: Constants.f90 Convection.f90 Diagnostics.f90 FieldsDynamics.f90 
+         FieldsPhysics.f90 GridDynamics.f90 Model.f90 Options.f90 PhysicsDriver.f90
+         Radiation.f90 SpecDynamics.f90 Surface.f90 TimeStep.f90 
+
+Modulos incluidos para clirad: Clirad.f90 cah.data90 coa.data90 mcai.data90 
+
+Modulos incluidos para Grell: Prec_LrgScl.f90 Shall_Souza.f90 Shall_Tied.f90 
+                   Cu_Grellens.f90 Cu_Kuolcl.f90 Cu_RAS.f90 
+
+===============================================================================            
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  30/06/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Alteracao para reducao de memoria
+================================================================================
+Modulos: NonLinearNMI.f90 FieldsPhysics.f90
+
+NonLinearNMI.f90:  Foi excluida as variaveis tg1_in tg2_in tg3_in zorl_in
+                   e substituida por uma variavel local "buf" a subroutina
+                   Diaten
+
+
+FieldsPhysics.f90:  Foi excluida todas as variaveis dimensionadas com 
+                    iMax e jMax global ao modulo FieldsPhysics.
+
+===============================================================================            
+================================================================================
+Modulos: FieldsPhysics.f90 Surface.f90
+
+Surface.f90:  
+    !-srf
+    !    REAL, PARAMETER :: glsm_slz(0:nzgmax) = (/  0., 0.1, 0.25, 0.5, 1., 2., 3.,& !7  values
+    !         0., 0.,  0.,   0.,  0., 0., 0., 0., 0., 0.,& !10 values
+    !         0., 0.,  0.,   0.                         /) !4  values
+    !versao para NZG=8 => 9 niveis no MCGA
+    REAL, PARAMETER :: glsm_slz(0:nzgmax) = (/  0.0_r8, 0.05_r8, 0.13_r8, 0.25_r8, 0.5_r8, 1.0_r8, 1.75_r8,& !9  values
+         2.5_r8, 4.5_r8,  0.0_r8,   0.0_r8,  0.0_r8, 0.0_r8, 0.0_r8, 0.0_r8, 0.0_r8, 0.0_r8,& !10 values
+         0.0_r8, 0.0_r8,  0.0_r8,   0.0_r8                         /) !4  values
+    !-srf
+
+
+FieldsPhysics.f90:  Mudanca na subrotina re_assign_sib_soil_prop 
+                    INTEGER, PUBLIC, PARAMETER :: nzg     =8
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  28/06/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: "Atualizacao da leitura da sst de acesso direto"
+            
+================================================================================
+Modulos: IOLowLevel.f90 InputOutput.f90 Options.f90
+
+Options.f90: incluida as declaracoes das variaveis labelsi e labelsj ,
+             assim como suas inicializacoes sao definidas como sendo:
+             
+             WRITE (labelsi(1: 4), '(I4.4)') idate(4)
+             WRITE (labelsi(5: 6), '(I2.2)') 01
+             WRITE (labelsi(7: 8), '(I2.2)') 16
+             WRITE (labelsi(9:10), '(I2.2)') 12
+             WRITE (labelsj(1: 4), '(I4.4)') idate(4)
+             WRITE (labelsj(5: 6), '(I2.2)') 02
+             WRITE (labelsj(7: 8), '(I2.2)') 14
+             WRITE (labelsj(9:10), '(I2.2)') 00
+
+
+IOLowLevel.f90: retirada das declaracoes das variaveis labelsi e labelsj.
+                Caso a sst seja de acesso direto as variaveis 
+                labelsi e labelsj sao modificadas para a data da sst do arquivo              
+
+
+InputOutput.f90: inserida a subroutina para o calculo do irec, f1,f2, definindo 
+                 assim os registros que serao lidos do arquivo de sst, bem como
+                 os pesos utilizados na interpolacao linear.              
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  14/06/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao da parametrizacao de umidade do solo implementada
+            pelo Dr. Saulo Freitas
+            
+================================================================================
+Modulos: FieldsPhysics.f90 Surface.f90
+
+Surface.f90:  Mudanca na subrotina re_assign_sib_soil_prop 
+              "A estrutura logica para a mascara de vegetacao foi alterada"
+              DO j=1,jMax
+                 DO i= 1,iMax  
+                    !imask(i,j) = 0 => ocean  / imask(i,j) = 13 => ice
+                    IF (imask(i,j) > 0 ) THEN
+                       !print*,'1',i,j,int(veg_type(i,j,2)),imask(i,j)
+	               imask(i,j) = int(veg_type(i,j,2))
+                    END IF
+                 END DO
+              END DO
+
+              DO j=1,jMax
+                 DO i= 1,iMax  
+                    !imask(i,j) = 0 => ocean  / imask(i,j) = 13 => ice
+                    IF (imask(i,j) > 0 .and. imask(i,j) < 13) THEN
+                       !print*,'1',i,j,int(veg_type(i,j,2)),imask(i,j)
+	               imask(i,j) = int(veg_type(i,j,2))
+                    END IF
+                 END DO
+              END DO
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  29/05/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Otimizacao sequencial
+            
+================================================================================
+Modulos: Diagnostics.f90 PlanBoundLayer.f90 GridDynamics.f90
+
+Diagnostics.f90:  Mudanca na subrotina globme "foi anulada a troca de mensagem
+                  para a rodada sequencial"
+
+GridDynamics.f90:  Mudanca na subrotina delgeo " foi modificada o calculo da
+                   muiltiplicacao de matriz"   
+
+PlanBoundLayer.f90 : Otimizacao sequencial
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  15/05/2006
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: Correcao da inicializacao da SST para acesso direto
+
+================================================================================
+Modulos: Model.f90  Options.f90
+
+Model.f90:  Mudanca no local da chamada para a leitura da LandSeaMask
+
+Options.f90:  Remocao da sstlag do Namelist           
+
+================================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  15/04/2006
+  AUTOR:  Paulo Y. Kubota        
+
+  MENSAGEM:
+  "Correcao do OverFloat no modulo SpecDynamics.f90"
+
+===============================================================================
+Obs:  Ocorreu OverFloat na variavel "snnp1" para resolucao T341L64
+
+Modulo: SpecDynamics.f90
+        Mudou-se   INTEGER, ALLOCATABLE :: snnp1(:)
+        para   INTEGER(KIND=i8), ALLOCATABLE :: snnp1(:)
+        devido o overfloat no Laco
+        
+        DO mn = 1, 2*mymnMax
+           workImplDifu(mn) = 2.0_r8*(snnp1(mn)**ndho)
+        END DO
+
+        
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  05/04/2006
+  AUTOR:  Saulo Barros        
+
+  MENSAGEM:
+  "Paralelismo MPI para Semi-Lagrangeano, granularidade grossa"
+
+===============================================================================
+Obs:  Os resultados apresentam reprodutibilidade binaria para diferentes numeros
+      de processos MPI.
+
+
+Modulo: Utils.f90
+        Definicao de lonrad arrumada, devido a invasao de memoria (reformulacao
+         da modificacao anterior)
+
+Modulo: TimeStep.f90
+        Adaptacoes devido a nova declaracao de fgu e fgv.
+
+Modulo: Sizes.f90    
+        Adaptacoes para lidar com dominio expandido, incorporando area de
+        overlapping.
+
+Modulo: SemiLagrangian.f90
+        Incorporadas as chamadas das rotinas de comunicacao para troca de 
+        variaveis nas areas de overlapping de dois processadores vizinhos.
+        E feita uma checagem se a area de overlapping e suficiente (valor
+        de jovlap = 4. Este valor pode ser tornado uma opcao a definir em
+        options)
+
+Modulo: Model.f90
+        Leituras de qgzs e qgzs_orig ligeiramente modificadas para o
+        funcionamento do restart.
+
+Modulo: Init.f90 
+        Modificacao da chamada de InitFields.
+
+Modulo: GridHistory.f90
+        Adaptacao para MPI (requer uma pequena modificacao no Pos-processamento
+        Ordem dos pontos e modificada para que os pontos abrigados em um mesmo
+        processador fiquem juntos)
+
+Modulo: FieldsDynamics.f90
+        Campos que sao interpolados no algoritmo Semi-Lagrangeano ganharam uma 
+        area extendida, com mais latitudes ao sul e norte para abrigar informacoes
+        dos processadores vizinhos.
+
+Modulo: Communications.f90
+        Novas rotinas para comunicacao entre processadores vizinhos, atualizando
+        nas areas extendidas (overlapping area) os campos que serao interpolados.
+
+Modulo: SpecDynamics.f90
+        Foram comentadas as diretivas novector na rotina SemiImplicit, para que  
+        os loops sejam implementados com produtos de matrizes e a performance    
+        nao seja prejudicada. As posicoes das diretivas sao mantidas no codigo,
+        uma vez que elas sao importantes para  reproducibilidade binaria dos
+        resultados da versao anterior sem kind explicito, compilada com -ew.
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  04/04/2006
+  AUTOR:  Simone Shizue Tomita
+
+  MENSAGEM:
+  "Portabilidade: declaracao de kind explicito eliminando chave de compilacao
+   para 64 bits"
+
+===============================================================================
+
+Modulo: Todos os modulos foram modificados
+        1- Insercao de KIND explicito para REAL "r8" e INTEGER "i8" onde 
+           necessario (I/O)
+        2- Uso de "_r8" para valores reais
+        3- Comparado com a versao que esta no CVS, ha reprodutibilidade binaria 
+           para SX6 somente com diretiva de nao vetorizacao na subrotina 
+           SemiImpl(linhas:927,951,965 e 980) do modulo SpecDynamics.f90.
+           Essa diretiva impede a multiplicacao de matrizes automatica no SX6.
+           Isso torna a execucao do modelo mais lenta.Entretanto eh uma primeira
+           versao do codigo sem o uso da chave "-ew", restando solucionar o 
+           problema em breve. 
+        4- A reprodutibilidade binaria foi constatada para esquema de conveccao 
+           KUO, testes com outras parametrizacoes ainda serao testados.
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  30/03/2006
+  AUTOR:  Paulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao Dos modulos Diagnostics, Model e Utils. {invasao de memoria}"
+
+===============================================================================
+
+Modulo: Model.f90
+        1- Mudanca na alocacao da variavel "qgzs_orig"
+
+            ALLOCATE(qgzs_orig(2*myMNMax))
+           
+Modulo: Diagnostics.f90
+        1- Nas subroutinas weprog e wrprog a variavel "qgzs" passou a ser
+           declarada na forma
+           REAL              , INTENT(IN   ) :: qgzs  (:)
+           
+Modulo: Utils.f90
+        1- O Laco para o calculo da variavel lonrad foi modificada de     
+           DO j = 1,jmax
+              .......
+              .......
+              .......
+           END DO
+           
+           para
+           
+           DO j = myfirstlat,mylastlat
+              .......
+              .......
+              .......
+           END DO
+
+    
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  28/03/2006
+  AUTOR:  Paulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao Do modulo Sizes{invasao de memoria}"
+  OBS:  
+
+===============================================================================
+
+Modulo: Sizes.f90
+        1- Correcao do Laco no modulo Size para correcao da invasao de 
+           memoria
+           
+    Antes da correcao
+       
+    DO j = 1,jmax
+       ibMaxPerJB(jbPerIJ(iMaxPerJ(j),j)) = ibPerIJ(iMaxPerJ(j),j)
+    END DO
+    
+    depois da Correcao
+    
+    DO j = MAX(-1_i8,myfirstlat-jovlap),MIN(mylastlat+jovlap,jmax+2)
+       ibMaxPerJB(jbPerIJ(iMaxPerJ(j),j)) = ibPerIJ(iMaxPerJ(j),j)
+    END DO
+    
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  23/03/2006
+  AUTOR:  Paulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao no Calculo do Raio Efetivo da particula liquida"
+  OBS: Esta modificacao foi efetuada pelo Paulo em 27/01/2006 na versao do 
+       Global OpenMP. 
+
+===============================================================================
+
+Modulo: Radiation.f90
+        1- Mudanca no calculo do "Liquid particle Effective Radius (rel) "
+           as function of normalized pressure
+           docs CCM3, eq 4.a.15.1
+       
+           DO i=1,ncols
+              IF (imask(i) .lt. 1) THEN
+                 rel(i,:) = 10.0
+              ELSE
+                 rel(i,:) = 5.+5.*fice(i,:)
+                 WHERE(fice(i,:).eq.1) rel(i,:) = rei(i,:)
+              END IF
+           END DO    
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  21/03/2006
+  AUTOR:  Paulo Yoshio Kubota
+
+  MENSAGEM:
+  "Correcao no valor default para a variavel [ intsst ]"
+
+===============================================================================
+
+Modulo: Options.f90
+        1- Correcao no valor default para a variavel [intsst].
+           
+           A Mudanca mostrada abaixo:
+           
+           intsst  =7     ! sst data set interval in days (if > 0)
+                           ! sst data set is in calendar months if < 0.
+
+           Para ->
+           
+           intsst  =-1     ! sst data set interval in days (if > 0)
+                           ! sst data set is in calendar months if < 0.
+        
+        2- O Valor no namelist MODELIN tambem foi modificado. Caso seja 
+           necessario alterar o valor de intsst, ifsst e sstlag eh 
+           recomendado alterar no namelist MODELIN 
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  24/02/2006
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:
+  - README: "Inclusao de Readme para SX6, Cluster e Diagnostics"
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  16/02/2006
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:
+  - Model.f90: "Correcao no funcionamento do RESTART"
+
+  - Transform.f90: "Implementacao da transformada por blocos"
+  - Options.f90: "Inclusao da variavel tamblock para a transformada p blocos"
+  - MODELIN: "Inclusao da variavel tamblock"
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  15/01/2006
+  AUTOR:  Paulo Kubota
+
+  MENSAGEM:
+  - GridDynamics.f90: "Variavel gw com notacao vetorial 1:lbmax modificada para
+                       1: iblim"
+
+===============================================================================
+===============================================================================
+ATUALIZACAO:
+
+  DATA :  06/01/2006
+  AUTOR:  Saulo Barros
+
+  MENSAGEM:
+  "Versao paralelizada MPI"
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  08/08/2005
+  AUTOR:  Paulo Y. Kubota
+
+  MENSAGEM: 
+  Correcao no controle do tamanho do Bloco na transformada
+  "{Correcao para reducao de memoria}"
+===============================================================================
+Modulos: Transform
+
+
+Transform.f90:  Correcao das subroutinas DoSpecToGrid e 
+                DoGridToSpec
+                
+                IF(tamBlock == 0) THEN
+                     CALL InvFFTTrans (original 1 bloco para fft)       
+                ELSE
+                     CALL InvFFTTrans (novo  n bloco para fft )       
+                END IF
+
+                     
+===============================================================================

@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>m_string &mdash; Inctime V0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'V0.01',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="m_stdio" href="m_stdio.html" />
+    <link rel="prev" title="m_time" href="m_time.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Inctime
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                V0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="main.html">Main</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="inctime.html">Inctime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_time.html">m_time</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">m_string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_stdio.html">m_stdio</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Inctime</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="main.html">Main</a> &raquo;</li>
+        
+      <li>m_string</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/m_string.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="m-string">
+<h1>m_string<a class="headerlink" href="#m-string" title="Permalink to this headline">¶</a></h1>
+<p>Inctime is the main program.</p>
+<p class="rubric">Module</p>
+<span class="target" id="f/m_string"></span><p class="rubric">Description</p>
+<p>A module to process strings.</p>
+<dl class="docutils">
+<dt>Description</dt>
+<dd>Make some operations in strings</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>15 Dec 2010 - J. G. de Mattos - Initial Version</li>
+<li>02 Mar 2011 - J. G. de Mattos - Initial code to strTemplate</li>
+<li>30 Nov 2012 - J. G. de Mattos - All input parameters optionals in strTemplate</li>
+<li>05 Fev 2014 - J. G. de Mattos - Adding julian day mask</li>
+<li>20 jun 2014 - J. G. de Mattos - Adding GetTokens feature</li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/m_string/gettokens" title="f/m_string/gettokens"><code class="xref f f-var docutils literal"><span class="pre">gettokens</span></code></a>, <a class="reference internal" href="#f/m_string/replace" title="f/m_string/replace"><code class="xref f f-var docutils literal"><span class="pre">replace</span></code></a>, <a class="reference internal" href="#f/m_string/str_template" title="f/m_string/str_template"><code class="xref f f-var docutils literal"><span class="pre">str_template</span></code></a>, <a class="reference internal" href="#f/m_string/num2str" title="f/m_string/num2str"><code class="xref f f-var docutils literal"><span class="pre">num2str</span></code></a>, <a class="reference internal" href="#f/m_string/mon_lc" title="f/m_string/mon_lc"><code class="xref f f-var docutils literal"><span class="pre">mon_lc</span></code></a>, <a class="reference internal" href="#f/m_string/mon_uc" title="f/m_string/mon_uc"><code class="xref f f-var docutils literal"><span class="pre">mon_uc</span></code></a>, <a class="reference internal" href="#f/m_string/mon_wd" title="f/m_string/mon_wd"><code class="xref f f-var docutils literal"><span class="pre">mon_wd</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/m_string/gettokens_" title="f/m_string/gettokens_"><code class="xref f f-func docutils literal"><span class="pre">gettokens_()</span></code></a>, <a class="reference internal" href="#f/m_string/float2str" title="f/m_string/float2str"><code class="xref f f-func docutils literal"><span class="pre">float2str()</span></code></a>, <a class="reference internal" href="#f/m_string/int2str" title="f/m_string/int2str"><code class="xref f f-func docutils literal"><span class="pre">int2str()</span></code></a>, <a class="reference internal" href="#f/m_string/replace_" title="f/m_string/replace_"><code class="xref f f-func docutils literal"><span class="pre">replace_()</span></code></a>, <a class="reference internal" href="#f/m_string/str_template_" title="f/m_string/str_template_"><code class="xref f f-func docutils literal"><span class="pre">str_template_()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/m_string/mon_wd">
+<code class="descclassname">m_string/</code><code class="descname">mon_wd</code><a class="headerlink" href="#f/m_string/mon_wd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">shape:</th><td class="field-body"><ol class="first arabic simple" start="12">
+<li></li>
+</ol>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type:</th><td class="field-body"><p class="first">character</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">attrs:</th><td class="field-body"><p class="first last">private/parameter=(/’jan’,’feb’,’mar’,’apr’,’may’,’jun’,’jul’,’aug’,’sep’,’oct’,’nov’,’dec’/)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/gettokens">
+<code class="descclassname">m_string/</code><code class="descname">gettokens</code><a class="headerlink" href="#f/m_string/gettokens" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">attrs:</th><td class="field-body">public</td>
+</tr>
+</tbody>
+</table>
+<p>Get tokens by line</p>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/replace">
+<code class="descclassname">m_string/</code><code class="descname">replace</code><a class="headerlink" href="#f/m_string/replace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">attrs:</th><td class="field-body">public</td>
+</tr>
+</tbody>
+</table>
+<p>Replace a string by another</p>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/str_template">
+<code class="descclassname">m_string/</code><code class="descname">str_template</code><a class="headerlink" href="#f/m_string/str_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">attrs:</th><td class="field-body">public</td>
+</tr>
+</tbody>
+</table>
+<p>Replace variables in a template</p>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/mon_uc">
+<code class="descclassname">m_string/</code><code class="descname">mon_uc</code><a class="headerlink" href="#f/m_string/mon_uc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">shape:</th><td class="field-body"><ol class="first arabic simple" start="12">
+<li></li>
+</ol>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type:</th><td class="field-body"><p class="first">character</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">attrs:</th><td class="field-body"><p class="first last">private/parameter=(/’jan’,’feb’,’mar’,’apr’,’may’,’jun’,’jul’,’aug’,’sep’,’oct’,’nov’,’dec’/)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/mon_lc">
+<code class="descclassname">m_string/</code><code class="descname">mon_lc</code><a class="headerlink" href="#f/m_string/mon_lc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">shape:</th><td class="field-body"><ol class="first arabic simple" start="12">
+<li></li>
+</ol>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type:</th><td class="field-body"><p class="first">character</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">attrs:</th><td class="field-body"><p class="first last">private/parameter=(/’jan’,’feb’,’mar’,’apr’,’may’,’jun’,’jul’,’aug’,’sep’,’oct’,’nov’,’dec’/)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><dl class="variable">
+<dt id="f/m_string/num2str">
+<code class="descclassname">m_string/</code><code class="descname">num2str</code><a class="headerlink" href="#f/m_string/num2str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">attrs:</th><td class="field-body">public</td>
+</tr>
+</tbody>
+</table>
+<p>convert a number to string</p>
+</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/m_string/str_template_">
+<em class="property">subroutine  </em><code class="descclassname">m_string/</code><code class="descname">str_template_</code><span class="sig-paren">(</span><em>strg</em><span class="optional">[</span>, <em>nymd</em><span class="optional">[</span>, <em>nhms</em><span class="optional">[</span>, <em>fymd</em><span class="optional">[</span>, <em>fhms</em><span class="optional">[</span>, <em>jd</em><span class="optional">[</span>, <em>doy</em><span class="optional">[</span>, <em>label</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/m_string/str_template_" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A template formatting a string with variables.</p>
+<dl class="docutils">
+<dt>Description</dt>
+<dd>A template resolver formatting a string with a string variable
+and time variables.  The format descriptors are similar to those
+used in the GrADS.</dd>
+<dt>Variables</dt>
+<dd><ul class="first last simple">
+<li>%y4    substitute with a 4 digit year</li>
+<li>%y2    a 2 digit year</li>
+<li>%m1    a 1 or 2 digit month</li>
+<li>%m2    a 2 digit month</li>
+<li>%mc    a 3 letter month in lower cases</li>
+<li>%Mc    a 3 letter month with a leading letter in upper case</li>
+<li>%MC    a 3 letter month in upper cases</li>
+<li>%d1    a 1 or 2 digit day</li>
+<li>%d2    a 2 digit day</li>
+<li>%h1    a 1 or 2 digit hour</li>
+<li>%h2    a 2 digit hour</li>
+<li>%h3    a 3 digit hour (?)</li>
+<li>%n2    a 2 digit minute</li>
+<li>%e     a string ensemble identify</li>
+<li>%jd    a julian day without hours decimals</li>
+<li>%jdh   a julian day with hour decimals</li>
+<li>%jy    a day of current year without hours decimals</li>
+<li>%jyh   a day of current year with hours decimals</li>
+<li>%ix1   initial 1 digit decade</li>
+<li>%ix3   initial 3 digit decade</li>
+<li>%iy2   initial 2 digit year</li>
+<li>%iy4   initial 4 digit year</li>
+<li>%im1   initial 1 or 2 digit month</li>
+<li>%im2   initial 2 digit month (leading zero if needed)</li>
+<li>%imc   initial 3 character month abbreviation</li>
+<li>%id1   initial 1 or 2 digit day (leading zero if needed)</li>
+<li>%id2   initial 2 digit day</li>
+<li>%ih1   initial 1 or 2 digit hour</li>
+<li>%ih2   initial 2 digit hour</li>
+<li>%ih3   initial 3 digit hour</li>
+<li>%in2   initial 2 digit minute (leading zero if needed)</li>
+<li>%fx1   forecast 1 digit decade</li>
+<li>%fx3   forecast 3 digit decade</li>
+<li>%fy2   forecast 2 digit year</li>
+<li>%fy4   forecast 4 digit year</li>
+<li>%fm1   forecast 1 or 2 digit month</li>
+<li>%fm2   forecast 2 digit month (leading zero if needed)</li>
+<li>%fmc   forecast 3 character month abbreviation</li>
+<li>%fd1   forecast 1 or 2 digit day (leading zero if needed)</li>
+<li>%fd2   forecast 2 digit day</li>
+<li>%fh1   forecast 1 or 2 digit hour</li>
+<li>%fh2   forecast 2 digit hour</li>
+<li>%fh3   forecast 3 digit hour</li>
+<li>%fn2   forecast 2 digit minute (leading zero if needed)</li>
+</ul>
+</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>Joao Gerd - 02Mar2011 - Codigo Inicial</li>
+<li>Joao Gerd - 30Nov2012 - All input parameters optionals in strTemplate</li>
+<li>Joao Gerd - 05Fev2014 - Adding julian day mask</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>strg</strong><em> [</em><em>character</em><em>,</em><em>inout</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><ul class="first simple">
+<li><strong>nymd</strong><em> [</em><em>integer</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>nhms</strong><em> [</em><em>integer</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>fymd</strong><em> [</em><em>integer</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>fhms</strong><em> [</em><em>integer</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>jd</strong><em> [</em><em>real</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>doy</strong><em> [</em><em>real</em><em>,</em><em>in,optional</em><em>]</em></li>
+<li><strong>label</strong><em> [</em><em>character</em><em>,</em><em>in,optional</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/m_string/replace_" title="f/m_string/replace_"><code class="xref f f-func docutils literal"><span class="pre">replace_()</span></code></a>, <a class="reference internal" href="#f/m_string/int2str" title="f/m_string/int2str"><code class="xref f f-func docutils literal"><span class="pre">int2str()</span></code></a>, <a class="reference internal" href="#f/m_string/float2str" title="f/m_string/float2str"><code class="xref f f-func docutils literal"><span class="pre">float2str()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/m_string/replace_">
+<em class="property">subroutine  </em><code class="descclassname">m_string/</code><code class="descname">replace_</code><span class="sig-paren">(</span><em>strg</em>, <em>mask</em>, <em>repl</em><span class="sig-paren">)</span><a class="headerlink" href="#f/m_string/replace_" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Description</dt>
+<dd>Rotina para substituir a mask pela repl na strg.</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>Joao Gerd - 20Feb2011 - Codigo Inicial.</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>strg</strong><em> [</em><em>character</em><em>,</em><em>inout</em><em>]</em> :: String</li>
+<li><strong>mask</strong><em> [</em><em>character</em><em>,</em><em>in</em><em>]</em> :: maskout</li>
+<li><strong>repl</strong><em> [</em><em>character</em><em>,</em><em>in</em><em>]</em> :: replacing string</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/m_string/str_template_" title="f/m_string/str_template_"><code class="xref f f-func docutils literal"><span class="pre">str_template_()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/m_string/gettokens_">
+<em class="property">subroutine  </em><code class="descclassname">m_string/</code><code class="descname">gettokens_</code><span class="sig-paren">(</span><em>line</em>, <em>tokens</em>, <em>ntokens</em><span class="optional">[</span>, <em>del</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/m_string/gettokens_" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>line</strong><em> [</em><em>character</em><em>]</em></li>
+<li><strong>tokens</strong> (*)<em> [</em><em>character</em><em>]</em></li>
+<li><strong>ntokens</strong><em> [</em><em>integer</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first last"><strong>del</strong><em> [</em><em>character</em><em>,</em><em>optional</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/m_string/int2str">
+<em class="property">function  </em><code class="descclassname">m_string/</code><code class="descname">int2str</code><span class="sig-paren">(</span><em>num</em>, <em>format</em><span class="sig-paren">)</span><a class="headerlink" href="#f/m_string/int2str" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>num</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>format</strong><em> [</em><em>character</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>int2str</strong><em> [</em><em>character</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/m_string/str_template_" title="f/m_string/str_template_"><code class="xref f f-func docutils literal"><span class="pre">str_template_()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/m_string/float2str">
+<em class="property">function  </em><code class="descclassname">m_string/</code><code class="descname">float2str</code><span class="sig-paren">(</span><em>num</em>, <em>format</em><span class="sig-paren">)</span><a class="headerlink" href="#f/m_string/float2str" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>num</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>format</strong><em> [</em><em>character</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>float2str</strong><em> [</em><em>character</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/m_string/str_template_" title="f/m_string/str_template_"><code class="xref f f-func docutils literal"><span class="pre">str_template_()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="m_stdio.html" class="btn btn-neutral float-right" title="m_stdio" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="m_time.html" class="btn btn-neutral float-left" title="m_time" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, João Gerd Zell de Mattos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

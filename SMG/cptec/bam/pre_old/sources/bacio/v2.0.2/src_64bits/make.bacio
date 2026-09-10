@@ -1,0 +1,25 @@
+SHELL=/bin/sh
+
+$(LIB):	$(LIB)(bacio.o baciof.o bafrio.o byteswap.o chk_endianc.o)
+
+$(LIB)(bacio.o):       bacio.c clib.h
+	${CCMP} -c $(CFLAGS) bacio.c
+	ar -rv $(AFLAGS) $(LIB) bacio.i
+
+$(LIB)(baciof.o):   baciof.f
+	${FCMP} -c $(FFLAGS) baciof.f
+	ar -rv $(AFLAGS) $(LIB) baciof.i 
+
+$(LIB)(bafrio.o):   bafrio.f
+	${FCMP} -c $(FFLAGS) bafrio.f
+	ar -rv $(AFLAGS) $(LIB) bafrio.i 
+
+$(LIB)(byteswap.o):       byteswap.c 
+	${CCMP} -c $(CFLAGS) byteswap.c
+	ar -rv $(AFLAGS) $(LIB) byteswap.i
+
+$(LIB)(chk_endianc.o):       chk_endianc.f 
+	${FCMP} -c $(FFLAGS) chk_endianc.f
+	ar -rv $(AFLAGS) $(LIB) chk_endianc.i
+	rm -f baciof.i bafrio.i bacio.i *.mod byteswap.i chk_endianc.i
+

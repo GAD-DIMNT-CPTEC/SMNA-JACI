@@ -1,0 +1,32 @@
+#!/bin/ksh -x
+#
+INPDATTOPPRG='00,26,03,2004,'
+#SPECRESTOPGRD=62
+#SPECRESTOPGRD=126
+SPECRESTOPGRD=382
+#VERTRESTOPGRD=28
+VERTRESTOPGRD=96
+#PRFTOPGRD='SMT'
+PRFTOPGRD='NMC'
+GRDTOPGRD='Q'
+DIRINPTOPPRG='/gfs/dk17/bonatti/AGCM/model/datain/ '
+DIROUTTOPPRG='/gfs/dk17/bonatti/AGCM/pre/dataout/ '
+*
+varname=TopographyGradient
+ieeefiles='10,20'
+#
+rm -f ${varname}.nml
+cat <<EOT0 > ${varname}.nml
+&TopoGradNML
+  Mend=${SPECRESTOPGRD},  ! Spectral Horizontal Resolution of Output Data
+  Kmax=${VERTRESTOPGRD},  ! Number of Layers of Output Data
+  InputDate=${INPDATTOPPRG},
+  Preffix='${PRFTOPGRD}',
+  Grid='${GRDTOPGRD}',
+  DirInp='${DIRINPTOPPRG}',
+  DirOut='${DIROUTTOPPRG}'
+ /
+EOT0
+#
+export F_UFMTENDIAN=${ieeefiles}
+../../exec/${varname}

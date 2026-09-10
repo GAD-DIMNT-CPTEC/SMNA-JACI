@@ -1,0 +1,293 @@
+#!/bin/ksh 
+# Shell.....: Korn Shell
+# Objetivo..: Calcular datas futuras e passadas
+# Sintaxe...: caldate.2.0 [yyyymmddhh , yyyymmdd] [+,-] [ndnhhm] [Form. Saida]
+# Parametros: [Form. Entrada] [Incremento]  [NdiasNhorasNminutos]  [Form. Saida]
+# Autor.....: Jorge Luis Gomes
+# e-mail....: gomes@cptec.inpe.br
+# Versao....: 2.0 
+# Data da criacao: 10/09/2001
+case $1 in
+ help)
+       echo "Calcula data futura e passada"
+       echo "Autor.....: Jorge Luis Gomes"
+       echo "e-mail....: gomes@cptec.inpe.br"
+       echo " "
+       echo "Sintaxe"
+       echo "            Form. Entrada        Incremento  NdiasNhorasNminutos Form. Saida"
+       echo "caldate.3.0 [yyyymmddhh , yyyymmdd , yyyyjjjhh , yyyyjjj]  [+,-] [ndnhnm] '[Form. Saida]'"
+       echo " "
+       echo " Form. Entrada => Data inicial" 
+       echo " Incremento    => (-) calcula a data passada; (+) calcula a data futura "                
+       echo " Ndias         => Numero de dias que deseja calcular para frente ou para tras "
+       echo " Nhoras        => Numero de horas que deseja calcular para frente ou para tras"
+       echo " Nminutos      => Numero de minutos que deseja calcular para frente ou para tras"
+       echo " Form. Saida   => Formato desejado da data de saida. Pode-se formatar a data de saida"
+       echo "                  de acordo com as necessidades do usuario observando-se opcoes abaixo"
+       echo " "
+       echo "   Formatos de Saida:"
+       echo "   yyyy  => Ano com 4 digitos"
+       echo "   yy    => Ano com 2 digitos"
+       echo "   mm    => Mes"
+       echo "   mmm   => Mes no formato caracter 3 primeiras silabas (ingles)"
+       echo "   pmmm  => Mes no formato caracter 3 primeiras silabas (portugues)"
+       echo "   dd    => Dia "
+       echo "   jjj   => Dia Juliano"
+       echo "   hh    => Hora"
+       echo "   mn    => minuto"
+       echo "   YYYY  => Ano inicial com 4 digitos"
+       echo "   YY    => Ano inicial com 2 digitos"
+       echo "   MM    => Mes inicial"
+       echo "   MMM   => Mes inicial no formato caracter 3 primeiras silabas (ingles)"
+       echo "   PMMM  => Mes inicial no formato caracter 3 primeiras silabas (ingles)"
+       echo "   DD    => Dia inicial"
+       echo "   HH    => Hora inicial" 
+       echo "   MN    => Minuto inicial" 
+       echo "   ld    => Ultimo dia do mes" 
+       echo "   LD    => Ultimo dia do mes inicial" 
+       echo " "
+       echo " Eh permitido a utilizacao strings para compor o formato de saida"
+       echo " Exemplos:"
+       echo " caldate.3.0 2001091000 + 1d 'dd/mm/yyyy'"       
+       echo " caldate.3.0 2001091000 + 1d48h 'll40ganlYYYYMMDDHH+yyyymmddhh.ctl'" 
+       echo " caldate.3.0 2001091000 + 1d48h 'GPOSNMCYYYYMMDDHHyyyymmddhh.fct.T062L28.gmp'"	               
+       echo " caldate.3.0 2001091000 + 48h 'Cond. Inicial => DDMMMPYYYY HHZ Previsao => ddmmmyyyy hhZ'"       
+       echo " caldate.3.0 2001091000 + 48h30m 'hhZddmmmyyyy'"	   
+       exit 1;;
+    *) if (($#<4)) ; then
+         echo "Uso: caldate.3.0  [yyyymmddhh,yyyymmdd] [+,-] [ndnhnm] '[format]'"
+         echo "Para maiores detalhes => caldate.3.0 help"  
+         exit 2
+       fi
+  esac   
+
+# Fuctions
+bisexto()
+{
+let DIVISAO=${1}/4
+let ANOCALC=$DIVISAO*4
+if ((${ANOCALC}==${1})) ; then 
+ set -A lastdm ' ' '31' '29' '31' '30' '31' '30' '31' '31' '30' '31' '30' '31'
+ set -A julday ' ' '31' '60' '91' '121' '152' '182' '213' '244' '274' '305' '335' '366'
+else
+ set -A lastdm ' ' '31' '28' '31' '30' '31' '30' '31' '31' '30' '31' '30' '31'
+ set -A julday ' ' '31' '59' '90' '120' '151' '181' '212' '243' '273' '304' '334' '365'
+fi
+}
+###
+EDATE=$1
+fbs="$2"
+parent=$3
+
+test=`echo $parent |awk '{ pd=index($1,"d") ; if ( pd == 0 ) nd="0d"$1 ; else nd=$1 ; print nd }'`
+ddy=`echo $test |awk '{ sub(/d/," ");print $1 }'`
+
+test=`echo $test |awk '{ pd=index($1,"d") ; nd=substr($1,pd+1) ; print nd }'`
+test=`echo $test |awk '{ pd=index($1,"h") ; if ( pd == 0 ) nd="0h"$1 ; else nd=$1 ; print nd }'`
+dhr=`echo $test |awk '{ sub(/h/," ") ; print $1 }'`
+
+test=`echo $test |awk '{ pd=index($1,"h") ; nd=substr($1,pd+1) ; print nd }'`
+test=`echo $test |awk '{ pd=index($1,"m") ; if ( pd == 0 ) nd="0m"$1 ; else nd=$1 ; print nd }'`
+dmn=`echo $test |awk '{ sub(/m/," ") ; print $1 }'`
+
+#test=`echo $test |awk '{ pd=index($1,"m") ; nd=substr($1,pd+1) ;  print nd }'`
+#test=`echo $test |awk '{ pd=index($1,"s") ; if ( pd == 0 ) nd="0s"$1 ; else nd=$1 ; print nd }'`
+#seg=`echo $test |awk '{ sub(/s/," ") ; print $1 }'`
+
+ownout=$4
+lform=`echo ${EDATE}|awk '{print length($1)}'`
+case ${lform} in 
+
+12) yi=`echo ${EDATE} |cut -c1-4`
+    mi=`echo ${EDATE} |cut -c5-6`
+    di=`echo ${EDATE} |cut -c7-8`
+    hi=`echo ${EDATE} |cut -c9-10`
+    mni=`echo ${EDATE} |cut -c11-12`;;
+    
+11) yi=`echo ${EDATE} |cut -c1-4`
+    dji=`echo ${EDATE} |cut -c5-7`
+    hi=`echo ${EDATE} |cut -c8-9`
+    mni=`echo ${EDATE} |cut -c10-11`;;
+
+10) yi=`echo ${EDATE} |cut -c1-4`
+    mi=`echo ${EDATE} |cut -c5-6`
+    di=`echo ${EDATE} |cut -c7-8`
+    hi=`echo ${EDATE} |cut -c9-10`
+    mni=00;;
+        
+ 9) yi=`echo ${EDATE} |cut -c1-4`
+    dji=`echo ${EDATE} |cut -c5-7`
+    hi=`echo ${EDATE} |cut -c8-9`
+    mni=00;;
+    
+ 8) yi=`echo ${EDATE} |cut -c1-4`
+    mi=`echo ${EDATE} |cut -c5-6`
+    di=`echo ${EDATE} |cut -c7-8`
+    hi=00
+    mni=00;;
+    
+ 7) yi=`echo ${EDATE} |cut -c1-4`
+    dji=`echo ${EDATE} |cut -c5-7`
+    hi=00
+    mni=00
+    
+esac
+
+typeset -Z4 yi
+typeset -Z2 mi 
+typeset -Z2 di 
+typeset -Z2 hi
+typeset -Z2 mni
+typeset -Z4 yf
+typeset -Z2 mf 
+typeset -Z4 yf
+typeset -Z2 mf 
+
+
+set -A Mont ' ' 'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'
+set -A Montp ' ' 'Jan' 'Fev' 'Mar' 'Abr' 'Mai' 'Jun' 'Jul' 'Ago' 'Set' 'Out' 'Nov' 'Dec'
+
+bisexto ${yi}
+if (((${lform}==11)||(${lform}==7))) ; then
+let i=1
+ while ((${i}<=12)) ; do
+  if ((${dji}-${julday[${i}]}<=0)) ; then
+   if ((${dji}<=31)) ; then
+    let mi=1
+    let di=${dji}
+   else
+    let mi=$i
+    let di=${dji}-${julday[${i}-1]}
+   fi
+  let i=13
+  fi
+  let i=${i}+1
+ done
+fi
+
+datain=${yi}${mi}${di}${hi}${mni}
+ let ddmn=${dmn}/60
+ let dmn=${dmn}%60
+ let dhr=${dhr}+${ddmn}
+ let ddhr=${dhr}/24
+ let dhr=${dhr}%24
+ let ddy=${ddy}+${ddhr}
+ mf=${mi}
+ yf=${yi}
+ df=${di}
+case "${fbs}" in
++)
+ let mnf=${mni}+${dmn}
+ if [ ${mnf} -ge 60 ]
+  then
+   let mnf=${mnf}-60
+   let dhr=${dhr}+1
+ fi
+  
+ let hf=${hi}+${dhr}
+
+ if [ ${hf} -ge 24 ]
+  then
+   let hf=${hf}-24
+   let ddy=${ddy}+1
+ fi
+
+ let df=${df}+${ddy}
+
+ while ((${df} > ${lastdm[${mf}]})) ; do
+  let df=${df}-${lastdm[${mf}]}
+  let mf=${mf}+1
+  if [ ${mf} -eq 13 ]
+   then
+    let mf=1
+    let yf=${yf}+1
+    bisexto ${yf}
+  fi
+ done;;
+
+-)
+ let mnf=${mni}-${dmn}
+ if [ ${mnf} -lt 00 ]
+  then
+   let mnf=60+${mnf}
+   let dhr=${dhr}+1
+ fi
+
+ let hf=${hi}-${dhr}
+
+ if [ ${hf} -lt 00 ]
+  then
+   let hf=24+${hf}
+   let ddy=${ddy}+1
+ fi
+ let df=${df}-${ddy}
+ while ((${df} <= 0)) ; do
+  let mf=${mf}-1
+  if [ ${mf} -eq 00 ]
+   then
+    let mf=12
+    let yf=${yf}-1
+    bisexto ${yf}
+   fi 
+  let df=${lastdm[${mf}]}+${df}
+ done
+
+esac
+
+typeset -Z2 df 
+typeset -Z2 hf 
+typeset -Z2 mnf
+
+typeset -Z3 djf 
+if [ ${mf}-1 -le 00 ]
+  then
+   djf=${df}
+  else
+   let djf=${julday[${mf}-1]}+${df}
+fi
+
+typeset -Z3 dji
+if [ ${mi}-1 -le 00 ]
+  then
+   dji=${di}
+  else
+   let dji=${julday[${mi}-1]}+${di}
+fi
+
+yy=`echo ${yf}|cut -c3-4`
+yyyy=${yf}
+mm=${mf}
+mmm=${Mont[${mf}]}
+mmmp=${Montp[${mf}]}
+dd=${df}
+hh=${hf}
+mn=${mnf}
+
+YY=`echo ${yi}|cut -c3-4`
+YYYY=${yi}
+MM=${mi}
+MMM=${Mont[${mi}]}
+MMMP=${Montp[${mi}]}
+DD=${di}
+HH=${hi}
+MN=${mni}
+ld=${lastdm[${mf}]}
+LD=${lastdm[${mi}]}
+
+ownout=`echo ${ownout}|sed "s/yyyy/${yyyy}/g"|sed "s/yy/${yy}/" `
+ownout=`echo ${ownout}|sed "s/mmmp/${mmmp}"/|sed "s/mmm/${mmm}/g"|sed "s/mm/${mm}/g" ` 
+ownout=`echo ${ownout}|sed "s/dd/${dd}/g" ` 
+ownout=`echo ${ownout}|sed "s/jjj/${djf}/g" ` 
+ownout=`echo ${ownout}|sed "s/hh/${hh}/g" ` 
+ownout=`echo ${ownout}|sed "s/mn/${mn}/g" `
+ownout=`echo ${ownout}|sed "s/YYYY/${YYYY}/g"|sed "s/YY/${YY}/" `
+ownout=`echo ${ownout}|sed "s/MMMP/${MMMP}/g"|sed "s/MMM/${MMM}/g"|sed "s/MM/${MM}/g" ` 
+ownout=`echo ${ownout}|sed "s/DD/${DD}/g" `
+ownout=`echo ${ownout}|sed "s/JJJ/${dji}/g" `  
+ownout=`echo ${ownout}|sed "s/HH/${HH}/g" `
+ownout=`echo ${ownout}|sed "s/MN/${MN}/g" `
+ownout=`echo ${ownout}|sed "s/ld/${ld}/g" `
+ownout=`echo ${ownout}|sed "s/LD/${LD}/g" `
+
+echo $ownout
+exit 3

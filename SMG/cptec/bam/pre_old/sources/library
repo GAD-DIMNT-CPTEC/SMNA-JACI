@@ -1,0 +1,4 @@
+/usr/bin/ld: cannot find -lmpi_usempif08
+/usr/bin/ld: cannot find -lmpi_usempi_ignore_tkr
+/usr/bin/ld: cannot find -lmpi_mpifh
+/usr/bin/ld: cannot find -lmpi

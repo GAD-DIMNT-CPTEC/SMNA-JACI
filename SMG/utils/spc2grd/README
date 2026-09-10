@@ -1,0 +1,92 @@
+!-----------------------------------------------------------------------------!
+!             Modeling and Development Division - DMD/CPTEC/INPE              !
+!-----------------------------------------------------------------------------!
+!BOI
+! !TITLE: 
+!      spc2grd Conversor de arquivo fct spectral para ponto de grade
+!
+! !HISTORY REVISION:
+!     03 Abr 2017 - Luiz Sapucci - Initial Code only forecast file
+!     07 Abr 2017 - Luiz Sapucci - Version with analysis and forecast file TQ0062L28
+!     18 Jan 2019 - Luiz Sapucci - Adaptacoes no config para rodar a versão TQ0299L64 funcionando no Eval
+!
+! !DESCRIPTION:
+!
+-Conteudo:
+Este diretorio 'spc2grd' contem os codigos fontes para ler um arquivo de previsao ou analises do BAM no formato espectral e 
+escrever um arquivo das variáveis selecionadas em ponto de grads em um arquivo binário. Ha um script de
+compilacao e as informacoes para a execusao de um testcase simples que copia alguns dados do $SMG_PUBLIC e executa o programa 
+gerado no fase de compilacao, sao apresentados abaixo no passo-a-passo nesse arquivo README.
+
+-Dinamica do processo:
+O programa gerado pelo script compile.sh chamado spc2grd.x abre um arquivo de configuracao que informa o nome dos arquivos de entrada
+(analise ou previsoes) e o numero de variaves e quais sao as selecionadas dentre as diversas disponiveis no arquivo de previsao do BAM. 
+Ele abre os arquivos espectral (previsao ou analise) e o respectivo arquivo de directivas, e seguindo a lista de variaveis sao 
+identificados no arquivo e escrito no arquivo binario com o nome do arquivo de entrada com a adicao da extensáo ".bin". Um arquivo ctl apropriado para ler 
+esse conjunto de variaveis é tambem criado (com o mesmo nome do arquivo binario com a adicao da extensao ".ctl" usando um template na resolućao TQ0062L028 ou TQ0299L064 (BAM.TQ0299L064.bin.ctl.template ou BAM.TQ0062L028.bin.ctl.template). Para outras resolucoes basta adicionar um novo template para essa nova resolucao e selecionar no config. Esse arquivo binario pode entao ser lido pelo grads da forma convencional.
+
+-Observacao:
+Por convencao, e para manter a estrutura dos arquivos utilizados pelo GSI, o arquivo fct deve ser renomeado 
+para BAM.fct.hh e o arquivo dir deve ser renomeado para BAM.dir.hh e o de analise para BAM.anl. O arquivo de directivas da analise no datain do modelo deve ser usado um arquivo fixo denominado BAM.dir.anl.gsi contido no pacote náo precisando ser fornecido da rodada. Para o arquivo de analise gerado pelo BAM no Dataout do modelo utiliza-se o arquivo com a extensao dic como arquivos de directivas. 
+
+- Passo-a-passo
+Execute o script de compilacao 
+> ./compile.sh
+Copie os arquivos de analise do GSI do diretorio testCase do SMG renomeando apropriadamente
+> cp /scratchin/grupos/assim_dados/home/gdad/public/BAM/MODEL/datain/GANLCPT2013010100S.unf.TQ0062L028 BAM.anl.gsi
+Copie os aquivos de analise de saida do modelo no dataout e renomei da forma:
+> cp /scratchin/grupos/assim_dados/home/gdad/public/BAM/MODEL/dataout/TQ0062L028/2013010100/GFCTCPT20130101002013010100F.icn.TQ0062L028 BAM.anl.00
+> cp /scratchin/grupos/assim_dados/home/gdad/public/BAM/MODEL/dataout/TQ0062L028/2013010100/GFCTCPT20130101002013010100F.dic.TQ0062L028 BAM.dic.00
+Copie os aquivos de previsáo de 6 horas de saida do modelo no dataout e renomei da forma:
+> cp /scratchin/grupos/assim_dados/home/gdad/public/BAM/MODEL/dataout/TQ0062L028/2013010100/GFCTCPT20130101002013010106F.dir.TQ0062L028 BAM.dir.06
+> cp /scratchin/grupos/assim_dados/home/gdad/public/BAM/MODEL/dataout/TQ0062L028/2013010100/GFCTCPT20130101002013010106F.fct.TQ0062L028 BAM.fct.06
+Edite  o arquivo de configuracao e determine o numero de varaiveis e quais sao as que se deseja avaliar; 
+> gedit spc2grd.config
+
+Observe o nome dos arquivos de previsáo de 6 horas como dados de entrada:
+spcFILEname= BAM.fct.06          #Format  :: '(A13,A15)'nome do arquivo de entrada espectral previsao ou analise
+dirFILEname= BAM.dir.06          #Format  :: '(A13,A15)'nome do arquivo de directivas do arquivo espectral previsao ou analise
+
+Observe que o arquivo ctl.template esta setado para a resolucao TQ0062L028 para os dados do exemplo. Mude para BAM.TQ0299L064.bin.ctl.template
+ctlTemplate= BAM.TQ0062L028.bin.ctl.template #Format  :: '(A13,A31)'nome do arquivo ctl template com a resolucao do modelo em uso. Mude para TQ0299L064
+
+Salve modificaćoes e execute o programa spc2grd.x
+> ./spc2grd.x 
+Verifique a criacao do arquivos BAM.fct.06.bin BAM.fct.06.bin.ctl. Chamando o grads avalie o conteudo dos campos.
+> module load grads
+> opengrads -lc 'open BAM.fct.06.bin.ctl'
+
+Faca o mesmo agora para o arquivo de analise. Para isso edite o arquivo de configuracao e modifique o nome dos arquivos de entrada.
+> gedit spc2grd.config
+Mude as linhas 11 e 12 para 
+spcFILEname= BAM.anl.gsi         #Format  :: '(A13,A15)'nome do arquivo de entrada espectral previsao ou analise
+dirFILEname= BAM.dir.anl.gsi     #Format  :: '(A13,A15)'nome do arquivo de directivas do arquivo espectral previsao ou analise
+
+Observe a modificacao no template para a resolucao escolhida. 
+
+Salve modificaćoes e execute o programa spc2grd.x novamente:
+> ./spc2grd.x 
+Verifique a criacao do arquivos BAM.anl.bin BAM.anl.bin.ctl. Chamando o grads avalie o conteudo dos campos.
+> module load grads
+> opengrads -lc 'open BAM.anl.bin.ctl'
+
+Faca o mesmo agora para o arquivo de analise de saida do BAM no dataout. Para isso edite o arquivo de configuracao e modifique o nome dos arquivos de entrada.
+spcFILEname= BAM.anl.00          #Format  :: '(A13,A15)'nome do arquivo de entrada espectral previsao ou analise
+dirFILEname= BAM.dic.00          #Format  :: '(A13,A15)'nome do arquivo de directivas do arquivo espectral previsao ou analise
+Salve modificaćoes e execute o programa spc2grd.x novamente:
+> ./spc2grd.x 
+Verifique a criacao do arquivos BAM.anl.00.bin BAM.anl.00.bin.ctl. Chamando o grads avalie o conteudo dos campos.
+> module load grads
+> opengrads -lc 'open BAM.anl.bin.ctl'
+
+-Sinopse:
+Assim, esta rotina faz as seguintes etapas em sequencia:
+* Le o arquivo de configuracao com o nome dos arquivos expectrais de entrada e a lista das varaiveis desejadas;
+* Ler arquivo de previsao ou analise do modelo BAM no formato espectral usando o modulo do interface sigio_BAMMod.F90;
+* Converter os coeficientes espectrais para campos espaciais distribuidos em ponto de grade;
+* Escreve as variaveis desejadas em um arquivo binario  com as previsoes do modelo;
+* Cria um arquivo ctl apropriado para o arquivo binario gerado baseado no ctl template aprpriado para a resolucao escolhida.
+
+-Melhorias futuras:
+* Tornar flexivel a geracao do arquivo ctl para outras resolucoes ao calcular as coordenadas na latitude para outras resolucoes. As resolucoes aptas até essa versão é TQ0062L028 e TQ0299L64;
+

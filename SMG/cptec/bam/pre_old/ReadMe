@@ -1,0 +1,260 @@
+AGCM PRE PROCESSING 
+
+ATENTION: 
+- The global model doesn't still support that new format of the 
+pre processing
+- That system allows portability for another machines
+
+Pre-processing of Global model:
+
+- Login in tupay/azusa/turi
+- Enter in your work directory:
+a) Download file
+b) unzip file:
+Run: tar -zxvf PREGLOBAL.tar.gz
+
+1) You need to change config file: cd <dirhome>/PREGLOBAL/
+# Edit file: configenv_pre.ksh
+# Set Directories
+dirhome = <your home directory>
+dirwork = <your work or data directory>
+
+# Machine options: SX6; Linux (run in TX7: tupay, turi, azusa)
+MAQUI = <machine where run your job> 
+
+# Set Res for Chopping
+RESIN=<input original horizontal resolution gdas1> Ex: 382 or 254
+KMIN=<input original vertical resolution gdas1> Ex: 64 or 42 ..
+RESOUT=<output analysis horizontal resolution> Ex: 170
+KMOUT=<output vertical resolution> Ex: 42
+
+# Set T170 Quadratic
+RESO=<analysis horizontal resolution> Ex: 170
+IM=<number of latitudes> Ex: 512
+JM=<number of longitudes> Ex: 256
+** Obs: More information about lat/lon number for all horizontal resolution => directory GetImaxJmax/
+** Run script: "GetImaxJmax.ksh L or Q" for Linear or Quadratic.
+
+# Set run date
+DATA=<set date> Ex: 2007030100
+
+
+2) Configure your work area: cd <dirhome>/PREGLOBAL
+Run: . /configure_env.ksh
+
+3) Compile: cd <dirhome>/PREGLOBAL/sources
+Run : make
+Verify the executable: <dirdata>/pre/exec
+- TopoWaterPercNavy 
+- TopoWaterPercGT30 
+- LandSeaMask 
+- VarTopo 
+- TopoSpectral 
+- VegetationMaskSSiB 
+- VegetationMask 
+- VegetationAlbedoSSiB 
+- DeepSoilTemperatureClima 
+- DeepSoilTemperature
+- RoughnessLengthClima 
+- RoughnessLength
+- SoilMoistureClima 
+- SoilMoisture
+- AlbedoClima Albedo
+- SnowClima
+- Chopping 
+- SSTClima 
+- SSTWeeklyNCEP 
+- SSTWeekly
+
+4) Run pre-processing example: Example Data (gdas1 -> 2007030100)
+cp /gfs/dk20/modoper/tempo/global/pre/datain/* <dirdata>/pre/datain
+Directory: cd <dirhome>/PREGLOBAL/scripts 
+Run: runAll.ksh
+
+Direction: bonatti@cptec.inpe.br, 20/04/2007
+
+All output files are 32-bits IEEE big endian and
+all output files are direct access, except the
+spectral from TopoSpectral and Chopping.
+
+Note: 
+- All scripts "run_*.ksh" can be executed separately but the correct order should be proceeded to first time run. Verify the correct order in runAll.ksh script or in the item5
+- Original files from NCEP is supposed to be at ${DirMain}/pre/datain,
+like gdas1.ThhZ.SAnl and gdas1.ThhZ.sstgrb
+- Printout will be at ${DirMain}/pre/output, most output files will be
+at ${DirMain}/pre/dataout, some output files will be at ${DirMain}/model/datain
+and some intermediate files in processing NCEP files will be at ${DirMain}/pre/datain.
+
+5) Recommended order to first time run AGCM Preprocessing at <dirhome>/PREGLOBAL/scripts:
+
+The script runAll.ksh set " 1 or 0 " to " run or not run" scripts
+
+- run_TopoWaterPercNavy.ksh (needs data from ${DirMain}/pre/databcs) or 
+- run_TopoWaterPercGT30.ksh (needs data from ${DirMain}/pre/databcs/GTOP30)
+- run_LandSeaMask.ksh 
+- run_VarTopo.ksh 
+- run_TopoSpectral.ksh 
+- run_VegetationMaskSSiB.ksh (needs data from ${DirMain}/pre/databcs)
+- run_VegetationMask.ksh (At this point you will have the Model Land Sea Mask 
+corrected by Vegetation Mask)
+- run_VegetationAlbedoSSiB.ksh (In fact this could be running any place and 
+needs data from ${DirMain}/pre/databcs)
+- run_DeepSoilTemperatureClima.ksh (needs data from ${DirMain}/pre/databcs)
+- run_DeepSoilTemperature.ksh
+- run_RoughnessLengthClima.ksh (needs data from ${DirMain}/pre/databcs)
+- run_RoughnessLength.ksh
+- run_SoilMoistureClima.ksh (needs data from ${DirMain}/pre/databcs)
+- run_SoilMoisture.ksh
+- run_AlbedoClima.ksh (needs data from ${DirMain}/pre/databcs)
+- run_Albedo.ksh
+- run_SnowClima.ksh (Snow field based on Climatological Albedo; needs
+Model Land Sea Mask)
+- run_Chopping.ksh (Must be running to give the initial condition 
+for SST's programs that also needs Model Land Sea Mask
+and could need data from ${DirMain}/pre/dataTop : Topography.Tnnnn
+At the source directory there is also the Delta Sigma Data Files.)
+- run_SSTClima.ksh (needs data from ${DirMain}/pre/databcs)
+- run_SSTWeeklyNCEP.ksh (To deGRIB NCEP SST file with the script GetSST.ksh
+and to format properly the file for SSTWeekly)
+- run_SSTWeekly.ksh
+
+Output files:
+
+TopoWaterPercNavy: 
+pre/dataout:
+TopoNavy.dat
+WaterNavy.dat
+TopoWaterNavy.dat
+TopoWaterNavy.ctl
+
+TopoWaterPercGT30:
+pre/dataout:
+TopoGT30.dat
+WaterGT30.dat
+TopoWaterGT30???.* => (??? de 1 a 128)
+
+LandSeaMask:
+pre/dataout
+LandSeaMaskNavy.G00256.dat
+LandSeaMaskNavy.G00256.ctl
+LandSeaMask.G00256
+
+VarTopo:
+pre/dataout
+VarTopoNavy.G00256.ctl
+VarTopoNavy.G00256
+Topography.G00256
+
+TopoSpectral: 
+model/datain :
+TopoVariance.G00256
+pre/dataout :
+Topography.T0170
+TopographyRec.G00256.ctl
+TopographyRec.G00256
+
+VegetationMaskSSiB: 
+pre/dataout
+VegetationMaskClimaG.dat
+VegetationMaskClimaG.ctl
+VegetationMaskClima.dat
+
+VegetationMask:
+pre/dataout
+VegetationMask.G00256.ctl
+VegetationMask.G00256
+ModelLandSeaMask.G00256
+
+VegetationAlbedoSSiB:
+model/datain
+VegetationMask.G00256
+VegetationSSiB
+AlbedoSSiB
+
+DeepSoilTemperatureClima:
+pre/dataout
+DeepSoilTemperatureClima.dat
+DeepSoilTemperatureClima.ctl
+
+DeepSoilTemperature:
+model/datain/
+DeepSoilTemperature.G00256
+pre/dataout
+DeepSoilTemperature.G00256.ctl
+
+RoughnessLengthClima:
+pre/dataout
+RoughnessLengthClima.dat
+RoughnessLengthClima.ctl
+
+RoughnessLength:
+model/datain/
+RoughnessLength.G00256
+pre/dataout
+RoughnessLength.G00256.ctl
+
+SoilMoistureClima:
+pre/dataout
+SoilMoistureClima.dat
+SoilMoistureClima.ctl
+
+SoilMoisture:
+model/datain/
+SoilMoisture.G00256
+pre/dataout
+SoilMoisture.G00256.ctl
+
+AlbedoClima:
+pre/dataout
+AlbedoClima.dat
+AlbedoClima.ctl
+
+Albedo:
+pre/dataout
+Albedo.G00256.ctl
+Albedo.G00256
+
+SnowClima:
+model/datain/
+Snow2007030100S.unf.G00256
+pre/dataout
+SnowClima2007030100S.unf.G00256.ctl
+
+Chopping: 
+model/datain/
+GANLNMC2007030100S.unf.T0254L064
+OZONNMC2007030100S.unf.T0254L064
+GANLNMC2007030100S.unf.T0170L042
+OZONNMC2007030100S.grd.T0170L042
+pre/dataout/
+GANLNMC2007030100S.unf.T0170L042.GrADS.ctl
+GANLNMC2007030100S.unf.T0170L042.GrADS
+
+SSTClima: 
+model/datain/
+SSTClima20070620.G00256
+pre/dataout/
+SSTClima20070620.G00256.ctl
+SSTClima20070620.G00256
+
+SSTWeeklyNCEP: 
+pre/datain
+gdas1.T00Z.sstgrd.2007030100
+pre/dataout/
+SSTWeekly.20040326.ctl
+SSTWeekly.20040326
+
+SSTWeekly: 
+model/datain/
+SSTWeekly20040326.G00256
+pre/dataout/
+SSTWeekly20040326.G00256.ctl
+SSTWeekly20040326.G00256
+
+
+
+
+
+
+
+

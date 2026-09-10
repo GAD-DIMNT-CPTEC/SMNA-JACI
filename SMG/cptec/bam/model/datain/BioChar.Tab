@@ -1,0 +1,108 @@
+biome z2(m)     z1(m)   fVCover   ChiL   SoDep(m)  RootD(m)  Phi_half  
+ 1    35.000   11.500    0.874    0.250    2.500    1.500   -200.000
+ 2    20.000   11.500    0.597    0.250    2.000    1.500   -200.000
+ 3    20.000   10.000    0.727    0.125    2.000    1.500   -200.000
+ 4    17.000    8.500    0.558    0.010    2.000    1.500   -200.000
+ 5    17.000    8.500    0.670    0.010    2.000    1.500   -200.000
+ 6     1.000    0.100    0.776   -0.300    1.500    1.000   -200.000
+ 7     1.000    0.100    0.343   -0.300    1.500    1.000   -200.000
+ 8     1.000    0.100    0.343   -0.300    1.500    1.000   -200.000
+ 9     0.500    0.100    0.136    0.010    1.500    1.000   -300.000
+10     0.600    0.100    0.402    0.200    1.500    1.000   -200.000
+11     1.000    0.100    0.055   -0.300    1.500    1.000   -200.000
+12     1.000    0.100    0.753   -0.300    1.500    1.000   -200.000
+13     1.000    0.100    0.055   -0.300    1.500    1.000   -200.000
+Biome Leaf Transmittance                  Leaf Reflectance
+      SW Green LW Green SW Brown LW Brown SW Green LW Green SW Brown LWBrown 
+ 1     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.390
+ 2     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.430
+ 3     0.050    0.150    0.001    0.001    0.070    0.400    0.160    0.420
+ 4     0.050    0.100    0.001    0.001    0.070    0.350    0.160    0.410
+ 5     0.050    0.100    0.001    0.001    0.070    0.350    0.160    0.410
+ 6     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.390
+ 7     0.070    0.248    0.220    0.375    0.100    0.580    0.220    0.480
+ 8     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.390
+ 9     0.050    0.250    0.001    0.001    0.120    0.400    0.220    0.480
+10     0.070    0.248    0.220    0.375    0.120    0.400    0.220    0.480
+11     0.070    0.248    0.220    0.375    0.120    0.400    0.220    0.480
+12     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.390
+13     0.050    0.250    0.001    0.001    0.100    0.450    0.160    0.390
+biome vmax0       EffCon  gsSlope   gsMin    Atheta   Btheta    
+ 1    0.100E-03   0.080    9.000    0.010    0.980    0.950
+ 2    0.100E-03   0.080    9.000    0.010    0.980    0.950
+ 3    0.750E-04   0.080    9.000    0.010    0.980    0.950
+ 4    0.600E-04   0.080    9.000    0.010    0.980    0.950
+ 5    0.100E-03   0.080    9.000    0.010    0.980    0.950
+ 6    0.300E-04   0.050    4.000    0.040    0.800    0.950
+ 7    0.300E-04   0.050    4.000    0.040    0.800    0.950
+ 8    0.300E-04   0.050    4.000    0.040    0.800    0.950
+ 9    0.600E-04   0.080    9.000    0.010    0.980    0.950
+10    0.600E-04   0.080    9.000    0.010    0.980    0.950
+11    0.300E-04   0.050    4.000    0.040    0.800    0.950
+12    0.100E-03   0.080    9.000    0.010    0.980    0.950
+13    0.300E-04   0.050    4.000    0.040    0.800    0.950
+biome  TRDA   TRDM(K)  TROP(K)   respcp    SLTI    SHTI      HLTI    HHTI      
+ 1     1.300  328.160  298.160    0.015    0.200  283.160    0.300  311.160
+ 2     1.300  328.160  298.160    0.015    0.200  283.160    0.300  311.160
+ 3     1.300  328.160  298.160    0.015    0.200  280.660    0.300  307.160
+ 4     1.300  328.160  298.160    0.015    0.200  278.160    0.300  303.160
+ 5     1.300  328.160  298.160    0.015    0.200  278.160    0.300  303.160
+ 6     1.300  328.160  298.160    0.015    0.300  288.160    0.300  313.160
+ 7     1.300  328.160  298.160    0.015    0.300  288.160    0.300  313.160
+ 8     1.300  328.160  298.160    0.015    0.300  288.160    0.300  313.160
+ 9     1.300  328.160  298.160    0.015    0.200  283.160    0.300  313.160
+10     1.300  328.160  298.160    0.015    0.200  278.160    0.300  303.160
+11     1.300  328.160  298.160    0.015    0.300  288.160    0.300  313.160
+12     1.300  328.160  298.160    0.015    0.200  281.160    0.300  308.160
+13     1.300  328.160  298.160    0.015    0.300  288.160    0.300  313.160
+Soil   Refl_vis   Refl_nir
+1      0.110    0.225
+2      0.110    0.225
+3      0.110    0.225
+4      0.110    0.225
+5      0.110    0.225
+6      0.110    0.225
+7      0.110    0.225
+8      0.110    0.225
+9      0.300    0.350
+10     0.110    0.225
+11     0.300    0.350
+12     0.100    0.150
+13     0.800    0.850
+wrapper does not read beyond this line
+
+The vegetation types are:
+# type  Name
+1  C3  Tall Broadleaf-Evergreen Trees
+             Ref: Stanford Group, Sellers et al. (1989)
+2  C3  Tall Broadleaf-Deciduous Trees
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+3  C3  Tall Broadleaf and Needleleaf Trees
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+4  C3  Tall Needleleaf Trees
+             Ref: Klink and Willmott (1985), Strebel et al. (1982)
+5  C3  Tall Needleleaf-DECIDUOUS Trees
+             Ref: Klink and Willmott (1985), Strebel et al. (1982)
+6  C4  Short Vegetation, Same as Types 6, 7, 8, and 11 (Stanford-Carnegie)
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+7  C4  Short Vegetation: Ground Cover (Maize Optical Properties)
+             Ref: Klink and Willmott (1985), Miller (1972), Sellers (PC*)
+8  C4  Short Vegetation: Ground Cover (Maize Optical Properties)
+             Ref: Klink and Willmott (1985), Miller (1972), Sellers (PC*)
+9  C3  Short Broadleaf Shrubs with Bare Soil
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972),
+                  Sellers (PC)
+10 C3  Short Ground Cover (Tundra)
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972),
+                  Sellers (PC)
+11 C4  No Vegetation (Low Latitude Desert)
+             Ref: Sellers (PC) and DORMAN
+12 C3  Agriculture (Wheat) and C3 Grasslands
+             Ref: Sellers and Dorman (1987), Turner (1974), and Dorman
+13 C4  ice
+             Ref: Sellers (PC) and Dorman
+
+* personal communication
+
+Modifications:
+  Kevin Schaefer reformatted table to make it readable (5/22/00)

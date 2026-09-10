@@ -1,0 +1,47 @@
+# This is a CI workflow for the NCEPLIBS-sp project.
+#
+# This workflow builds on MacOS.
+#
+# Ed Hartnett, 1/8/23
+name: MacOS
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  MacOS:
+    runs-on: macos-latest
+    env:
+      FC: gfortran-11
+    strategy:
+      matrix:
+        openmp: [ON, OFF]
+        sharedlibs: [ON, OFF]
+
+    steps:
+    
+    - name: checkout-sp
+      uses: actions/checkout@v2
+      with: 
+        path: sp
+
+    - name: build-sp
+      run: |
+        cd sp
+        mkdir build 
+        cd build
+        cmake -DOPENMP=${{ matrix.openmp }} -DBUILD_SHARED_LIBS=${{ matrix.sharedlibs }} -DCMAKE_INSTALL_PREFIX=~/install -DBUILD_8=ON ..
+        make -j2 VERBOSE=1
+        make install
+        ls -l ~/install
+        ls -l ~/install/lib
+
+    - name: test-sp
+      run: |
+        cd sp/build
+        ctest --verbose --output-on-failure --rerun-failed
+

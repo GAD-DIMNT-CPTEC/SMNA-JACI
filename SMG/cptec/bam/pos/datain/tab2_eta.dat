@@ -1,0 +1,43 @@
+0        1         2         3         4         5         6         7         8         9
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+---------+---------------------------+----------+--------+------+------+---+----+----
+level_ty | Level Description         | Units    | vert.  | Pos. | Def. |id | p1 | p2  
+---------+---------------------------+----------+--------+------+------+---+----+----
+0degiso  | 0 deg isotherm            | hPa      | single |   up |    4 | 0 |  0 | 0
+atm      | Atmosphere (entire)       |          | single |   up |  200 | 0 |  0 | 0 
+ocn      | Ocean (entire depth)      |          | single |   up |  201 | 0 |  0 | 0 
+clhbot   | High Cloud Bottom Level   | hPa      | single |   up |  232 | 0 |  0 | 0
+clhlay   | High Cloud Top Layer      |          | single |   up |  234 | 0 |  0 | 0
+clhtop   | High Cloud Top Level      | hPa      | single |   up |  233 | 0 |  0 | 0
+cllbot   | Low Cloud Bottom Level    | hPa      | single |   up |  212 | 0 |  0 | 0
+clllay   | Low Cloud Top Layer       |          | single |   up |  214 | 0 |  0 | 0
+clltop   | Low Cloud Top Level       | hPa      | single |   up |  213 | 0 |  0 | 0
+clmbot   | Mid Cloud Bottom Level    | hPa      | single |   up |  222 | 0 |  0 | 0
+clmlay   | Mid Cloud Top Layer       |          | single |   up |  224 | 0 |  0 | 0
+clmtop   | Mid Cloud Top Level       | hPa      | single |   up |  223 | 0 |  0 | 0
+cltbot   | Cloud base level          | hPa      | single |   up |    2 | 0 |  0 | 0
+cltlay   | Total Cloud layer         |          | single |   up |    3 | 0 |  0 | 0
+cltmax   | Highest Cloud height      | m        | single |   up |  105 | 0 |  0 | 0
+landd    | Below ground, 10 to 200 cm|          | single |   up |  112 |10 |200 | 0
+lands    | Below ground, 0 to 10 cm  |          | single |   up |  112 | 0 | 10 | 0
+landt    | Below ground, 0  to 200 cm|          | single |   up |  112 | 0 |200 | 0
+lcl      | Adiabatic cond level      | hPa      | single |   up |    5 | 0 |  0 | 0
+maxwnd   | Maximum wind speed level  | hPa      | single |   up |    6 | 0 |  0 | 0
+msl      | Mean Sea Level            |          | single |   up |  102 | 0 |  0 | 0
+ocnbot   | Ocean bottom              |          | single |   up |    9 | 0 |  0 | 0
+plev     | Pressure level            | hPa      | multi  | down |  100 | 0 |  0 | 0
+pbltop   | Top of PBL                |          | single |   up |   21 | 0 |  0 | 0
+sfc      | Earth surface             |          | single |   up |    1 | 0 |  0 | 0
+sfclo    | Sfc Layer Ocean           |          | single |   up |  112 | 0 |300 | 0
+sfc100m  | 100 meter above earth surf| m        | single |   up |  105 | 0 |  0 | 100
+sfc50m   | 50 meters above earth surf| m        | single |   up |  105 | 0 |  0 | 50
+sfc10m   | 10 meters above earth surf| m        | single |   up |  105 | 0 |  0 | 10
+sfc2m    | 2 meters above earth surf | m        | single |   up |  105 | 0 |  0 | 2
+toa      | Top of atmosphere         |          | single |   up |    8 | 0 |  0 | 0
+modtop   | Top of Model              |          | single |   up |   20 | 0 |  0 | 0
+toasat   | TOA satellite             |          | single |   up |   22 | 0 |  0 | 0
+troplev  | Tropopause level          | hPa      | single |   up |    7 | 0 |  0 | 0
+theta    | Isentropic Level          | K        | multi  |   up |  113 | 0 |  0 | 0
+sigma    | Sigma level               |          | multi  | down |  107 | 0 |  0 | 0
+hybrid   | Hybrid Model level number |          | multi  |   up |  109 | 0 |  0 | 0
+zocean   | Depth below sea level     | m        | multi  | down |  160 | 0 |  0 | 0

@@ -1,0 +1,65 @@
+Currently Loaded Modulefiles:
+  1) modules/3.2.6.7
+  2) eswrap/1.1.0-1.020200.1231.0
+  3) switch/1.0-1.0502.57058.1.58.ari
+  4) craype-network-aries
+  5) ncep/1.0
+  6) xt-lsfhpc/9.1.3
+  7) craype/2.3.0
+  8) nemsio-cray-haswell/2.2.2
+  9) craype-haswell
+ 10) cce/8.3.10
+ 11) cray-libsci/13.0.3
+ 12) udreg/2.3.2-1.0502.9889.2.20.ari
+ 13) ugni/6.0-1.0502.10245.9.9.ari
+ 14) pmi/5.0.6-1.0000.10439.140.2.ari
+ 15) dmapp/7.0.1-1.0502.10246.8.47.ari
+ 16) gni-headers/4.0-1.0502.10317.9.2.ari
+ 17) xpmem/0.1-2.0502.57015.1.15.ari
+ 18) dvs/2.5_0.9.0-1.0502.1958.2.55.ari
+ 19) alps/5.2.3-2.0502.9295.14.14.ari
+ 20) rca/1.0.0-2.0502.57212.2.56.ari
+ 21) atp/1.8.1
+ 22) PrgEnv-cray/5.2.56
+ftn -O2 -G2 -c nemsio_openclose.f90
+
+      gfile%vcoord(1:gfile%dimz+1,1,1)=(/2*0.0000000,0.57499999,5.7410002,21.516001,55.712002, &
+ftn-7220 crayftn: WARNING NEMSIO_GFINIT, File = nemsio_openclose.f90, Line = 3236 
+  The array syntax statement may not be conformable.
+
+      gfile%vcoord(1:gfile%dimz+1,2,1)=(/1.0000000,0.99467117,0.98862660,0.98174226,0.97386760, &
+ftn-7220 crayftn: WARNING NEMSIO_GFINIT, File = nemsio_openclose.f90, Line = 3246 
+  The array syntax statement may not be conformable.
+
+Cray Fortran : Version 8.3.10 (u83060f83215i83183p83328a83009e83011z83328)
+Cray Fortran :                (x8320r83015w83011t8311b83039)
+Cray Fortran : Fri Jan 08, 2016  18:04:26
+Cray Fortran : Compile time:  9.3646 seconds
+Cray Fortran : 5418 source lines
+Cray Fortran : 0 errors, 2 warnings, 0 other messages, 0 ansi
+Cray Fortran : "explain ftn-message number" gives more information about each message.
+ftn -O2 -G2 -c nemsio_read.f90
+ftn -O2 -G2 -c nemsio_write.f90
+ftn -O2 -G2 -c nemsio_module.f90
+ftn -O2 -G2 -c nemsio_module_mpi.f90
+
+      nmeta=nmeta-1
+ftn-7212 crayftn: WARNING NEMSIO_RCREATE, File = nemsio_module_mpi.f90, Line = 794 
+  Variable "nmeta" is used before it is defined.
+
+Cray Fortran : Version 8.3.10 (u83060f83215i83183p83328a83009e83011z83328)
+Cray Fortran :                (x8320r83015w83011t8311b83039)
+Cray Fortran : Fri Jan 08, 2016  18:04:39
+Cray Fortran : Compile time:  7.3285 seconds
+Cray Fortran : 4333 source lines
+Cray Fortran : 0 errors, 1 warnings, 0 other messages, 0 ansi
+Cray Fortran : "explain ftn-message number" gives more information about each message.
+ar -rvu libnemsio.a nemsio_openclose.o nemsio_read.o nemsio_write.o nemsio_module.o nemsio_module_mpi.o
+ar: creating libnemsio.a
+a - nemsio_openclose.o
+a - nemsio_read.o
+a - nemsio_write.o
+a - nemsio_module.o
+a - nemsio_module_mpi.o
+mv *.mod ./incmod
+rm -f *.o

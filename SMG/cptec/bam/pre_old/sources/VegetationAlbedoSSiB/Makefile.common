@@ -1,0 +1,35 @@
+#
+#  $Author: tomita $
+#  $Date: 2007/08/01 20:09:58 $
+#  $Revision: 1.1.1.1 $
+#
+EXEC=VegetationAlbedoSSiB
+
+.SUFFIXES: .o .f90 .F90 .c 
+#
+# *****************************************************************
+#
+
+OBJS = 	VegetationAlbedoSSiB.o
+
+SRC	= $(OBJ_MOD:.o=.f90) $(OBJS:.o=.f90) $(OBJS_CC:.o=.c)
+
+$(EXEC):	$(OBJS)
+	$(F90) -o $(EXEC) $(F90FLAG) $(LOADFLAG) $(OBJS)
+
+VegetationAlbedoSSiB.o: 	VegetationAlbedoSSiB.f90
+	$(F90) -c $(F90FLAG) VegetationAlbedoSSiB.f90
+
+clean:
+	-rm -f $(OBJS)
+	-rm -f $(OBJS_CC)
+	-rm -f $(EXEC)
+	-rm -f *.mod
+
+.F90.o :
+	$(F90) $(F90FLAG) -c  $<
+
+.f90.o:
+	$(F90) $(F90FLAG) -c $< 
+.c.o:
+	$(CC) $(CFLAGS) $(DEFS) -c $< 

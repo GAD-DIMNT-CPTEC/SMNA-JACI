@@ -1,0 +1,63 @@
+
+Autor: Eder Vendrasco - eder.vendrasco@inpe.br
+
+1) Download do sistema
+
+cd DIR (diretório onde será baixado o branch do repositório)
+svn co https://svn.cptec.inpe.br/gsi/branch/gsi_t11824 NOME_LOCAL (NOME_LOCAL é o nome do branch localmente, ex: gsi_cptec) 
+
+
+2) Preparar o ambiente
+
+cd DIR/NOME_LOCAL
+source ./env.sh MAQUINA (pode ser egeon ou xc50) COMPILADOR (pode ser gnu ou intel)
+EX: source ./env.sh egeon intel
+    source ./env.sh xc50 gnu
+
+###### --> EGEON
+
+> module list
+
+GNU
+Currently Loaded Modules:
+  1) gnu9/9.4.0   3) mpich/3.4.2-ucx                 5) cmake/3.21.3     7) phdf5/1.10.8   9) netcdf-fortran/4.5.3
+  2) ucx/1.11.2   4) curl-7.85.0-gcc-9.4.0-qbney7y   6) openblas/0.3.7   8) netcdf/4.7.4
+
+Intel
+Currently Loaded Modules:
+  1) tbb/2021.4.0           4) dpl/2021.4.0        7) mkl/2021.4.0      10) mpich/3.4.2-ofi                13) openblas/0.3.7  16) netcdf-fortran/4.5.3
+  2) compiler-rt/2021.4.0   5) oclfpga/2021.4.0    8) intel/2021.4.0    11) curl-7.85.0-gcc-9.4.0-qbney7y  14) phdf5/1.10.8
+  3) debugger/2021.6.0      6) compiler/2021.4.0   9) libfabric/1.13.0  12) cmake/3.21.3                   15) netcdf/4.7.4
+
+###### -- XC50
+
+> module list
+
+GNU
+Currently Loaded Modulefiles:
+  1) modules/3.2.10.6                                  14) Base-opts/2.4.123-6.0.5.0_11.2__g6460790.ari
+  2) alps/6.5.28-6.0.5.0_18.6__g13a91b6.ari            15) gcc/7.2.0
+  3) nodestat/2.3.78-6.0.5.0_8.13__gbe57af8.ari        16) craype-network-aries
+  4) sdb/3.3.751-6.0.5.0_20.25__gb936019.ari           17) craype-x86-skylake
+  5) udreg/2.3.2-6.0.5.0_13.12__ga14955a.ari           18) craype/2.5.13
+  6) ugni/6.0.14-6.0.5.0_16.9__g19583bb.ari            19) cray-mpich/7.7.0
+  7) gni-headers/5.0.12-6.0.5.0_2.15__g2ef1ebc.ari     20) cray-netcdf-hdf5parallel/4.4.1.1.6
+  8) dmapp/7.1.1-6.0.5.0_49.8__g1125556.ari            21) cray-libsci/17.12.1
+  9) xpmem/2.2.4-6.0.5.0_4.8__g35d5e73.ari             22) pmi/5.0.13
+ 10) llm/21.3.467-6.0.5.0_25.1__g4c6f300.ari           23) atp/2.1.1
+ 11) nodehealth/5.5.7-6.0.5.0_9.8__g7732908.ari        24) rca/2.2.16-6.0.5.0_15.34__g5e09e6d.ari
+ 12) system-config/3.5.2545-6.0.5.0_5.1__g8a8b20f.ari  25) perftools-base/7.0.0
+ 13) sysadm/2.4.125-6.0.5.0_16.13__g98e00a9.ari        26) PrgEnv-gnu/6.0.4
+
+
+3) Compilar as bibliotecas e o GSI
+
+Ajuste o script compile.sh para compilar uma biblioteca específica por vez ou tudo de uma vez, basta indicar 1 para compilar e 0 para não compilar.
+
+cd DIR/NOME_LOCAL
+./compile.sh
+
+
+FIM!
+
+

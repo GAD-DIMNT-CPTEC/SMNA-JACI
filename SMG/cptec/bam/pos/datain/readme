@@ -1,0 +1,12 @@
+chrop
+
+chrdo le da tablea rfd.pnt
+
+
+chrdsc(mm) sai do modelo
+
+          IF (mkdv(ll) == 1) THEN
+
+             IF (mkdir(mm)>1 .AND. lif(ll)<=mm) THEN
+
+chrdv(ll)  sai constat

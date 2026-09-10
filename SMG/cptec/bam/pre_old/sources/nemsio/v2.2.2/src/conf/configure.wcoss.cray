@@ -1,0 +1,14 @@
+SHELL       = /bin/sh
+
+FC          = ftn
+ifeq ($(COMP),cray)
+FFLAGS      = -O2 -G2
+else
+FFLAGS      = -O3 -axCore-AVX2 -traceback
+endif
+
+AR          = ar
+ARFLAGS     = -rvu
+
+RM          = rm
+INSTALL     = /usr/bin/install -c

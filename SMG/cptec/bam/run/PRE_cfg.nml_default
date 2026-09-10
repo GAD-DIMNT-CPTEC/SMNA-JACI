@@ -1,0 +1,124 @@
+$ModulesNameList
+  !
+  ! List of all modules available, (alphabetic order is mandatory). Each element may have the fields:
+  !
+  ! - moduleName (mandatory): name fo the module;
+  !
+  ! - dependencies (optional. Default: no dependencies configured): Each module configures the modules it depends.
+  !     The dependencies configured for each module, as a comma separated list, will run automatically before the module, in cases:
+  !     - (1) The dependency is configured to run in namelist "RunNameList" (PRE_run.nml);
+  !     - (2) The output files of the dependency does not exists. Will run even whether is not configured to run in
+  !       RunNameList. For example: Only Albedo is configured to run in "RunNameList". No output files of the dependency AlbedoClima
+  !       exists, which Albedo depends, so AlbedoClima will run.
+  !
+  ! - processors (optional. Default: 1): number of processors that module runs. Normally equals 1. Only Chopping accepts more than 1, until now.
+  ! - runsAlone (optional. Default: .false.). Tells Pre program to run only the module at once. For now, only Chopping could uses this feature.
+  !
+  ! Note: modules names must have the same order as in PRE_run.nml
+
+  modCfg(1)%moduleName     = 'Albedo',
+  modCfg(1)%dependencies   = 'AlbedoClima',
+
+  modCfg(2)%moduleName     = 'AlbedoClima',
+
+  modCfg(3)%moduleName     = 'Chopping',
+  modCfg(3)%dependencies   = 'TopoSpectral'
+  modCfg(3)%runsAlone      = .true.,
+  modCfg(3)%processors     = #nproc#,
+
+  modCfg(4)%moduleName     = 'CO2MonthlyDirec',
+  modCfg(4)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(5)%moduleName     = 'DeepSoilTemperature',
+  modCfg(5)%dependencies   = 'DeepSoilTemperatureClima',
+
+  modCfg(6)%moduleName     = 'DeepSoilTemperatureClima',
+
+  modCfg(7)%moduleName     = 'DeltaTempColdest',
+  modCfg(7)%dependencies   = 'DeltaTempColdestClima',
+
+  modCfg(8)%moduleName     = 'DeltaTempColdestClima',
+
+  modCfg(9)%moduleName     = 'FLUXCO2Clima',
+  modCfg(9)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(10)%moduleName     = 'LandSeaMask',
+  modCfg(10)%dependencies   = 'TopoWaterPercNavy',
+
+  modCfg(11)%moduleName     = 'OCMClima',
+  modCfg(11)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(12)%moduleName     = 'PorceClayMaskIBIS',
+  modCfg(12)%dependencies   = 'PorceClayMaskIBISClima', 'LandSeaMask',
+
+  modCfg(13)%moduleName     = 'PorceClayMaskIBISClima',
+
+  modCfg(14)%moduleName     = 'PorceSandMaskIBIS',
+  modCfg(14)%dependencies   = 'PorceSandMaskIBISClima', 'LandSeaMask',
+
+  modCfg(15)%moduleName     = 'PorceSandMaskIBISClima',
+
+  modCfg(16)%moduleName     = 'RoughnessLength',
+  modCfg(16)%dependencies   = 'RoughnessLengthClima',
+
+  modCfg(17)%moduleName     = 'RoughnessLengthClima',
+
+  modCfg(18)%moduleName     = 'SnowClima',
+  modCfg(18)%dependencies   = 'Albedo', 'LandSeaMask',
+
+  modCfg(19)%moduleName     = 'SnowWeeklyNCEP',
+
+  modCfg(20)%moduleName     = 'SoilMoisture',
+  modCfg(20)%dependencies   = 'SoilMoistureClima', 'VegetationMaskIBIS',
+
+  modCfg(21)%moduleName     = 'SoilMoistureClima',
+
+  modCfg(22)%moduleName     = 'SoilMoistureWeekly',
+
+  modCfg(23)%moduleName     = 'SSTClima',
+  modCfg(23)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(24)%moduleName     = 'SSTDailyDirec',
+  modCfg(24)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(25)%moduleName     = 'SSTMonthlyDirec',
+  modCfg(25)%dependencies   = 'Chopping', 'VegetationMaskIBIS',  ! depends on vegetation's model (e.g. IBIS)
+
+  modCfg(26)%moduleName     = 'SSTSeasonDirec',
+  modCfg(26)%dependencies   = 'Chopping', 'LandSeaMask',
+
+  modCfg(27)%moduleName     = 'SSTWeekly',
+  modCfg(27)%dependencies   = 'Chopping', 'SSTWeeklyNCEP',
+
+  modCfg(28)%moduleName     = 'SSTWeeklyNCEP',
+
+  modCfg(29)%moduleName     = 'Temperature',
+  modCfg(29)%dependencies   = 'TemperatureClima',
+                 
+  modCfg(30)%moduleName     = 'TemperatureClima',
+
+  modCfg(31)%moduleName     = 'TopographyGradient',
+  modCfg(31)%dependencies   = 'Chopping',
+
+  modCfg(32)%moduleName     = 'TopoSpectral',
+  modCfg(32)%dependencies   = 'VarTopo',
+
+  modCfg(33)%moduleName     = 'TopoWaterPercGT30',
+
+  modCfg(34)%moduleName     = 'TopoWaterPercNavy',
+
+  modCfg(35)%moduleName     = 'VarTopo',
+  modCfg(35)%dependencies   = 'TopoWaterPercNavy',
+
+  modCfg(36)%moduleName     = 'VegetationAlbedoSSiB',
+
+  modCfg(37)%moduleName     = 'VegetationMask',
+  modCfg(37)%dependencies   = 'LandSeaMask', 'VegetationMaskSSiB',
+
+  modCfg(38)%moduleName     = 'VegetationMaskIBIS',
+  modCfg(38)%dependencies   = 'LandSeaMask', 'VegetationMaskIBISClima',
+
+  modCfg(39)%moduleName     = 'VegetationMaskIBISClima',
+
+  modCfg(40)%moduleName     = 'VegetationMaskSSiB',
+/

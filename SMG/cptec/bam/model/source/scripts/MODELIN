@@ -1,0 +1,237 @@
+!namelist
+!############################### Change Log ##################################
+! 1.0.0.0
+!
+!  $Author: pkubota $
+!  $Date: 2009/03/03 16:36:38 $
+!  $Revision: 1.13 $
+!
+!
+!#############################################################################
+!
+! trunc    =021,vert     =09,dt       =1800.0,
+! trunc    =062,vert     =28,dt       =1200.0,
+! trunc    =126,vert     =28,dt       =600.0
+! trunc    =170,vert     =42,dt       =450.0
+! trunc    =213,vert     =42,dt       =360.0
+! trunc    =254,vert     =64,dt       =300.0
+! trunc    =341,vert     =64,dt       =200.0  !!!teste=225.0 
+!############################################################################
+&MODEL_RES
+ trunc    =42,                  !TRC   : three-digit triangular truncation
+ vert     =28,                  !LV    : two-digit number of vertical sigma-layers
+ dt       =1200,                 !      : delta t
+ IDATEI   = 00,01,01,2003,       !LABELI: initial forecasting label
+ IDATEW   = 00,02,01,2003,       !LABELC: final forecasting label for cold
+ IDATEF   = 00,02,01,2003,       !LABELF: final forecasting label for warm
+                                 !            if cold, then LABELF=LABELC
+ NMSST    ='sstwkl',             !NMSST : sst file name
+ NMSNOW   ='snowaoi',            ! NMSNOW : snow file name
+ NMSOILM  ='soilmaoi',           ! NMSOILM='soilmaoi' NMSOILM='soilmwkl'
+                                 !          snowwkl :-- > daily (NCEP file)
+                                 !                        for weekly run mean of snow for
+                                 !                        the week finished at initial day
+                                 !                        minus one (original 1x1 degree)
+                                 !          snowaoi :-- > for optimum interpolated SST
+                                 !                       climatology 
+ NMCO2FX ='co2flxmtd',            !
+ DHFCT          =-24,             !DHFCT : > 0 interval in hours to output diagnostics 
+                                 !            = 0 to use default list of interval in hours 
+                                 !            < 0 interval in months to output diagnostics 
+ DHRES          = 0,             !DHRES : interval in hours to output restart,         
+                                 !            equal zero to use default list        
+ DHDHN          = 0,             !DHDHN : interval in hours to output DHN diagnostic
+ NHDHN          = 0,             !NHDHN : time in hours to stop DHN diagnostics,         
+                                 !            equal zero to not execute DHN diagnostics         
+ DHEXT          = 0,            !DHEXT : interval in hours to output extra diagnostics
+ NHEXT          = 0,            !NHEXT : time in hours to stop extra diagnostics,         
+                                 !            equal zero to not execute extra diagnostics  
+ DOGRH          = .FALSE.,       !DOGRH : logical (T or F) to do grid history for         
+                                 !            selected points
+ DOPRC          = .FALSE.,       !DOPRC : logical (T or F) to do time step output
+                                 !            of global precipitation          
+ FIELDGAUS      = .FALSE.,
+ FILELIST       = .FALSE.,
+ PREFX          ='NMC',          !PREFX : preffix for name of output files                 
+ PREFY          ='NMC',          !PREFY : preffix for name of input files                 
+ TABLE          ='c',            !TABLE : indicator of the desire table:          
+                                 !                     n => for desirtable (default)
+                                 !                     p => for desirtable.pnt
+                                 !                     c => for desirtable.clm
+                                 !                      LABELx: hhddmmyyyy
+                                 !                              yyyy = four digit year
+                                 !                                mm = two digit month
+                                 !                                dd = two digit day
+                                 !                                hh = two digit hour
+                                 !NMSST
+                                 !sstaoi : for optimum interpolated SST
+                                 !             climatology (original 1x1 degree)
+                                 !sstanp : for optimum interpolated SST
+                                 !             climatology plus persisted SST anomaly
+                                 !sstwkl : for weekly run mean of SST for
+                                 !             the week finished at initial day
+                                 !             minus one (original 1x1 degree)
+                                 !sstwkd : for weekly run mean of SST
+                                 !             direct access file (original 1x1 degree)
+                                 !sstmtd : for monthly run mean of SST
+                                 !             direct access file (original 1x1 degree)
+                                 !sstdyd : for daily run mean of SST
+                                 !             direct access file (original 1x1 degree)
+path_in='/scratchin/grupos/pad/home/paulo.kubota/agcm_cptec/model/datain'
+dirfNameOutput='/scratchin/grupos/pad/home/paulo.kubota/agcm_cptec/model/dataout/TQ0042L028'
+dirRstOutput='/scratchin/grupos/pad/home/paulo.kubota/agcm_cptec/model/dataout/TQ0042L028'
+dirRstInput='/scratchin/grupos/pad/home/paulo.kubota/agcm_cptec/model/dataout/TQ0042L028'
+/
+&MODEL_IN
+ slagr              =.FALSE.,    ! Semi-Lagrangian option (.FALSE. for Eulerian Model)
+ slhum              =.TRUE.,     ! Humidit should be lagrangian  ? (Eulerian Model)
+ microphys          =.TRUE.,     ! Microphysics requires slhum to be true
+ nlnminit           =.TRUE.,     ! do normal mode non linear initialization
+ diabatic           =.TRUE.,     ! diabatic or not initialization (.FALSE. if nlnminit=.FALSE.)
+ eigeninit          =.TRUE.,     ! eigenInit  --> .FALSE.
+ mgiven             =.FALSE.,    ! mgiven       --> .FALSE.
+ gaussgiven         =.FALSE.,    ! gaussgiven       --> .FALSE.
+ reducedGrid        =.TRUE.,    !  reduced    --> .TRUE. 
+ linearGrid         =.FALSE.,    !  lineargrid --> .FALSE.
+ GenAssFiles        =.FALSE.,    ! .TRUE. flag to generate  assimilation files
+ GenRestFiles       =.TRUE.,     ! .TRUE. to generate restart files.
+ rmRestFiles        =.TRUE.,     ! .TRUE. to remove restart files after read them.
+ MasCon             =.TRUE.,     ! .TRUE. to do Mass Conservation: ln(ps)
+ MasCon_ps          =.FALSE.,    ! .TRUE. to do Mass Conservation: ps
+ FluxCon_co2        =.FALSE.
+ nscalars           = 0,         ! Number of passive variables
+ tamBlock           = 128,       ! quantidade de fft enviadas por bloco   
+ ibdim_size         = 6,         ! tamanho de bloco basico (ibmax)     
+ nproc_vert         = 28
+/
+&PHYSPROC
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     ixxxx=yes  the physical process included
+!     ixxxx=no   the physical process excluded
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ UNIFIED = .TRUE.
+ ISWRAD  = 'CRD'     ! iswrad = NON: don't do sw radiation, LCH: lacis & hansen
+                       !          CRD: clirad                UKM: ukmet office
+                       !          RRTMG: cptec               CRDTF: clirad tarasova 
+ ILWRAD  = 'CRD'     ! ilwrad = NON: don't do lwradiation, HRS: Harshvardhan
+                       !          CRD: clirad                UKM: ukmet office
+                       !          RRTMG: cptec               CRDTF: clirad tarasova
+                       !
+ ICCON   = 'ARA',      ! iccon=KUO:cumulus convection(kuo)
+                       ! iccon=ARA:cumulus convection(ARAKAWA)
+                       ! iccon=RAS:cumulus convection(RELAXED ARAKAWA
+                       ! iccon=GRE:cumulus convection(grell-nilo)
+                       ! iccon=GEC:cumulus convection(grell-cptec)
+                       ! iccon=ZMC:cumulus convection(Zhang-McFarlane)
+                       ! iccon=NON:without cumulus convection
+                       !
+ ISCON   = 'TIED',     ! iscon=TIED:shallow convection this process follows cumulus convection (tiedke)
+                       ! iscon=MFLX:shallow convection this process follows cumulus convection (tiedke)
+                       !
+ ILCON   = 'HUMO',     ! ilcon=yes:large scale condensation
+                       !  'NON' 
+                       !  'YES' 
+                       !  'LSC' 
+                       !  'MIC'
+                       !  'HWRF'
+                       !  'HGFS'
+                       !  'UKMO'
+                       !  'MORR'
+                       !  'HUMO'
+                       !
+ IGWD    = 'GMB',      ! igwd =NON:gravity wave 
+                       ! igwd =YES:gravity wave 
+                       ! igwd =CAM:gravity wave 
+                       ! igwd =USS:gravity wave 
+                       ! igwd =GMB:gravity wave
+                       ! isimp ="YES "         ! isimp=yes:simplified physics version. 
+ CRDCLD = 6,           ! cloud scheme =1 (old) =4 (ccm3) =5 (cam5)  =6 (gfs)
+ ISIMP   = 'NO ',      ! isimp=yes:simplified physics version.
+ thermcell=1,          !
+ atmpbl = 4,           !
+                       ! 
+ schemes = 3 ,         ! 1 ssib; 2 sib2; 3 ibis
+ isimco2 = 0,          !
+ gbaco2  = 0.0e-10,    !-4.1109e-09  !-3.01522e-09, !      
+ OCFLUX  = 'UKME',     ! OCFLUX  = 'COLA',
+                       ! OCFLUX  = 'UKME',
+                       ! OCFLUX  = 'WGFS',  
+ SLABOCEAN  = 'SLAB', ! SLABOCEAN = 'COLA'
+                       ! SLABOCEAN = 'SLAB'
+ ICEMODEL   = 'SSIB',  ! ICEMODEL = 'COLA'
+                       ! ICEMODEL = 'SSIB'
+ nAeros     = 0
+ /
+&PHYSCS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!   the following are vertical resolution dependent cloud parameters
+!   used in cldgen.  correct settings for these parameters need to be
+!   determined experimentally.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+ swint   = 1.000000, ! short wave radiation call interval in hours swint=1.0e0
+ trint   = 3.000000, ! ir subr. call interval in hours  trint=3.0e0
+                     ! long  wave radiation call interval in hours
+                     ! physical constants for simple physics options
+ co2val  =370.0,     ! co2val is wgne standard value in ppm 
+                     ! co2val=345.0 old value 
+                     ! co2val=370.0 new value
+ /
+
+&COMCON
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     files
+!     ifxxx=0    xxx is not processed
+!     ifxxx=1    xxx is set to month=idatec(2) in the first call,
+!                but not processed from the subsequent calls.
+!                ifxxx is set to zero after interpolation
+!     ifxxx=2    xxx is interpolated to current day and time every fint
+!                hours synchronized to 00z regardless of initial time.
+!                interpolation is continuous (every time step) if fint<0.
+!     ifxxx=3    xxx is interpolated to current day and time when ifday=0
+!                and tod=0.0 but not processed otherwise
+!                ( appropriate only when xxx is predicted )
+!
+!                the following are for sst only (fint applies as in
+!                ifxxx=2):
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ initlz  =2,       ! nitlz =2 diabatic normal mode initialization
+                   !         =1 diabatic with no normal mode initialization
+                   !         =0 adiabatic with no normal mode initialization
+                   !         <0 same as >0 with sib variables read in instead of 
+                   !            initialized
+ fint    =6,       ! surface boundary calling interval in hours
+ ifsst   =-1,      ! ifsst=4  sst is linearly interpolated from continuous 
+                   !              direct access data set to current day and 
+                   !              time.data set is assumed to be spaced every 
+                   !              intsst days or every calendar month is 
+                   !              intsst < 0.
+                   ! ifsst=5  sst is expanded from piecewise cubic 
+                   !              coefficients in        direct access data set to 
+                   !              current day and time. data set
+                   !                is assumed to be spaced every intsst days.
+ ifsnw   =3,
+ ifalb   =0,
+ ifslm   =3,  
+ ifco2   =0,       ! 0  co2val Using a single global value for co2 concentration
+                   !-1  "with variable co2val following 2nd order fit to Mauna Loa data (1958-04)")
+ ifozone =0,       !"OZONE field is constant"
+ iftracer=0,       !"TRACER field"
+                   !tar begin
+                   !  ifaeros=0  ....original aerosol: fixed continental and oceanic aerosol types
+                   !  ifaeros=2 .... Climate aerosol of Kinne, 2013
+                   !
+ ifaeros=0         !
+                   !tar end
+ dk=8.0E+14,
+ tk=6.0E+14,
+ sflyr=3,          !
+
+/
+&NumberOutPutForecast
+  maxtfm2= 17
+  cthrfx( 1: 4) =   6.0, 12.0,  18.0,  24.0,
+  cthrfx( 5: 8) =  30.0, 36.0,  42.0,  48.0,
+  cthrfx( 9:12) =  54.0, 60.0,  66.0,  72.0,
+  cthrfx(13:16) =  84.0, 96.0, 120.0, 144.0,
+  cthrfx(17:17) = 168.0,
+/

@@ -1,0 +1,39 @@
+#
+#  $Author: denis eiras $
+#  $Date: 2019/04/05 11:21:00 $
+#  $Revision: 2.0 $
+#
+# $Id: Makefile.tupay,v 1.3 2007/03/06 14:43:32 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+FTRACE=-align array64byte -ftz -fomit-frame-pointer
+
+OPENMP= -qopenmp
+
+F90_FLAGS=-O2 -fpp -convert big_endian
+F90=ftn $(F90_FLAGS)
+F90_C=$(F90) -c
+
+# Definição e exportação do arquivador limpo para evitar o erro de opções duplicadas no 'ar'
+AR = ar
+ARFLAGS = rcs
+export AR
+export ARFLAGS
+
+MPIF90=ftn $(F90_FLAGS) $(OPENMP)
+MPIF90_C=$(MPIF90) -c
+
+F77_FLAGS=-O2 -fpp -convert big_endian
+F77=ftn $(F77_FLAGS)
+
+CFLAGS=-DLINUX -O2
+CC=cc $(CFLAGS)
+
+# Exportação dos compiladores para as bibliotecas filhas (w3lib, bacio, nemsio)
+export CC
+export FC = ftn
+export AR
+
+include Makefile.common

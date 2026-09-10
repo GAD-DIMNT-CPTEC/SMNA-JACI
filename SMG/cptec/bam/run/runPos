@@ -1,0 +1,515 @@
+#!/bin/bash
+#-------------------------------------------------------------------#
+#
+#-------------------------------------------------------------------#
+#BOP
+# !DESCRIPTION: script utilizado para rodar o pos-processamento do 
+#               modelo global do CPTEC.
+#
+# !CALLING SEQUENCE:
+#      
+#   ./runPos <opções>
+#
+#     As <opções> válidas são:
+#        * -t <val>  : truncamento [default: 62]
+#        * -l <val>  : numero de niveis [default: 28]
+#        * -p <val>  : prefixo dos arquivos do BAM (condição inicial e previsões) [default: CPT]
+#        * -np <val> : numero de processadores [default: 72]
+#        * -N <val>  : numero de nós [default: 24]
+#        * -d <val>  : numero de Treads por processos MPI [default: 1]
+#        * -I <val>  : Data da condição inicial (cold start)
+#        * -F <val>  : Data da previsão final
+#        * -ri       : Interpola o campo de saída para um grade regular [default: .FALSE.]
+#        * -r <val>  : Define a resolução do campo de saida em graus
+#        * -ft <val> : Define a tabela utilizada para definir quais campos devem 
+#                      ser posprocessados [default: 'p']
+#        * -ps <val) : Define o servidor PBS utilizado [default: eslogin]
+#        * -b        : Arquivo de saida binário [default: .FALSE.]
+#        * -tu <val> : Forecast Time Unit [default: 11]
+#                      Os códigos estão disponíveis na Tabela 4 do grib 1
+#                      veja Office Note 388 - GRIB TABLE 4
+#                             
+#                            VALUE    |     TIME UNIT
+#                            ---------+---------------------
+#                              0      |  Minute
+#                              1      |  Hour
+#                              2      |  Day
+#                              3      |  Month
+#                              4      |  Year
+#                              5      |  Decade (10 years)
+#                              6      |  Normal (30 years)
+#                              7      |  Century
+#                              10     |  3 hours
+#                              11     |  6 hours
+#                              12     |  12 Hours
+#                              13	  |  15 Minutes
+#                              14	  |  30 Minutes
+#                              15-253 |  Reserved
+#                              254    |  Second
+
+#
+#  example:
+#
+#     ./runPos -t 62 -l 28 -I 2013010100 -F 2013010118
+#
+# !REVISION HISTORY:
+#    11-12-2016 - de Mattos, J.G.Z - Initial code
+#    22-11-2023: Aravequia, J. A.  - Headnode (EGEON) option added
+#    31-01-2024: Aravequia, J. A.  - Adopt the IOPER XC50 version adding EGEON option
+#
+#
+# !REMARKS:
+#    As tabelas disponíveis para definir quais campos devem sair (opção <-ft>) são:
+#    [as tabelas estão em pos/datain]
+#
+#       *  'p' utiliza a tabela rfd.pnt
+#       *  's' utiliza a tabela rfd.sfc
+#       *  'c' utiliza a tabela rfd.clm
+#       *  'e' utiliza a tabela rfd.eta
+#       *  'g' utiliza a tabela rfd.ens
+#       *  ' ' utiliza a tabela rfd
+#
+#   O pós processamento pode ser executado em paralelo ou serial, isso é definido por
+#   meio a opção <-ps> que define o servidor PBS utilizado, esta opção possui dois 
+#   valores possíveis:
+#
+#       * eslogin : roda em paralelo nos nós principais do tupa
+#       * aux     : roda sequencial nos nós auxiliares do tupa
+#
+#
+# !BUGS:
+#
+#
+#
+#EOP
+#-------------------------------------------------------------------#
+#BOC
+
+### Define hpc_name below is needed because in some cases (ex.: First Run),
+### this script may be called from the command line.
+### 
+lognode=`cat /proc/sys/kernel/hostname | cut  -b 1-6`
+
+case $lognode in
+
+  clogin)
+    STR=`uname -a`
+    SUB='cray'
+    if [[ "$STR" == *"$SUB"* ]]; then
+      echo -n "This will run on cray XC50 ..."
+      export hpc_name="XC50"
+    fi
+    ;;
+
+  headno)
+    STR=`uname -a`
+    SUB='egeon'
+    if [[ "$STR" == *"$SUB"* ]]; then
+      echo -n "This will run on EGEON Cluster ..."
+      export hpc_name="egeon"
+    fi
+    ;;
+
+  *)
+    mach=`cat /proc/sys/kernel/hostname`
+    echo -n "The configurations for "$mach" is not defined yet !"
+    echo -n "1) Add the machine to the defined systems in etc/mach ; and"
+    echo -n "2) add an option for it in the function copy_fixed_files in etc/functions"
+    exit
+    ;;
+esac
+
+subwrd ( ) {
+   str=$(echo "${@}" | awk '{ for (i=1; i<=NF-1; i++) printf("%s ",$i)}')
+   n=$(echo "${@}" | awk '{ print $NF }')
+   echo "${str}" | awk -v var=${n} '{print $var}'
+}
+
+
+#
+# Verificando o numero de argumentos
+# caso nao existam argumentos, exibe help
+if [ $# -eq 0 ];then
+   cat < ${0} | sed -n '/^#BOP/,/^#EOP/p'
+   exit 0
+fi
+
+
+# Pegando as opções que foram passadas pela linha de comando
+#
+
+verbose=false
+args=${@} #save arguments temporarily
+while (( $# )); do
+   opt=$1
+   case ${opt} in
+       -t) TRC=$2; shift 2;;
+       -l) LV=$2; shift 2;;
+       -p) PREFIX=$2; shift 2;;
+       -I) LABELI=$2; shift 2;;
+       -F) LABELF=$2; shift 2;;
+      -tu) FTU=$2; shift 2;;
+       -i) INITLZ=$2; shift 2;;
+      -np) MPITasks=$2; shift 2;;
+       -N) TasksPerNode=$2; shift 2;;
+       -d) ThreadsPerMPITask=$2; shift 2;;
+       -r) RES=$2; shift 2;;
+      -ft) ReqTable=$2; shift 2;;
+      -ps) PBSServer=$2; shift 2;;
+      -pw) walltime=$2; shift 2;;
+      -pq) queue=$2; shift 2;;
+      -pn) queue_name=$2; shift 2;;
+      -ri) RegInterp='.TRUE.';;
+       -b) BinaryFile='.TRUE.';;
+       -h) cat < ${0} | sed -n '/^#BOP/,/^#EOP/p' ; exit 0;;
+       *) echo -e "\033[31;1mWarning:\033[m Unknown argument:\033[33;1m $opt\033[m"; shift 1;;
+   esac
+done
+set -- $args #restore arguments
+
+
+
+
+#
+# Verificando argumentos, se não foram passados aplica valor padrão
+#
+# truncamento
+if [ -z ${TRC} ];then
+   TRC=62
+fi
+
+# numero de niveis verticais
+if [ -z ${LV} ];then
+   LV=28
+fi
+
+# prefixo dos arquivos
+if [ -z ${PREFIX} ];then
+   PREFIX=CPT
+fi
+
+# tipo de inicialização
+if [ -z ${INITLZ} ];then
+   INITLZ=2
+fi
+
+# Data da Condição Inicial
+if [ -z ${LABELI} ];then
+   echo -e "\033[31;1m LABELI not set \033[m"
+   exit 1
+fi
+
+# Data final das previsões
+if [ -z ${LABELF} ];then
+   echo -e "\033[31;1m LABELF not set \033[m"
+   exit 1
+fi
+
+# Forecast time unit
+if [ -z ${FTU} ];then
+   FTU=11
+fi
+# Arquivo de saida binário
+if [ -z ${BinaryFile} ];then
+   BinaryFile='.FALSE.'
+fi
+
+# Interpola Arquivo de saida para grade regular
+if [ -z ${RegInterp} ];then
+   RegInterp='.FALSE.'
+fi
+
+# if res >  0 Define output resolution (deg)
+if [ -z ${RES} ];then
+   RES=-0.5
+fi
+
+# Tabela usada para escolher o quais campos pos-processar
+if [ -z ${ReqTable} ];then
+   ReqTable='p'
+fi
+
+# Numero de processadores que serao utilizados no Job
+if [ -z ${MPITasks} ];then
+   MPITasks=72
+fi
+
+# Numero de processadores utilizados por tarefas MPI
+if [ -z ${TasksPerNode} ];then
+   TasksPerNode=24
+fi
+
+# Number of cores hosting OpenMP threads
+if [ -z ${ThreadsPerMPITask} ]; then
+   ThreadsPerMPITask=1
+fi
+
+
+# Qual máquina rodar: aux ou eslogin
+if [ -z ${PBSServer} ]; then
+   PBSServer='eslogin'
+fi
+
+# define PBS walltime 
+if [ -z ${walltime} ];then
+   walltime=00:45:00 
+fi
+
+# define PBS queue
+case ${hpc_name} in
+  egeon)
+    if [ -z ${queue} ];then
+      #queue=PESQ2
+      queue=batch 
+    fi
+;;
+  XC50)
+    if [ -z ${queue} ];then
+      queue=pesq
+    fi
+  ;;
+esac
+
+# define PBS queue
+if [ -z ${queue_name} ];then
+   queue_name="POS${TRC}"
+fi
+
+#
+# SETTING THE APPROPRIATED ENVIRONMENT
+#
+
+
+# Set script's real directory (follows symlinks; works when sourced or executed)
+LOCALDIR="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]:-$0}")")"
+
+#
+# Include paths
+# shellcheck disable=SC1091
+. ${LOCALDIR}/EnvironmentalVariables
+
+# Resolução/Truncamento
+
+MRES=$(printf "TQ%04dL%03d" ${TRC} ${LV})
+TRUN=$(printf "TQ%04d" ${TRC})
+NLEV=$(printf "L%03d" ${LV})
+
+# Definindo resolução se usa grade regular
+val=$(echo ${RegInterp} | tr '[:upper:]' '[:lower:]')
+if [ ${val} = '.true.' ];then
+   if [ $(echo  $RES '<=' 0.0 | bc -l) -eq 1 ] ; then
+      RES=$(echo -1 '*' $RES | bc -l )
+   fi
+fi
+
+
+# Nomes dos arquivos utilizados pelo pós
+POSEXE=PostGrib
+POSSCP=qsub_pos.qsb
+POSNML=POSTIN-GRIB
+POSLOG=Print.post.${LABELI}.${LABELF}.${tmstp}.MPI${MPITasks}.out
+
+# Diretorios das simulações
+POSRUN=${SUBTBASE}/pos/exec_${PREFIX}${LABELI}
+DATAIN=${SUBTBASE}/model/dataout/${MRES}/${LABELI}
+DATAOUT=${WORKBASE}/pos/dataout/${MRES}/${LABELI}
+DATALIB=${HOMEBASE}/pos/datain
+
+
+
+#
+# CREATE DIRETORY TO RUN POST MODEL
+#
+
+if [ -e ${POSRUN} ];then
+   rm -fr ${POSRUN}
+else
+   mkdir -p ${POSRUN}
+fi
+
+if [ ! -e ${POSRUN}/setout ];then
+   mkdir -p ${POSRUN}/setout
+fi
+
+#
+# CREATE DIRETORY TO OUTPUT MODEL
+#
+
+# Forecasts Files
+if [ ! -e ${DATAOUT} ];then
+   mkdir -p ${DATAOUT}
+fi
+
+#
+# COPY PostGrib EXECUTABLE FILE
+#
+set -x
+#if [ ! -e ${POSRUN}/${POSEXE} ]; then
+   #cp -vpfr ${HOMEBASE}/pos/exec/${POSEXE} ${POSRUN}
+   cp -vpfr ${HOMEBASE}/pos/source/${POSEXE} ${POSRUN}  
+#fi
+set +x
+
+#
+# CREATE/MODIFY POSTIN-GRIB AND COPY TO POSRUN DIR
+#
+
+sed  -e "s;#TRUNC#;${TRUN};g" \
+     -e "s;#LEV#;${NLEV};g" \
+     -e "s;#LABELI#;${LABELI};g" \
+     -e "s;#LABELF#;${LABELF};g" \
+     -e "s;#PREFIX#;${PREFIX};g" \
+     -e "s;#DATAIN#;${DATAIN};g" \
+     -e "s;#DATAOUT#;${DATAOUT};g" \
+     -e "s;#DATALIB#;${DATALIB};g" \
+     -e "s;#Binary#;${BinaryFile};g" \
+     -e "s;#REQTB#;${ReqTable};g" \
+     -e "s;#REGINT#;${RegInterp};g" \
+     -e "s;#RES#;${RES};g" \
+     -e "s;#FTU#;${FTU};g" \
+     ${LOCALDIR}/${POSNML}.template > ${POSRUN}/${POSNML}
+
+case ${hpc_name} in
+
+  egeon) cat <<EOT1 >${POSRUN}/${POSSCP}
+#!/bin/bash
+#SBATCH -o ${POSRUN}/setout/Out.pos.${PREFIX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#SBATCH --time=${walltime}
+##SBATCH --nodes=${nodes}
+#SBATCH --ntasks=${MPITasks}
+#SBATCH --ntasks-per-node=${TasksPerNode}  # @egeon: must be <=6 (6, 4), 8 or more creates some corrupted grib files
+#SBATCH --job-name=Pos${LABELI:4:6}
+#SBATCH --partition=${queue}
+#SBATCH --mem=480G
+#SBATCH --cpus-per-task=${ThreadsPerMPITask}  # @egeon: this do not seems to speed the processing time  
+
+module purge
+module load intel/2021.4.0
+module load mpi/2021.4.0 impi/2021.4.0
+module load netcdf/4.7.4 pnetcdf/1.12.2 netcdf-fortran/4.5.3
+module list
+
+cd ${POSRUN}
+
+ulimit -s unlimited
+ulimit -c unlimited
+export I_MPI_DEBUG=15
+
+# export OMP_WAIT_POLICY=PASSIVE
+export OMP_NUM_THREADS=\$SLURM_CPUS_PER_TASK
+# export MPICH_ENV_DISPLAY=1
+# export MPICH_NO_BUFFER_ALIAS_CHECK=1
+
+export KMP_STACKSIZE=128m
+
+mq=$(uname -s | tr '[:upper:]' '[:lower:]')
+if [ \${mq} = "linux" ]; then
+   export F_UFMTENDIAN=10,11
+fi
+
+mpirun -np \$SLURM_NTASKS  ./${POSEXE} < ${POSNML} > setout/${POSLOG} 
+DATAOUT=${DATAOUT}
+    
+    module load grads-2.2.1
+    for arqctl in \$(find \${DATAOUT} -name "*.ctl")
+    do
+    
+      gribmap -i \${arqctl} 
+    
+    done
+
+
+EOT1
+    cd ${POSRUN}
+#
+#   Change mode to be executable
+#
+    chmod a+x ${POSRUN}/${POSSCP}
+    pwd; ls -l
+
+    echo -ne "\033[34;1m Submiting POS to queue \033[m"
+
+    sbatch --export=NONE ./${POSSCP}
+
+    # PID=$(sbatch --wait ./${POSSCP}; exit ${PIPESTATUS[0]})
+    # qstatus=$?
+    # if [ ${qstatus} -eq 0 ];then
+    #   echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+    #else
+    #   echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+    #   exit ${qstatus}
+    #fi
+    
+#    module load grads-2.2.1
+#    for arqctl in $(find ${DATAOUT} -name "*.ctl")
+#    do
+#    
+#      gribmap -i ${arqctl} 
+#    
+#    done
+    
+    exit 0
+  ;;
+  XC50)
+cat << EOF >${POSRUN}/${POSSCP}
+#!/bin/bash
+#PBS -o ${HSTMAQ}:${POSRUN}/setout/Out.pos.${PREFIX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#PBS -j oe
+#PBS -l walltime=${walltime}
+#PBS -l mppwidth=${MPITasks}
+#PBS -l mppnppn=${TasksPerNode}
+#PBS -l mppdepth=${ThreadsPerMPITask}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N ${queue_name}_${LABELI:0:8}
+#PBS -q ${queue}
+#PBS -A ${QUOTA}
+
+
+cd ${POSRUN}
+
+ulimit -s unlimited
+ulimit -c unlimited
+
+export PBS_SERVER=${PBSServar}
+export KMP_STACKSIZE=128m
+
+mq=$(uname -s | tr '[:upper:]' '[:lower:]')
+if [ \${mq} = "linux" ]; then
+   export F_UFMTENDIAN=10,11
+fi
+
+server=$(echo ${PBSServer} | tr '[:upper:]' '[:lower:]')
+if [ \${server} = "aux" ]; then
+   /usr/bin/time -v ./$(basename ${POSEXE}) < ${POSNML} > setout/${POSLOG} 2>&1
+else
+   /usr/bin/time -v aprun -m500h -n ${MPITasks} -N ${TasksPerNode} -d ${ThreadsPerMPITask} \
+   ./$(basename ${POSEXE}) < ${POSNML} > setout/${POSLOG} 2>&1
+fi
+
+EOF
+
+# Executando o pos-processamento do modelo
+cd ${POSRUN}
+PID=$(qsub -W block=true -W umask=33 ${POSSCP}; exit ${PIPESTATUS[0]})
+qstatus=$?
+if [ ${qstatus} -eq 0 ];then
+   echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+else
+   echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+   exit ${qstatus}
+fi
+
+
+for arqctl in $(find ${DATAOUT} -name "*.ctl")
+do
+
+/opt/grads/2.0.a9/bin/gribmap -i ${arqctl} >&- 2>&-  &
+
+done
+
+exit 0
+;;
+esac
+
+

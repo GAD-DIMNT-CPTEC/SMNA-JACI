@@ -1,0 +1,30 @@
+#!/bin/csh
+#
+# script to run CPTEC Global Model on NEC TX7 (tupay) under MPI NEC
+# compiled without OpenMP
+#
+# assumptions: assume present at the same directory:
+#              ParModel_MPI (Global Model Executable file)
+#              MODELIN (Global Model input Namelist file)
+#
+# usage: run_multi_TX7 cpunum_mpi cpunum_omp 
+# where:
+# cpunum_mpi: integer, the desired number of mpi processes
+# cpunum_omp: integer, the desired number of omp threads per mpi process
+#
+setenv cpunum_mpi $1
+setenv cpunum_omp $2
+setenv FEXE `pwd`
+setenv F_UFMTENDIAN 18,10,11,22,23,24,49,83,82,81,27,25,26,33,99,61,45,42,52,50,80,51,53,92,93,43,77,91,66,20,74,88,89,36,37,38,39,54,55
+limit stacksize 2621446789
+setenv KMP_STACKSIZE 1298m
+cat <<EOF1>${FEXE}/mpisep.csh
+#!/bin/csh
+limit stacksize 2621446789
+setenv F_UFMTENDIAN 18,10,11,22,23,24,49,83,82,81,27,25,26,33,99,61,45,42,52,50,80,51,53,92,93,43,77,91,66,20,74,88,89,36,37,38,39,54,55
+setenv OMP_NUM_THREADS ${cpunum_omp}
+setenv KMP_STACKSIZE 1298m
+exec ${FEXE}/ParModel_MPI < ${FEXE}/MODELIN
+EOF1
+chmod 777 ${FEXE}/mpisep.csh
+/opt/NECmpi/bin/mpirun -np ${cpunum_mpi} ${FEXE}/mpisep.csh

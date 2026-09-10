@@ -1,0 +1,622 @@
+#!/bin/bash -x
+#help#
+#****************************************************************************************************************#
+#                                                                                                                #
+# script to run CPTEC Global Model on PC Clusters under MPI Scali                                                #
+# and Sun Grid Engine without OpenMP                                                                             #
+#                                                                                                                #
+# assumptions: assume present at the same directory:                                                             #
+#              ParModel_MPI (Global Model Executable file)                                                       #
+#              MODELIN (Global Model input Namelist file)                                                        #
+#                                                                                                                #
+# usage: run_multi_UNA cpu_mpi cpu_node  task_omp name TRC LV LABELI LABELR LABELW LABELF NMC NMSST initlz hold  #
+# where:                                                                                                         #
+# cpu_mpi: integer, the desired number of mpi processes                                                          #
+# cpu_node: integer, the desired number of mpi processes per shared memory node                                  #
+# name: character, the job name (for SGE)                                                                        #
+# initlz  =2,     ! initlz =2 diabatic initialization and normal mode initialization                             #
+#                 !        =1 diabatic initialization and without normal mode initialization                     #
+#                 !        =0 without diabatic initialization and without normal mode initialization             #
+#                 !           [TOTAL RESTART ](adiabatic with no normal mode initialization)                     #
+#                 !        <0 same as >0 with sib variables read in instead of  initialized                      #
+#                 !        =-1 diabatic initialization and without normal mode initialization                    #
+#                 !            with sib variables read in instead of  initialized                                #
+#                 !        =-2 diabatic initialization and normal mode initialization                            #
+#                 !            with sib variables read in instead of  initialized                                #
+# hold: any, present or not;                                                                                     #
+#            if absent, script finishes after queueing job;                                                      #
+#            if present, script holds till job completion                                                        #
+#****************************************************************************************************************#
+#help#
+#
+#       Help:
+#
+if [ "${1}" = "help" -o -z "${1}" ]
+then
+  cat < ${0} | sed -n '/^#help#/,/^#help#/p'
+  exit 1
+else
+  TRC=`echo ${5} | awk '{print $1/1}'`   
+fi
+if [ -z "${6}" ]
+then
+  echo "LV is not set" 
+  exit 2
+else
+  LV=`echo ${6} | awk '{print $1/1}'`    
+fi
+
+if [ -z "${7}" ]
+then
+  echo "LABELI is not set" 
+  exit 3
+else
+  export LABELI=${7}  
+fi
+if [ -z "${8}" ]
+then
+  echo "LABELR is not set" 
+  exit 3
+else
+  export LABELR=${8}
+fi
+
+
+if [ -z "${9}" ]
+then
+  echo "LABELW is not set" 
+  exit 3
+else
+  export LABELW=${9}  
+fi
+
+if [ -z "${10}" ]
+then
+  echo "LABELF is not set" 
+  exit 3
+else
+  export LABELF=${10}  
+fi
+if [ -z "${11}" ]
+then
+  echo "PREFIC is not set" 
+  exit 3
+else
+  export PREFIC=${11}  
+fi
+
+if [ -z "${12}" ]
+then 
+  echo "NMSST is not set" 
+  exit 3
+else 
+  export NMSST=${12}  
+fi
+if [ -z "${13}" ]
+then 
+  echo "initlz is not set" 
+  exit 3
+else 
+  export initlz=${13}  
+fi
+if [ "$#" == 14 ]
+then 
+  export hold=${14}  
+else 
+  export hold=""
+fi
+echo $hold
+#
+
+if [ ${TRC} = 21 ]; then
+ export timestep=3600
+fi 
+if [ ${TRC} = 31 ]; then
+ export timestep=1800
+fi 
+if [ ${TRC} = 42 ]; then
+ export timestep=1800
+fi 
+if [ ${TRC} = 62 ]; then
+ export timestep=900
+export timestep=1200
+fi
+if [ ${TRC} = 94 ]; then
+export timestep=1200
+fi
+if [ ${TRC} = 106 ]; then
+ export timestep=900
+fi
+if [ ${TRC} = 126 ]; then
+ export timestep=600
+fi
+if [ ${TRC} = 133 ]; then
+ export timestep=600
+fi
+if [ ${TRC} = 159 ]; then
+ export timestep=600
+fi
+if [ ${TRC} = 170 ]; then
+ export timestep=450
+fi
+if [ ${TRC} = 213 ]; then
+ export timestep=450
+fi
+if [ ${TRC} = 213 ]; then
+ export timestep=300
+fi
+if [ ${TRC} = 254 ]; then
+ export timestep=225
+fi
+if [ ${TRC} = 299 ]; then
+ export timestep=450
+ export timestep=600
+ export timestep=200
+fi
+if [ ${TRC} = 319 ]; then
+ export timestep=225
+fi
+if [ ${TRC} = 341 ]; then
+ export timestep=200
+fi
+if [ ${TRC} = 382 ]; then
+ export timestep=180
+fi
+if [ ${TRC} = 511 ]; then
+ export timestep=150
+fi
+if [ ${TRC} = 533 ]; then
+ export timestep=150
+fi
+if [ ${TRC} = 666 ]; then
+ export timestep=100
+ export timestep=300
+fi
+if [ ${TRC} = 863 ]; then
+ export timestep=150
+fi
+if [ ${TRC} = 1279 ]; then
+ export timestep=20
+fi
+if [ ${TRC} = 1332 ]; then
+ export timestep=20
+ export timestep=225
+fi
+#
+# SETTING THE APPROPRIATED ENVIRONMENT
+#
+CASE=`echo ${TRC} ${LV} |awk '{ printf("TQ%4.4dL%3.3d\n",$1,$2)  }' `
+PATHA=`pwd`
+export FILEENV=`find ${PATHA} -name EnvironmentalVariablesMCGA -print`
+export PATHENV=`dirname ${FILEENV}`
+export PATHBASE=`cd ${PATHENV};cd ../;pwd`
+. ${FILEENV} ${CASE} ${PREFIC}
+cd ${HOME_suite}/run
+#
+#   Set nproc, resol, host, machine, NQS Queue and Run time
+#
+DIRRESOL=`echo ${TRC} ${LV} |awk '{ printf("TQ%4.4dL%3.3d\n",$1,$2)  }' `
+HSTMAQ=`hostname`
+MAQUI=`hostname -s`
+QUEUE=${QUEUE}
+RUNTM=`date +'%Y%m%d%T'`
+yi=`awk 'BEGIN {print substr("'${LABELI}'",1,4)/1}'` ; export yi
+mi=`awk 'BEGIN {print substr("'${LABELI}'",5,2)/1}'` ; export mi
+di=`awk 'BEGIN {print substr("'${LABELI}'",7,2)/1}'` ; export di
+hi=`awk 'BEGIN {print substr("'${LABELI}'",9,2)/1}'` ; export hi
+
+yw=`awk 'BEGIN {print substr("'${LABELW}'",1,4)/1}'` ; export yw
+mw=`awk 'BEGIN {print substr("'${LABELW}'",5,2)/1}'` ; export mw
+dw=`awk 'BEGIN {print substr("'${LABELW}'",7,2)/1}'` ; export dw
+hw=`awk 'BEGIN {print substr("'${LABELW}'",9,2)/1}'` ; export hw
+
+yf=`awk 'BEGIN {print substr("'${LABELF}'",1,4)/1}'` ; export yf
+mf=`awk 'BEGIN {print substr("'${LABELF}'",5,2)/1}'` ; export mf
+df=`awk 'BEGIN {print substr("'${LABELF}'",7,2)/1}'` ; export df
+hf=`awk 'BEGIN {print substr("'${LABELF}'",9,2)/1}'` ; export hf
+#Dia juliano
+#John Cirillo
+#El calendario juliano es un metodo para identificar el dia actual atravas de la cuenta del numero de dias 
+#que han pasado desde una fecha pasada y arbitraria. El numero de dias se llama dia juliano, abreviado como DJ.
+#El origen, DJ=0, es el 1 de enero de 4713 A.C. (o 1 de enero de -4712, ya que no hubo ano 0). 
+#Los dias julianos son muy utiles porque hacen que sea muy sencillo determinar el número de dias entre dos eventos, 
+#solo con restar los numeros de sus dias julianos. Hacer ese calculo con el calendario normal (gregoriano) es muy dificil, 
+#ya que los dias se agrupan en meses, que contienen un numero variable de dias, complicado ademas por la presencia de los anos bisiestos.
+#La conversion entre el calendario normal (gregoriano) y los dias julianos y viceversa, es mejor que sea realizada 
+#por un programa escrito concretamente para ello, como el que proporciona KStars Calculadora astronomica. 
+#Sin embargo, para quien pueda estar interesado, este es un ejemplo sencillo de conversion entre los calendarios gregoriano y juliano:
+#DJ = D - 32075 + 1461*( Y + 4800 + ( M - 14 ) / 12 ) / 4 + 367*( M - 2 - ( M - 14 ) / 12 * 12 ) / 12 - 3*( ( Y + 4900 + ( M - 14 ) / 12 ) / 100 ) / 4
+# donde D es el dia (1-31), M es el mes (1-12) y A es el ano (1801-2099). Tenga en cuenta que esta fórmula solo funciona entre los anos 1801 y 2099. 
+# Otras fechas anteriores requieren transformaciones mas complicadas.
+#Un dia juliano de ejemplo es: DJ 2440588, que corresponde al 1 de enero de 1970.
+#Los dias julianos tambien sirven para indicar la hora, expresandose esta como una fraccion de un dia entero,
+# siendo las 12 del mediodia el punto cero. Asi, las tres de la tarde del 1 de enero de 1970 es DJ 2440588,125 
+#(ya que las tres de la tarde son tres horas despues de mediodia, y 3/24 = 0,125 días). 
+#Tenga en cuenta que el dia juliano viene siempre determinado por el tiempo universal y no por el local.
+#Los astronomos utilizan ciertos dias julianos como puntos de referencia importantes, llamados epocas. 
+#Una de las epocas mas utilizadas se llama J2000, que es el día juliano correspondiente al 1 de enero de 2000, 
+# a las 12 del mediodia = DJ 2451545,0.
+set +x
+declare -a md=( 0 31 28 31 30 31 30 31 31 30 31 30 31 )
+let ihour=$hi/1
+let houryear=0
+let iyear=$yi/1
+while [ ${iyear} -le ${yf} ];do
+
+if [[ ${iyear} -eq ${yf}  ]];then
+lmon=${mf}
+else
+lmon=12
+fi
+
+let imon=$mi/1
+while [ ${imon} -le ${lmon} ];do
+
+if [ ${iyear} -eq ${yf}  ] ; then
+   bi=`awk 'BEGIN {print '${iyear}'%4.0 }'` 
+   if [ ${imon} -lt ${mf} ]; then
+      if [ ${bi} -eq 0  ] && [ ${imon} -eq 2 ]; then
+         lday=29
+      else
+         lday=${md[${imon}]} 
+      fi
+   else
+      lday=${df}
+   fi
+else
+   bi=`awk 'BEGIN {print '${iyear}'%4.0 }'` 
+   if [ ${bi} -eq 0  ] && [ ${imon} -eq 2 ]; then
+     lday=29
+   else
+     lday=${md[${imon}]} 
+   fi
+fi
+
+
+
+let iday=$di/1
+while [ ${iday} -le ${lday} ];do
+##############################################################
+      if [ ${iyear} -eq  ${yf} ] && [ ${imon} -eq ${mf} ] && [ ${iday} -le ${df} ]; then
+        let lhour=${hf} 
+      else
+        lhour=23
+      fi
+while [ ${ihour} -le ${lhour} ];do
+
+let houryear=${houryear}+1
+
+let ihour=${ihour}+1
+done
+let ihour=0
+
+##############################################################
+
+
+
+##############################################################
+let iday=${iday}+1
+done
+
+let imon=${imon}+1
+done
+
+let iyear=${iyear}+1
+done
+
+set -x
+#En Internet hay mucha mas informacion disponible sobre los dias julianos. Un buen lugar para comenzar es el U.S. Naval Observatory. 
+#Si dicho servidor no es encuentra disponible cuando usted lea esto, introduzca «julian day» en su buscador favorito.
+#DJ=`expr ( $di - 32075 + 1461*( $yi + 4800 + ( $mi - 14 ) / 12 ) / 4 + 367*( $mi - 2 - ( $mi - 14 ) / 12 * 12 ) / 12 - 3*( ( $yi + 4900 + ( $mi - 14 ) / 12 ) / 100 ) / 4)`
+if  [ ${houryear} -le 0  ];then
+NEXTDATE=`${caldate} ${LABELI} + 6h yyyymmddhh`
+CURRDATE=`${caldate} ${LABELI} + 0h yyyymmddhh`
+PREVDATE=`${caldate} ${LABELF} - 6h yyyymmddhh`
+else
+NEXTDATE=${LABELF}
+CURRDATE=${LABELI}
+RESTDATE=${LABELR}
+PREVDATE=${LABELW}
+fi
+echo ${PREVDATE}
+
+
+echo $yi $mi $di $hi  $yf $mf $df $hf
+mkdir -p ${DK_HSM}/GFCT/${yi}${mi}${di}${hi} 
+mkdir -p ${DK_HSM}/GFGH/${yi}${mi}${di}${hi} 
+mkdir -p ${HOME_suite}/run/setout
+#
+#########################################################
+#
+#      SCRIPT FOR GLOBAL MODEL PRODUCTION RUNS 
+#
+#########################################################
+
+#
+# Step 1: Set Directories and files:
+#
+#   DIRBASE is the root directory path; 
+#           all files belong to subdirectories of root;
+#   EXECFILEPATH is the executable filename (with path)
+#   SCRIPTFILEPATH is the script file that submits executable (with path)
+#   NAMELISTFILEPATH contains the namelist file read by the executable (with path)
+#   OUTPUTFILEPATH is the executable output file (with path)
+#
+EXECFILEPATH=${DK_suite}/model/exec
+EXECFILEPATH2=${DK_suite}/model/exec_${PREFIC}.${LABELI}${LABELF};mkdir -p ${EXECFILEPATH2}/setout
+SCRIPTFILEPATH=${EXECFILEPATH2}/modg.${PREFIC}.${DIRRESOL}.${MAQUI}
+NAMELISTFILEPATH=${HOME_suite}/run
+OUTPUTFILEPATH=${HOME_suite}/run/setout/modg.${PREFIC}.${LABELI}${LABELF}.${DIRRESOL}.${MAQUI}.${RUNTM}.out
+FSCR=${HOME_suite}/run
+mkdir -p ${EXECFILEPATH2}
+export cpu_mpi=$1
+export cpu_node=$2
+export ThreadsperMPITASK=$3
+export RES=$4
+num=$(($cpu_mpi+$cpu_node-1))
+fra=$(($num/$cpu_node))
+cpu_tot=$(($fra*$cpu_node))
+echo fila=mpi-npn${cpu_node} total cpus=${cpu_tot}
+#
+# build Nanmelist to model MCGA
+#
+if [ -z "${PREFXO}" ] ;then
+export PREFX="NMC" 
+else
+export PREFX="${PREFXO}" 
+fi 
+if [ -z "${PREFXI}" ] ;then
+export PREFY="NMC"
+else
+export PREFY="${PREFXI}"
+fi 
+export eigeninit=".FALSE."    #eigeninit=".TRUE."
+export mgiven=".FALSE."      #,   ! mgiven       --> .FALSE.
+export gaussgiven=".FALSE."      #,   ! gaussgiven       --> .FALSE.
+
+export eigeninit=".TRUE."    #eigeninit=".TRUE."
+export mgiven=".FALSE."      #,   ! mgiven       --> .FALSE.
+export gaussgiven=".FALSE."      #,   ! gaussgiven       --> .FALSE.
+
+export aspa="'"
+export path_in=${DK_suite}/model/datain; mkdir -p ${path_in}
+
+#export path_in=/scratch1/oper/tempo/MCGA/model/datain
+export dirfNameOutput=${DK_suite2}/model/dataout/${DIRRESOL}/${LABELI}-${RESTDATE}; mkdir -p ${dirfNameOutput}
+export dirfNameOutputNEXT=${DK_suite2}/model/dataout/${DIRRESOL}/${LABELI}-${NEXTDATE}; mkdir -p ${dirfNameOutputNEXT}
+#export dirfNameOutputPREV=${DK_suite2}/model/dataout/${DIRRESOL}/${LABELI}-${PREVDATE}; mkdir -p ${dirfNameOutputPREV}
+if [ `echo $PREFIC | grep "R" | wc -l` -ge 1 ]; then
+export DHFCT=24
+else
+export DHFCT=24
+fi
+
+#if [[ ${initlz} -eq -2 ]];then
+#cp -f ${dirfNameOutputPREV}/GFCTNMC${LABELI}${LABELI}F.unf.${DIRRESOL}.sibprgP*   ${dirfNameOutput}/
+#fi
+#if [[ ${initlz} -eq -3 ]];then
+#cp -f ${dirfNameOutputPREV}/GFCTNMC${LABELI}${LABELI}F.unf.${DIRRESOL}.sibprgP*   ${dirfNameOutput}/
+#cp -f ${dirfNameOutputPREV}/GFCTNMC${LABELI}${LABELI}F.unf.${DIRRESOL}.convclP*   ${dirfNameOutput}/
+#fi
+#if [[ ${initlz} -eq -1 ]];then
+#cp -f ${dirfNameOutputPREV}/GFCTNMC${LABELI}${LABELI}F.unf.${DIRRESOL}.sibprgP*   ${dirfNameOutput}/
+#cp -f ${dirfNameOutputPREV}/GFCTNMC${LABELI}${LABELI}F.unf.${DIRRESOL}.convclP*   ${dirfNameOutput}/
+#fi
+#if [[ ${initlz} -eq 0 ]];then
+#mkdir -p ${dirfNameOutput}/RESTAT_${LABELI}
+#cp ${dirfNameOutput}/GFCTNMC${LABELI}${LABELI}F.unf*  ${dirfNameOutput}/RESTAT_${LABELI}/
+#fi
+
+cat ${NAMELISTFILEPATH}/MODELIN_CLIMA | awk '{  
+ if (substr($1,1,5) == "trunc")
+  {
+   "echo ${TRC}" | getline TRC	   
+    printf(" trunc    =%4.4d,		      !TRC   : three-digit triangular truncation\n",TRC)
+  }
+ else if (substr($1,1,4) == "vert")
+  {
+   "echo ${LV}" | getline LV	 
+    printf(" vert     =%3.3d,		      !LV    : two-digit number of vertical sigma-layers\n",LV)
+  }
+ else if (substr($1,1,2) == "dt")
+  {
+   "echo $timestep" | getline timestep       
+    printf(" dt       =%.1f,	     !      : delta t\n",timestep)
+  }
+ else if (substr($1,1,6) == "IDATEI")
+  {
+   "echo $yi" | getline yi	 
+   "echo $mi" | getline mi	 
+   "echo $di" | getline di	 
+   "echo $hi" | getline hi	 
+    printf(" IDATEI   = %2.2d,%2.2d,%2.2d,%4.4d, !LABELI: initial forecasting label\n",hi,di,mi,yi)
+  }
+ else if (substr($1,1,6) == "IDATEW")
+  {
+   "echo $yw" | getline yw	 
+   "echo $mw" | getline mw	 
+   "echo $dw" | getline dw	 
+   "echo $hw" | getline hw	 
+    printf(" IDATEW   = %2.2d,%2.2d,%2.2d,%4.4d, !LABELC: final forecasting label for cold\n",hw,dw,mw,yw)
+  }
+ else if (substr($1,1,6) == "IDATEF")
+  {
+   "echo $yf" | getline yf	 
+   "echo $mf" | getline mf	 
+   "echo $df" | getline df	 
+   "echo $hf" | getline hf	 
+    printf(" IDATEF   = %2.2d,%2.2d,%2.2d,%4.4d, !LABELF: final forecasting label for warm\n",hf,df,mf,yf)
+  }
+ else if (substr($1,1,9) == "eigeninit")
+  { 
+   "echo $eigeninit" | getline eigeninit
+    printf(" eigeninit     =%s,  ! eigenInit  --> .FALSE.\n",eigeninit)
+  }
+ else if (substr($1,1,6) == "mgiven")
+  { 
+   "echo $mgiven" | getline mgiven
+    printf(" mgiven	   =%s,  ! mgiven  --> .FALSE.\n",mgiven)
+  }
+ else if (substr($1,1,10) == "gaussgiven")
+  { 
+   "echo $gaussgiven" | getline gaussgiven
+    printf(" gaussgiven    =%s,  ! gaussgiven  --> .FALSE.\n",gaussgiven)
+  }
+ else if (substr($1,1,5) == "DHFCT")
+  { 
+   "echo $DHFCT" | getline DHFCT
+    printf(" DHFCT    =%2.2d,             !DHFCT : > 0 interval in hours to output diagnostics\n",DHFCT)
+  }
+ else if (substr($1,1,5) == "PREFX")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $PREFX" | getline PREFX
+    printf(" PREFX    =%s%s%s , 	 !PREFX : preffix for name of output files\n",aspa,PREFX,aspa)
+  }
+ else if (substr($1,1,5) == "NMSST")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $NMSST" | getline NMSST
+    printf(" NMSST     =%s%s%s,       !NMSST : sst file name\n",aspa,NMSST,aspa)
+  }
+ else if (substr($1,1,5) == "PREFY")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $PREFY" | getline PREFY
+    printf(" PREFY    =%s%s%s , 	 !PREFY : preffix for name of input files\n",aspa,PREFY,aspa)
+  }
+ else if (substr($1,1,7) == "path_in")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $path_in" | getline path_in
+    printf(" path_in=%s%s%s , \n",aspa,path_in,aspa)
+  }
+ else if (substr($1,1,14) == "dirfNameOutput")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $dirfNameOutput" | getline dirfNameOutput
+    printf(" dirfNameOutput=%s%s%s , \n",aspa,dirfNameOutput,aspa)
+  }
+ else if (substr($1,1,12) == "dirRstOutput")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $dirfNameOutputNEXT" | getline dirfNameOutputNEXT
+    printf(" dirRstOutput=%s%s%s , \n",aspa,dirfNameOutputNEXT,aspa)
+  }
+ else if (substr($1,1,11) == "dirRstInput")
+  { 
+   "echo $aspa" | getline aspa
+   "echo $dirfNameOutputNEXT" | getline dirfNameOutputNEXT
+    printf(" dirRstInput=%s%s%s , \n",aspa,dirfNameOutputNEXT,aspa)
+  }
+ else if (substr($1,1,6) == "initlz")
+  { 
+   "echo $initlz" | getline initlz
+    printf(" initlz = %d , ! initlz =2 diabatic initialization and normal mode initialization\n",initlz)
+  }
+  else
+  {
+    print $0
+  }
+ }'    > ${EXECFILEPATH2}/MODELIN
+export PBS_SERVER=${pbs_server1}
+optserver=`printf "$PBS_SERVER \n" | cut -c1-3`
+if [[ (${optserver} = "aux") ]]; then
+export MPPBS="#"
+else
+export MPPBS="#PBS -l mppwidth=${cpu_mpi}"
+fi
+
+#
+# Step 2: Build script that runs the AGCM executable getting information
+#         from namelist 
+#
+cat <<EOF1>${EXECFILEPATH2}/mpisep.bash
+#!/bin/bash
+export F_UFMTENDIAN=18,19,20,22,23,24,25,26,27,31,32,33,36,37,38,39,42,43,44,45,49,50,51,52,53,55,61,66,71,77,80,81,82,83,88,91,92,93,99
+export GFORTRAN_CONVERT_UNIT=big_endian:18,19,20,22,23,24,25,26,27,31,32,33,36,37,38,39,42,43,44,45,49,50,51,52,53,55,61,66,71,77,80,81,82,83,88,91,92,93,99
+export KMP_STACKSIZE=128m
+ulimit -s unlimited
+export MPID_RSH
+cd ${EXECFILEPATH2}
+${EXECFILEPATH2}/ParModel_MPI < ${EXECFILEPATH2}/MODELIN>> ${EXECFILEPATH2}/setout/Print.model.${LABELI}${LABELF}.${tmstp}.%s.MPI${cpu_mpi}.out
+EOF1
+chmod +x ${EXECFILEPATH2}/mpisep.bash
+#
+# Step 3: Build script to submit the script above in the UNA
+#
+cat <<EOF0>${SCRIPTFILEPATH}
+#!/bin/bash
+#PBS -o ${HSTMAQ}:${EXECFILEPATH2}/setout/Out.model.${PREFIC}.${LABELI}${LABELF}.${tmstp}.%s.MPI${cpu_mpi}.out
+#PBS -j oe
+#PBS -l walltime=${WALLTIME}
+${MPPBS}
+#PBS -l mppnppn=${cpu_node}
+#PBS -l mppdepth=${ThreadsperMPITASK}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N $RES
+#PBS -q ${QUEUE}
+#PBS -A ${QUOTA}
+
+export PBS_SERVER=${pbs_server1}
+#export HUGETLB_MORECORE=yes
+#export HUGETLB_ELFMAP=W
+#export HUGETLB_FORCE_ELFMAP=yes+
+#export MPICH_ENV_DISPLAY=1
+#export MALLOC_MMAP_MAX_=0
+export MALLOC_TRIM_THRESHOLD_=536870912
+export  OMP_STACKSIZE=10M 
+export HUGETLB_DEFAULT_PAGE_SIZE=2m
+#
+
+#
+cp -f ${EXECFILEPATH}/ParModel_MPI ${EXECFILEPATH2}/
+cd ${EXECFILEPATH2}
+mkdir -p setout
+date
+export OMP_NUM_THREADS=${ThreadsperMPITASK}
+ulimit -s unlimited
+optserver=`printf "$PBS_SERVER \n" | cut -c1-3`
+if [[ (\${optserver} = "aux") ]]; then
+${EXECFILEPATH2}/mpisep.bash
+else
+# aprun -m500h   -n  ${cpu_mpi} -N  ${cpu_node} -d ${ThreadsperMPITASK}  ${EXECFILEPATH2}/ParModel_MPI < ${EXECFILEPATH2}/MODELIN>> ${EXECFILEPATH2}/setout/Print.model.${LABELI}${LABELF}.${tmstp}.%s.MPI${cpu_mpi}.out
+aprun  -m1000h -n  ${cpu_mpi} -N  ${cpu_node} -d ${ThreadsperMPITASK} -ss  ${EXECFILEPATH2}/ParModel_MPI < ${EXECFILEPATH2}/MODELIN>> ${EXECFILEPATH2}/setout/Print.model.${LABELI}${LABELF}.${tmstp}.%s.MPI${cpu_mpi}.out
+fi
+#mkdir -p ${dirfNameOutput}/RESTAT_${LABELF}
+#cp ${dirfNameOutput}/*unf*  ${dirfNameOutput}/RESTAT_${LABELF}/
+EOF0
+chmod +x ${SCRIPTFILEPATH}
+cd ${EXECFILEPATH2}
+
+if [[ ${it} -eq 1 ]];then
+FIRST=`/opt/pbs/default/bin/qsub ${SCRIPTFILEPATH}`
+export FIRST
+echo $FIRST
+echo $FIRST > ${NAMELISTFILEPATH}/FIRST
+else
+SECOND=`/opt/pbs/default/bin/qsub -W depend=afterok:$FIRST ${SCRIPTFILEPATH}`
+echo $SECOND
+fi
+#qsub ${hold} ${SCRIPTFILEPATH}
+#echo  ${hold} ${SCRIPTFILEPATH}
+
+if [ "$hold" == "" ]
+then
+echo "$hold = NO"
+else 
+echo "$hold = YES"
+itt=2
+while [ ${itt} -gt 0 ];do
+itt=`qstat @aux20 |grep $RES| wc -l`
+itt2=`qstat @eslogin13 |grep $RES| wc -l`
+let itt=${itt}+${itt2}
+sleep 60
+done
+fi
+
+echo  ${hold} ${SCRIPTFILEPATH}
+echo  ${it}
+#tail -F ${EXECFILEPATH2}/setout/Print.model.${LABELI}${LABELF}.${tmstp}.%s.MPI${cpu_mpi}.out
+

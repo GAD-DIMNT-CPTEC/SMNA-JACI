@@ -1,0 +1,7 @@
+Os diretórios:
+
+* dataco2
+* databcs
+* dataout
+
+Foram alocados em /dados/das/poper/pre_global/testcase_2.2.0/pre por conterem dados binários. Eles deverão ser copiados para o diretório em que o modelo será executado.

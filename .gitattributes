@@ -1,0 +1,4 @@
+SMG/cptec/gsi/fix/* filter=lfs diff=lfs merge=lfs -text
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.tgz filter=lfs diff=lfs merge=lfs -text
+**/testdataset filter=lfs diff=lfs merge=lfs -text

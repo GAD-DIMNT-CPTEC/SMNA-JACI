@@ -1,0 +1,13 @@
+SHELL       = /bin/sh
+
+FC          = ftn
+
+FFLAGS      = -O2 -G2
+
+FFLAGS      = -O3 
+
+AR          = ar
+ARFLAGS     = -rvu
+
+RM          = rm
+INSTALL     = /usr/bin/install -c

@@ -1,0 +1,30 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+
+#
+# INTEL COMPILER - WORKING
+#
+# Sometimes ifort fails to statically link the executable with
+# optmization giving and error message like:
+#   ifort: error: problem during multi-file optimization compilation (code 1)
+# Here we adopt the safe procedure of passing -O0 to LOADFLAG
+# 
+FTRACE=
+OPENMP=
+FTRACE=
+F90=/home2/paulo/openmpi-1.6.4/bin/mpif90 -convert big_endian $(FTRACE) $(OPENMP)
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=-static
+
+
+include Makefile.common

@@ -1,0 +1,103 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+#Options: -O cache0,fp2,scalar0,thread0,vector0,modinline,ipa0,noaggress
+#       : -O noautothread,nodwarf,fusion0,nomsgs,nonegmsgs,noomp,nooverindex
+#       : -O nopattern,shortcircuit2,unroll0,nozeroinc
+#       : -h cache0,fp2,thread0,noautothread,nocaf,cpu,nofunc_trace,network
+#       : -h noomp_trace,noomp,nopat_trace,nosecond_underscore
+#       : -s default32  -eh  -eM
+#
+#Options: -O cache1,fp2,scalar1,thread1,vector1,modinline,ipa1,noaggress
+#       : -O noautothread,nodwarf,fusion2,nomsgs,negmsgs,omp,nooverindex
+#       : -O nopattern,shortcircuit2,unroll2,nozeroinc
+#       : -h cache1,fp2,thread1,noautothread,nocaf,cpu,nofunc_trace,network
+#       : -h noomp_trace,omp,nopat_trace,nosecond_underscore
+#       : -s default32  -eh -eM 
+#
+#
+#Options: -O cache2,fp2,scalar2,thread2,vector2,modinline,ipa3,noaggress
+#       : -O noautothread,nodwarf,fusion2,nomsgs,nonegmsgs,omp,nooverindex
+#       : -O pattern,shortcircuit2,unroll2,nozeroinc
+#       : -h cache2,fp2,thread2,noautothread,nocaf,cpu,nofunc_trace,network
+#       : -h noomp_trace,omp,nopat_trace,nosecond_underscore
+#       : -s default32  -eh  -eM
+#
+FTRACE= 
+OPENMP= 
+
+F90FLAG_OPT2 =  -O cache2,scalar2,thread2,vector2,ipa0\
+        -O fusion2,noomp\
+        -O pattern,unroll2\
+        -h cache2,thread2\
+        -h noomp
+
+F90FLAG_OPT1 = -O cache1,scalar0,thread0,vector0,ipa0 \
+        -O fusion2,noomp \
+        -O nopattern,unroll2 \
+        -h cache1,thread0 \
+        -h noomp
+ 
+F90FLAG_OPT0 =  -O cache0,scalar0,thread0,vector0,ipa0\
+        -O fusion0,noomp\
+        -O nopattern,unroll0\
+        -h cache0,thread0\
+        -h noomp 
+
+
+F90FLAG_OPT0 =  -O cache2,scalar2,thread2,vector0,mpi0,nomodinline,ipa0,noaggress \
+         -O autoprefetch,noautothread,fusion0,noinfinitevl,nomsgs,nonegmsgs \
+         -O nooverindex,nopattern,shortcircuit2,unroll0,nozeroinc \
+         -O fp0=noapprox \
+         -h noadd_paren,align_arrays,nobounds,caf,noconcurrent,nocontiguous\
+         -h nocontiguous_assumed_shape,fp_trap,nofunc_trace \
+         -h noomp_trace,nopat_trace\
+         -h safe_addr,flex_mp=default\
+         -h alias=default:standard_restrict\
+         -h static \
+         -h omp,noacc\
+	 -h keepfiles \
+         -h network=aries\
+         -K trap=none\
+         -ehf\
+         -d abcdefgijnopvzBDEFIPQRSTZ0\
+         -e mqswhAC
+
+F90FLAG_OPT0 =   -h scalar2,vector0,unroll0,fusion0,cache2,noaggress \
+         -h ipa0,mpi0,nopattern,nomodinline \
+         -h fp0=noapprox,flex_mp=default,alias=default:standard_restrict \
+         -h nofma \
+         -h autoprefetch,noconcurrent,nooverindex,shortcircuit2 \
+         -h noadd_paren,nozeroinc,noheap_allocate \
+         -h thread2,nothread_do_concurrent,noautothread,safe_addr \
+         -h omp,caf,noacc \
+         -h nofunc_trace,nopat_trace \
+         -h nomsgs,nonegmsgs,novector_classic \
+         -h static \
+         -h cpu=x86-64 \
+         -h fp_trap -K trap=none \
+         -s default32 -eh \
+         -e vmqwAC
+
+
+F90=ftn -hbyteswapio -O nomodinline,cache0,vector0,ipa0,fusion0,unroll0,nopattern -h cache0 -e0 -Ktrap=fp -s default64  -h display_opt
+F90=ftn -hbyteswapio -O nomodinline,vector0,ipa0,fusion0,unroll0,fp0 -Ktrap=fp -s default32 -h display_opt
+F90=ftn -hbyteswapio -O nomodinline,vector0,ipa0,fusion0,unroll0,fp0 -h omp -s default32 -h display_opt 
+F90=ftn -h find_dirs -hbyteswapio ${F90FLAG_OPT0} -h omp -ra -s default32 -h display_opt
+
+
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=
+include Makefile.common

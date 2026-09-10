@@ -1,0 +1,241 @@
+0        1         2         3         4         5         6         7         8         9        10        11
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+-----+-----+--------------------------------------------+------------------+-------+--------+------+----+---+---+
+name |  id |                title                       |   units          | type  | level  | dsf  | prc|cm1|cm2|
+-----+-----+--------------------------------------------+------------------+-------+--------+------+----+---+---+
+PRES | 001 | PRESSURE                                   | HPA              | float | sfc    | -999 | 08 |   |   |
+PSNM | 002 | SEA LEVEL PRESSURE                         | HPA              | float | msl    | -999 | 08 |   |   |
+TSPS | 003 | PRESSURE TENDENCY                          | PA/S             | float | sfc    | -999 | 08 |   |   |
+GEOP | 006 | GEOPOTENTIAL                               | DAM              | float |        | -999 | 08 |   |   |
+ZGEO | 007 | GEOPOTENTIAL HEIGHT                        | GPM              | float |        | -999 | 08 |   |   |
+GZGE | 008 | GEOMETRIC HEIGHT                           | M                | float |        | -999 | 08 |   |   |
+TOZN | 010 | VERTICALLY INTEGRATED OZONE CONTENT        | DOBSON           | float | sfc    | -999 | 08 |   |   |
+TEMP | 011 | ABSOLUTE TEMPERATURE                       | K                | float |        | -999 | 08 |   |   |
+VTMP | 012 | VIRTUAL TEMPERATURE                        | K                | float |        | -999 | 08 |   |   |
+PTMP | 013 | POTENTIAL TEMPERATURE                      | K                | float |        | -999 | 08 |   |   |
+PSAT | 014 | PSEUDO-ADIABATIC POTENTIAL TEMPERATURE     | K                | float |        | -999 | 08 |   |   |
+MXTP | 015 | MAXIMUM TEMPERATURE                        | K                | float | sfc    | -999 | 08 |   |   |
+MNTP | 016 | MINIMUM TEMPERATURE                        | K                | float | sfc    | -999 | 08 |   |   |
+TPOR | 017 | DEW POINT TEMPERATURE                      | K                | float |        | -999 | 08 |   |   |
+DPTD | 018 | DEW POINT DEPRESSION                       | K                | float |        | -999 | 08 |   |   |
+LPSR | 019 | LAPSE RATE                                 | K/M              | float |        | -999 | 08 |   |   |
+RDS1 | 021 | RADAR SPECTRA(1)                           |                  | float |        | -999 | 08 |   |   |
+RDS2 | 022 | RADAR SPECTRA(2)                           |                  | float |        | -999 | 08 |   |   |
+RDS3 | 023 | RADAR SPECTRA(3)                           |                  | float |        | -999 | 08 |   |   |
+TPAN | 025 | TEMPERATURE ANOMALY                        | K                | float |        | -999 | 08 |   |   |
+PSAN | 026 | PRESSURE ANOMALY                           | PA HPA           | float | sfc    | -999 | 08 |   |   |
+ZGAN | 027 | GEOPOT HEIGHT ANOMALY                      | M                | float |        | -999 | 08 |   |   |
+WVS1 | 028 | WAVE SPECTRA(1)                            |                  | float |        | -999 | 08 |   |   |
+WVS2 | 029 | WAVE SPECTRA(2)                            |                  | float |        | -999 | 08 |   |   |
+WVS3 | 030 | WAVE SPECTRA(3)                            |                  | float |        | -999 | 08 |   |   |
+WIND | 031 | WIND DIRECTION                             | DEG              | float |        | -999 | 08 |   |   |
+WINS | 032 | WIND SPEED                                 | M/S              | float |        | -999 | 08 |   |   |
+UVEL | 033 | ZONAL WIND (U)                             | M/S              | float |        | -999 | 08 |   |   |
+VVEL | 034 | MERIDIONAL WIND (V)                        | M/S              | float |        | -999 | 08 |   |   |
+FCOR | 035 | STREAM FUNCTION                            | M2/S             | float |        | -999 | 08 |   |   |
+POTV | 036 | VELOCITY POTENTIAL                         | M2/S             | float |        | -999 | 08 |   |   |
+SGVV | 038 | SIGMA COORD VERT VEL                       | SEC/SEC          | float |        | -999 | 08 |   |   |
+OMEG | 039 | OMEGA                                      | PA/S             | float |        | -999 | 08 |   |   |
+OMG2 | 040 | VERTICAL VELOCITY                          | M/S              | float |        | -999 | 08 |   |   |
+ABVO | 041 | ABSOLUTE VORTICITY                         | 10**5/SEC        | float |        | -999 | 08 |   |   |
+ABDV | 042 | ABSOLUTE DIVERGENCE                        | 10**5/SEC        | float |        | -999 | 08 |   |   |
+VORT | 043 | VORTICITY                                  | 1/S              | float |        | -999 | 08 |   |   |
+DIVG | 044 | DIVERGENCE                                 | 1/S              | float |        | -999 | 08 |   |   |
+VUCS | 045 | VERTICAL U-COMP SHEAR                      | 1/SEC            | float |        | -999 | 08 |   |   |
+VVCS | 046 | VERT V-COMP SHEAR                          | 1/SEC            | float |        | -999 | 08 |   |   |
+DIRC | 047 | DIRECTION OF CURRENT                       | DEG              | float |        | -999 | 08 |   |   |
+SPDC | 048 | SPEED OF CURRENT                           | M/S              | float |        | -999 | 08 |   |   |
+UCPC | 049 | U-COMPONENT OF CURRENT                     | M/S              | float |        | -999 | 08 |   |   |
+VCPC | 050 | V-COMPONENT OF CURRENT                     | M/S              | float |        | -999 | 08 |   |   |
+UMES | 051 | SPECIFIC HUMIDITY                          | KG/KG            | float |        | -999 | 08 |   |   |
+UMRL | 052 | RELATIVE HUMIDITY                          | NO DIM           | float |        | -999 | 08 |   |   |
+HMXR | 053 | HUMIDITY MIXING RATIO                      | KG/KG            | float |        | -999 | 08 |   |   |
+AGPL | 054 | INST. PRECIPITABLE WATER                   | KG/M2            | float | atm    | -999 | 08 |   |   |
+VAPP | 055 | VAPOUR PRESSURE                            | PA HPA           | float |        | -999 | 08 |   |   |
+SADF | 056 | SATURATION DEFICIT                         | PA HPA           | float |        | -999 | 08 |   |   |
+EVAP | 057 | EVAPORATION                                | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+PRCR | 059 | PRECIPITATION RATE                         | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+THPB | 060 | THUNDER PROBABILITY                        | %                | float | atm    | -999 | 08 |   |   |
+PREC | 061 | TOTAL PRECIPITATION                        | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+PRGE | 062 | LARGE SCALE PRECIPITATION                  | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+PRCV | 063 | CONVECTIVE PRECIPITATION                   | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+NEVE | 064 | SNOWFALL                                   | KG/M2/DAY        | float | sfc    | -999 | 08 |   |   |
+WENV | 065 | WAT EQUIV ACC SNOW DEPTH                   | KG/M2            | float | sfc    | -999 | 08 |   |   |
+NVDE | 066 | SNOW DEPTH                                 | M CM             | float | sfc    | -999 | 08 |   |   |
+MXLD | 067 | MIXED LAYER DEPTH                          | M CM             | float | sfc    | -999 | 08 |   |   |
+TTHD | 068 | TRANS THERMOCLINE DEPTH                    | M CM             | float | sfc    | -999 | 08 |   |   |
+MTHD | 069 | MAIN THERMOCLINE DEPTH                     | M CM             | float | sfc    | -999 | 08 |   |   |
+MTHA | 070 | MAIN THERMOCLINE ANOM                      | M CM             | float |        | -999 | 08 |   |   |
+CBNV | 071 | CLOUD COVER                                | 0-1              | float | cltlay | -999 | 08 |   |   |
+CVNV | 072 | CONVECTIVE CLOUD COVER                     | 0-1              | float | cltlay | -999 | 08 |   |   |
+LWNV | 073 | LOW CLOUD COVER                            | 0-1              | float | sfc    | -999 | 08 |   |   |
+MDNV | 074 | MEDIUM CLOUD COVER                         | 0-1              | float | sfc    | -999 | 08 |   |   |
+HINV | 075 | HIGH CLOUD COVER                           | 0-1              | float | sfc    | -999 | 08 |   |   |
+WTNV | 076 | CLOUD WATER                                | KG/M2            | float |        | -999 | 08 |   |   |
+BLI  | 077 | BEST LIFTED INDEX (TO 500 HPA)             | K                | float | atm    | -999 | 08 |   |   |
+LSMK | 081 | LAND SEA MASK                              | 0,1              | float | sfc    | -999 | 08 |   |   |
+DSLM | 082 | DEV SEA_LEV FROM MEAN                      | M                | float | sfc    | -999 | 08 |   |   |
+ZORL | 083 | ROUGHNESS LENGTH                           | M                | float | sfc    | -999 | 08 |   |   |
+ALBE | 084 | ALBEDO                                     | %                | float | sfc    | -999 | 08 |   |   |
+DSTP | 085 | DEEP SOIL TEMPERATURE                      | K                | float | landt  | -999 | 08 |   |   |
+SOIC | 086 | SOIL MOISTURE CONTENT                      | KG/M2            | float | sfc    | -999 | 08 |   |   |
+VEGE | 087 | VEGETATION                                 | %                | float | sfc    | -999 | 08 |   |   |
+SALI | 088 | SALINITY                                   | KG/KG            | float |        | -999 | 08 |   |   |
+DENS | 089 | DENSITY                                    | KG/M3            | float |        | -999 | 08 |   |   |
+ICEC | 091 | ICE CONCENTRATION                          |                  | float | sfc    | -999 | 08 |   |   |
+ICET | 092 | ICE THICKNESS                              | M                | float | sfc    | -999 | 08 |   |   |
+ICED | 093 | DIRECTION OF ICE DRIFT                     | DEG              | float | sfc    | -999 | 08 |   |   |
+ICES | 094 | SPEED OF ICE DRIFT                         | M/S              | float | sfc    | -999 | 08 |   |   |
+ICEU | 095 | U-COMP OF ICE DRIFT                        | M/S              | float | sfc    | -999 | 08 |   |   |
+ICEV | 096 | V-COMP OF ICE DRIFT                        | M/S              | float | sfc    | -999 | 08 |   |   |
+ICEG | 097 | ICE GROWTH                                 | M                | float |        | -999 | 08 |   |   |
+ICDV | 098 | ICE DIVERGENCE                             | SEC/SEC          | float |        | -999 | 08 |   |   |
+SHCW | 100 | SIG HGT COM WAVE/SWELL                     | M                | float |        | -999 | 08 |   |   |
+WWDI | 101 | DIRECTION OF WIND WAVE                     | DEG              | float |        | -999 | 08 |   |   |
+WWSH | 102 | SIG HGHT OF WIND WAVES                     | M                | float |        | -999 | 08 |   |   |
+WWMP | 103 | MEAN PERIOD WIND WAVES                     | SEC              | float |        | -999 | 08 |   |   |
+SWDI | 104 | DIRECTION OF SWELL WAVE                    | DEG              | float |        | -999 | 08 |   |   |
+SWSH | 105 | SIG HEIGHT SWELL WAVES                     | M                | float |        | -999 | 08 |   |   |
+SWMP | 106 | MEAN PERIOD SWELL WAVES                    | SEC              | float |        | -999 | 08 |   |   |
+PRWD | 107 | PRIMARY WAVE DIRECTION                     | DEG              | float |        | -999 | 08 |   |   |
+PRMP | 108 | PRIM WAVE MEAN PERIOD                      | S                | float |        | -999 | 08 |   |   |
+SWDI | 109 | SECOND WAVE DIRECTION                      | DEG              | float |        | -999 | 08 |   |   |
+SWMP | 110 | SECOND WAVE MEAN PERIOD                    | S                | float | sfc    | -999 | 08 |   |   |
+OCAS | 111 | SHORT WAVE ABSORBED AT GROUND              | W/M2             | float | sfc    | -999 | 08 |   |   |
+SLDS | 112 | NET LONG WAVE AT BOTTOM                    | W/M2             | float | sfc    | -999 | 08 |   |   |
+NSWR | 113 | NET SHORT-WAV RAD(TOP)                     | W/M2             | float | toa    | -999 | 08 |   |   |
+ROLE | 114 | OUTGOING LONG WAVE AT TOP                  | W/M2             | float | toa    | -999 | 08 |   |   |
+LWRD | 115 | LONG-WAV RAD                               | W/M2             | float |        | -999 | 08 |   |   |
+SWEA | 116 | SHORT WAVE ABSORBED BY EARTH/ATMOSPHERE    | W/M2             | float | sfc    | -999 | 08 |   |   |
+GLBR | 117 | GLOBAL RADIATION                           | W/M2             | float |        | -999 | 08 |   |   |
+CLSF | 121 | LATENT HEAT FLUX FROM SURFACE              | W/M2             | float | sfc    | -999 | 08 |   |   |
+CSSF | 122 | SENSIBLE HEAT FLUX FROM SURFACE            | W/M2             | float | sfc    | -999 | 08 |   |   |
+BLDS | 123 | BOUND LAYER DISSIPATION                    | W/M2             | float |        | -999 | 08 |   |   |
+IMAG | 127 | IMAGE                                      | IMAGE^DATA       | float | sfc    | -999 | 08 |   |   |
+T02M | 128 | TEMPERATURE AT 2-M FROM SURFACE            | K                | float | sfc2m  | -999 | 08 |   |   |
+DP2M | 129 | 2 METRE DEWPOINT TEMPERATURE               | K                | float | sfc2m  | -999 | 08 |   |   |
+U10M | 130 | 10 METRE U-WIND COMPONENT                  | M/S              | float | sfc10m | -999 | 08 |   |   |
+V10M | 131 | 10 METRE V-WIND COMPONENT                  | M/S              | float | sfc10m | -999 | 08 |   |   |
+TOPO | 132 | TOPOGRAPHY                                 | M                | float | sfc    | -999 | 08 |   |   |
+BIUP | 133 | TOT BIOMASS IN THE UPPER CANOPY            | KG_C/M**2        | float | sfc    | -999 | 08 |   |   |
+BILW | 134 | TOT BIOMASS IN THE LOWER CANOPY            | KG_C/M**2        | float | sfc    | -999 | 08 |   |   |
+PSLC | 135 | SURFACE PRESSURE                           | HPA              | float | sfc    | -999 | 08 |   |   |
+PSLM | 136 | M S L PRESSURE (MESINGER METHOD)           | HPA              | float | msl    | -999 | 08 |   |   |
+MASK | 137 | MASK                                       | -/+              | float |        | -999 | 08 |   |   |
+UCHI | 138 | ZONAL WIND CHI                             | M/S              | float |        | -999 | 08 |   |   |
+VCHI | 139 | MERIDIONAL WIND CHI                        | M/S              | float |        | -999 | 08 |   |   |
+LAIU | 140 | TOT LEAF AREA INDEX FOR THE UPPER CANOPY   |                  | float | sfc    | -999 | 08 |   |   |
+LAIL | 141 | TOT LEAF AREA INDEX FOR THE LOWER CANOPY   |                  | float | sfc    | -999 | 08 |   |   |
+LHCV | 142 | CONVECTIVE LATENT HEATING                  | K/S              | float |        | -999 | 08 |   |   |
+MSCV | 143 | CONVECTIVE MOISTURE SOURCE                 | 1/S              | float |        | -999 | 08 |   |   |
+SCVM | 144 | SHALLOW CONV. MOISTURE SOURCE              | 1/S              | float |        | -999 | 08 |   |   |
+SCVH | 145 | SHALLOW CONVECTIVE HEATING                 | K/S              | float |        | -999 | 08 |   |   |
+TSNS | 146 | TOT STORAGE OF N IN SOIL PROFILE           | kg_N m-2         | float | sfc    | -999 | 08 |   |   |
+UPSI | 147 | ZONAL WIND PSI                             | M/S              | float |        | -999 | 08 |   |   |
+VPSI | 148 | MERIDIONAL WIND PSI                        | M/S              | float |        | -999 | 08 |   |   |
+VDCC | 149 | VERTICAL DIST TOTAL CLOUD COVER            | 0-1              | float |        | -999 | 08 |   |   |
+QLCD | 150 | LIQUID WATER CONTENT IN CLOUD              |                  | float |        | -999 | 08 |   |   |
+CSGR | 151 | SENSIBLE HEAT FLUX FROM GROUND             | W/M2             | float | sfc    | -999 | 08 |   |   |
+UCHT | 152 | TIME MEAN ZONAL WIND CHI                   | M/S              | float |        | -999 | 08 |   |   |
+VCHT | 153 | TIME MEAN MERIDIONAL WIND CHI              | M/S              | float |        | -999 | 08 |   |   |
+TSSV | 154 | TOT. OF WATER STORAGE SNOW SOIL VEG        | kg_h2o           | float | sfc    | -999 | 08 |   |   |
+UPST | 155 | TIME MEAN ZONAL WIND PSI                   | M/S              | float |        | -999 | 08 |   |   |
+VPST | 156 | TIME MEAN MERIDIONAL WIND PSI              | M/S              | float |        | -999 | 08 |   |   |
+LDFC | 157 | LITTER DECOMPOSITION FACTOR                |                  | float | sfc    | -999 | 08 |   |   |
+SOMD | 158 | SOIL ORGANIC MATTER DECOMPOSITION FACTOR   |                  | float | sfc    | -999 | 08 |   |   |
+FRUP | 159 | FRAC OVERALL AREA COVER BY UPPER CANOPY    | %                | float | sfc    | -999 | 08 |   |   |
+FCLW | 160 | FRAC SNOWFREE AREA COVER BY LOWER CANOPY   | %                | float | sfc    | -999 | 08 |   |   |
+MR2M | 161 | 2 MIXING RATIO                             | KG/KG            | float | sfc2m  | -999 | 08 |   |   |
+FRSW | 162 | FRACTIONAL SNOW COVER                      | %                | float | sfc    | -999 | 08 |   |   |
+INPP | 163 | INSTANTANEOUS NPP                          | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+INEE | 164 | NS. NET ECOSY. EXCHANGE CO2 P TIMESTEP     | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+AGD0 | 165 | ANNUAL TOT GROW DEGREE DAYS > 0C           | C                | float | sfc    | -999 | 08 |   |   |
+O3MR | 166 | OZONE MIXING RATIO                         | KG/KG            | float |        | -999 | 08 |   |   |
+AGD5 | 167 | ANNUAL TOT GROW DEGREE DAYS > 5C           | C                | float | sfc    | -999 | 08 |   |   |
+MNPP | 168 | MONTHLY TOTAL NPP FOR ECOSYSTEM            | KG_C/M**2/MONTH  | float | sfc    | -999 | 08 |   |   |
+MNEE | 169 | MONTH TOT NET ECOSYSTEM EXCHANGE OF CO2    | KG_C/M**2/MONTH  | float | sfc    | -999 | 08 |   |   |
+YNPP | 170 | ANNUAL TOTAL NPP FOR ECOSYSTEM             | KG_C/M**2/YR     | float | sfc    | -999 | 08 |   |   |
+YNEE | 171 | ANNUAL TOTAL NEE FOR ECOSYSTEM             | KG_C/M**2/YR     | float | sfc    | -999 | 08 |   |   |
+ULAI | 172 | UPPER CANOPY SINGLE-SIDED LAI              |                  | float | sfc    | -999 | 08 |   |   |
+LLAI | 173 | LOWER CANOPY SINGLE-SIDED LAI              |                  | float | sfc    | -999 | 08 |   |   |
+HPBL | 174 | PLANETARY BOUNDARY LAYER HEIGHT            | M                | float | sfc    | -999 | 08 |   |   |
+STAR | 175 | SURFACE FRICTION VELOCITY                  | M/S              | float | sfc    | -999 | 08 |   |   |
+KHBL | 176 | DIFFUSION COEFFICIENT FOR HEAT             | M**2/S           | float |        | -999 | 08 |   |   |
+KMBL | 177 | DIFFUSION COEFFICIENT FOR MOMENTUM         | M**2/S           | float |        | -999 | 08 |   |   |
+RNOF | 178 | RUNOFF                                     | KG/M2/S)         | float | sfc    | -999 | 08 |   |   |
+PITP | 179 | INTERCEPTION LOSS                          | W/M2             | float | sfc    | -999 | 08 |   |   |
+RIBL | 180 | BULK RICHARDSON NO. REF LEVEL              |                  | float |        | -999 | 08 |   |   |
+QSFC | 181 | SURFACE SPEC HUMIDITY                      | KG/KG            | float | sfc    | -999 | 08 |   |   |
+USSL | 182 | SOIL WETNESS OF SURFACE                    | 0-1              | float | sfc    | -999 | 08 |   |   |
+UZRS | 183 | SOIL WETNESS OF ROOT ZONE                  | 0-1              | float | landt  | -999 | 08 |   |   |
+UZDS | 184 | SOIL WETNESS OF DRAINAGE ZONE              | 0-1              | float | landt  | -999 | 08 |   |   |
+AMDL | 185 | STORAGE ON CANOPY                          | M                | float | sfc    | -999 | 08 |   |   |
+AMSL | 186 | STORAGE ON GROUND                          | M                | float | landt  | -999 | 08 |   |   |
+TSFC | 187 | SURFACE TEMPERATURE                        | K                | float | sfc    | -999 | 08 |   |   |
+TEMS | 188 | SURFACE ABSOLUTE TEMPERATURE               | K                | float | sfc    | -999 | 08 |   |   |
+TCAS | 189 | TEMPERATURE OF CANOPY AIR SPACE            | K                | float | sfc    | -999 | 08 |   |   |
+CTMP | 190 | TEMPERATURE AT CANOPY                      | K                | float | sfc    | -999 | 08 |   |   |
+TGSC | 191 | GROUND/SURFACE COVER TEMPERATURE           | K                | float | sfc    | -999 | 08 |   |   |
+UVES | 192 | SURFACE ZONAL WIND (U)                     | M/S              | float | sfc    | -999 | 08 |   |   |
+USST | 193 | SURFACE ZONAL WIND STRESS                  | PA               | float | sfc    | -999 | 08 |   |   |
+VVES | 194 | SURFACE MERIDIONAL WIND (V)                | M/S              | float | sfc    | -999 | 08 |   |   |
+VSST | 195 | SURFACE MERIDIONAL WIND STRESS             | PA               | float | sfc    | -999 | 08 |   |   |
+IGPP | 196 | INSTANTANEOUS GPP                          | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+ICFS | 197 | INSTANTANEOUS FINE CO2 FLUX FROM SOIL      | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+IMFS | 198 | INSTAN.  MICROBIAL CO2 FLUX FROM SOIL      | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+Q02M | 199 | SPECIFIC HUMIDITY AT 2-M FROM SURFACE      | KG/KG            | float | sfc    | -999 | 08 |   |   |
+CSDL | 200 | SENSIBLE HEAT FLUX FROM CANOPY             | W/M2             | float | sfc    | -999 | 08 |   |   |
+PIGC | 201 | INTERCEPTION LOSS FROM GROUND COVER        | W/M2             | float | sfc    | -999 | 08 |   |   |
+EVBS | 202 | BARE SOIL LATENT HEAT                      | W/M2             | float | sfc    | -999 | 08 |   |   |
+TRGC | 203 | TRANSPIRATION FROM GROUND COVER            | W/M2             | float | sfc    | -999 | 08 |   |   |
+LWRH | 205 | LONG WAVE RADIATIVE HEATING                | K/S              | float |        | -999 | 08 |   |   |
+SWRH | 206 | SHORT WAVE RADIATIVE HEATING               | K/S              | float |        | -999 | 08 |   |   |
+OLIS | 207 | DOWNWARD LONG WAVE AT BOTTOM               | W/M2             | float | sfc    | -999 | 08 |   |   |
+TRDL | 208 | TRANSPIRATION FROM CANOPY                  | W/M2             | float | sfc    | -999 | 08 |   |   |
+OCIS | 209 | DOWNWARD SHORT WAVE AT GROUND              | W/M2             | float | sfc    | -999 | 08 |   |   |
+PIDL | 210 | INTERCEPTION LOSS FROM CANOPY              | W/M2             | float | sfc    | -999 | 08 |   |   |
+OLES | 211 | UPWARD LONG WAVE AT BOTTOM                 | W/M2             | float | sfc    | -999 | 08 |   |   |
+OCES | 212 | UPWARD SHORT WAVE AT GROUND                | W/M2             | float | sfc    | -999 | 08 |   |   |
+IPFH | 213 | INVERSE PHI FUNCTION FOR HEAT              |                  | float | sfc    | -999 | 08 |   |   |
+ROCE | 214 | UPWARD SHORT WAVE AT TOP                   | W/M2             | float | toa    | -999 | 08 |   |   |
+SWET | 215 | SEVERE WEATHER THREAT                      |                  | float | sfc    | -999 | 08 |   |   |
+U10T | 216 | TIME MEAN AT 10 METRE U-WIND COMPONENT     | M/S              | float | sfc    | -999 | 08 |   |   |
+V10T | 217 | TIME MEAN AT 10 METRE V-WIND COMPONENT     | M/S              | float | sfc    | -999 | 08 |   |   |
+GUGV | 218 | HORIZONTAL MOMENTUM TRANSPORT              | M**2 S**-2       | float |        | -999 | 08 |   |   |
+GWGU | 219 | VERTICAL ZONAL MOMENTUM TRANSPORT          | M CB S**-2       | float |        | -999 | 08 |   |   |
+GWGV | 220 | VERTICAL MERIDIONAL MOMENTUM TRANSPORT     | M CB S**-2       | float |        | -999 | 08 |   |   |
+GVGT | 221 | MERIDIONAL SENSIBLE HEAT TRANSPORT         | K M S**-1        | float |        | -999 | 08 |   |   |
+GUGT | 222 | ZONAL SENSIBLE HEAT TRANSPORT              | K M S**-1        | float |        | -999 | 08 |   |   |
+GWGT | 223 | VERTICAL SENSIBLE HEAT TRANSPORT           | K CB S**-1       | float |        | -999 | 08 |   |   |
+GVGQ | 224 | MERIDIONAL SPECIFIC HUMIDITY TRANSPORT     | M/S              | float |        | -999 | 08 |   |   |
+GUGQ | 225 | ZONAL SPECIFIC HUMIDITY TRANSPORT          | M/S              | float |        | -999 | 08 |   |   |
+GWGQ | 226 | VERTICAL SPECIFIC HUMIDITY TRANSPORT       | CB/SEC           | float |        | -999 | 08 |   |   |
+OBLN | 227 | OBUKHOV LENGTH                             | M                | float | sfc    | -999 | 08 |   |   |
+Q2MT | 228 | TIME MEAN SPEC HUMIDITY AT 2-M FROM SFC    | KG/KG            | float | sfc    | -999 | 08 |   |   |
+T2MT | 229 | TIME MEAN TEMP AT 2-M FROM SFC             | K                | float | sfc    | -999 | 08 |   |   |
+USMT | 230 | TIME MEAN SURFACE ZONAL WIND (U)           | M/S              | float | sfc    | -999 | 08 |   |   |
+VSMT | 231 | TIME MEAN SURFACE MERIDIONAL WIND (V)      | M/S              | float | sfc    | -999 | 08 |   |   |
+TSMT | 232 | TIME MEAN SURFACE ABSOLUTE TEMPERATURE     | K                | float | sfc    | -999 | 08 |   |   |
+BOYC | 233 | BUOYANCY SCALE                             | M S**-2          | float | sfc    | -999 | 08 |   |   |
+ATMT | 234 | TIME MEAN ABSOLUTE TEMPERATURE             | K                | float |        | -999 | 08 |   |   |
+STMT | 235 | TIME MEAN DEEP SOIL TEMPERATURE            | K                | float | sfc    | -999 | 08 |   |   |
+GPRB | 236 | GROSS PHOTOSYNTHESIS RATE - BROADLEAF      | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+DVMT | 237 | TIME MEAN DIVERGENCE                       | 1/S              | float |        | -999 | 08 |   |   |
+GHMT | 238 | TIME MEAN GEOPOTENTIAL HEIGHT              | M                | float |        | -999 | 08 |   |   |
+GPRC | 239 | GROSS PHOTOSYNTHESIS RATE - CONIFER        | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+GPRS | 240 | GROSS PHOTOSYNTHESIS RATE - SHRUBS         | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+VVMT | 241 | TIME MEAN MERIDIONAL WIND (V)              | M/S              | float |        | -999 | 08 |   |   |
+OMMT | 242 | TIME MEAN OMEGA                            | CBAR/S           | float |        | -999 | 08 |   |   |
+GPC4 | 243 | GROSS PHOTOSYNTHESIS RATE - C4 GRASSES     | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+PCMT | 244 | TIME MEAN PRECIP. WATER                    | KG/M2            | float | atm    | -999 | 08 |   |   |
+GPC3 | 245 | GROSS PHOTOSYNTHESIS RATE - C3 GRASSES     | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+SPMT | 246 | TIME MEAN SEA LEVEL PRESSURE               | HPA              | float | msl    | -999 | 08 |   |   |
+NPRB | 247 | NET PHOTOSYNTHESIS RATE - BROADLEAF        | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+SHMT | 248 | TIME MEAN SPECIFIC HUMIDITY                | KG/KG            | float |        | -999 | 08 |   |   |
+NPRS | 249 | NET PHOTOSYNTHESIS RATE - SHRUBS           | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+PSMT | 250 | TIME MEAN SURFACE PRESSURE                 | HPA              | float | sfc    | -999 | 08 |   |   |
+STTM | 251 | TIME MEAN SURFACE TEMPERATURE              | K                | float | sfc    | -999 | 08 |   |   |
+NPC3 | 252 | NET PHOTOSYNTHESIS RATE - C3 GRASSES       | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+NPRC | 253 | NET PHOTOSYNTHESIS RATE - CONIFER          | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+NPC4 | 254 | NET PHOTOSYNTHESIS RATE - C4 GRASSES       | MOL_CO2/M**2/S   | float | sfc    | -999 | 08 |   |   |
+UVMT | 255 | TIME MEAN ZONAL WIND (U)                   | M/S              | float |        | -999 | 08 |   |   |

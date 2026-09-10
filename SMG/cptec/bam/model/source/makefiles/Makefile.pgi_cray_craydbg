@@ -1,0 +1,44 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+AR=ar
+ARFLAGS = -ruv 
+FTRACE= 
+#FTRACE=-check all  -fpe0 -traceback
+OPENMP= 
+OPENMP=-mp=nonuma
+OPENMP=-mp
+#F90=ftn -Mbyteswapio -O0 -Ktrap=ovf,divz,inv -g -Mbounds  -Minform=inform -C  -Minline -V -tp k8-64 $(FTRACE) $(OPENMP) 
+#F90=ftn -Mbyteswapio -O0 -Ktrap=ovf,divz,inv -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 $(FTRACE) $(OPENMP)
+#F90=ftn              -C -g -gopt -M[no]bounds -Mchkfpstk -Mchkptr -Mchkstk -Mcoff -Mdwarf1 -Mdwarf2 -Mdwarf3 -Melf -Mnodwarf -M[no]pgicoff -[no]traceback
+#F90=ftn -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback $(FTRACE) $(OPENMP)
+F90=ftn -Mbyteswapio
+
+F90FLAG_OPT2 =   -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback $(FTRACE) $(OPENMP)
+F90FLAG_OPT1 =   -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback $(FTRACE) $(OPENMP)
+F90FLAG_OPT0 =   -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback  -Ktrap=fp,ovf,divz,inv,align  $(FTRACE) $(OPENMP)
+#F90FLAG_OPT0 =   -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback $(FTRACE) $(OPENMP)
+
+
+F90=ftn -Mbyteswapio  -Minfo=all   # $(FTRACE) $(OPENMP) #$(F90FLAG)
+F90_OPT2=ftn  -Mbyteswapio  $(FTRACE) $(OPENMP)  $(F90FLAG_OPT2)
+F90_OPT1=ftn  -Mbyteswapio  $(FTRACE) $(OPENMP)  $(F90FLAG_OPT1)
+F90_OPT11=ftn -Mbyteswapio  $(FTRACE) $(OPENMP)  $(F90FLAG_OPT1)
+F90_OPT0=ftn  -Mbyteswapio  $(FTRACE) $(OPENMP)  $(F90FLAG_OPT0)
+F90=ftn $(F90FLAG_OPT0)
+
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=-Wl,-static 
+include Makefile.common

@@ -1,0 +1,77 @@
+#
+#  $Author: tomita $
+#  $Date: 2007/08/01 20:09:58 $
+#  $Revision: 1.1.1.1 $
+#
+#  $Author: denis eiras $
+#  $Date: 2019/04/03 16:49 $
+#  $Revision: 2.0 $
+#
+#  Eduardo Khamis 26-06-2019 : rev 2.1
+#
+
+.SUFFIXES: .o .f90 .F90 .c
+#
+# *****************************************************************
+#
+#        Mod_Chopping.o
+
+CHOPPING_OBJ =  Mod_Parallelism_Group_Chopping.o \
+		Mod_Parallelism_Fourier.o \
+		Mod_Communications.o \
+		Mod_InitChoppingParallel.o \
+		Mod_InputArrays.o \
+		Mod_InputParameters.o \
+		Mod_Sizes.o \
+		Mod_SpecDynamics.o \
+		Mod_Transform.o \
+		Mod_Utils.o \
+		Mod_VerticalInterpolation.o \
+
+Mod_Parallelism_Group_Chopping.o: Mod_Parallelism_Group_Chopping.f90 Mod_Parallelism.o Mod_Parallelism_Group.o
+	$(MPIF90_C) Mod_Parallelism_Group_Chopping.f90
+
+Mod_Parallelism_Fourier.o: Mod_Parallelism_Fourier.f90
+	$(MPIF90_C) Mod_Parallelism_Fourier.f90
+
+Mod_Chopping.o: $(CHOPPING_OBJ) Mod_Chopping.f90 $(LIB_NEMSIO) $(LIB_BACIO64) $(LIB_W3LIB)
+	$(MPIF90_C) -I$(NEMSIO_INC) $(LIB_NETCDF) Mod_Chopping.f90
+
+Mod_Communications.o: Mod_Communications.f90 Mod_InputParameters.o Mod_Sizes.o Mod_Parallelism.o Mod_Utils.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_Communications.f90
+
+Mod_InitChoppingParallel.o: Mod_InitChoppingParallel.f90 Mod_Sizes.o Mod_Parallelism.o Mod_Transform.o Mod_SpecDynamics.o Mod_Utils.o Mod_Communications.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_InitChoppingParallel.f90
+
+Mod_InputArrays.o:  Mod_InputArrays.f90 Mod_InputParameters.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_InputArrays.f90
+
+Mod_InputParameters.o:  Mod_InputParameters.f90 Mod_Parallelism.o
+	$(MPIF90_C) -I$(NEMSIO_INC) $(LIB_NETCDF) Mod_InputParameters.f90
+
+Mod_Sizes.o: 	Mod_Sizes.f90 Mod_InputParameters.o Mod_Parallelism.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_Sizes.f90
+
+Mod_SpecDynamics.o: Mod_SpecDynamics.f90 Mod_InputParameters.o Mod_Parallelism.o Mod_Sizes.o Mod_Utils.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_SpecDynamics.f90
+
+Mod_Transform.o: Mod_Transform.f90 Mod_InputParameters.o Mod_Utils.o Mod_Parallelism.o Mod_Sizes.o Mod_Communications.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_Transform.f90
+
+Mod_Utils.o:  Mod_Utils.f90 Mod_Parallelism.o Mod_InputParameters.o Mod_InputArrays.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_Utils.f90
+
+Mod_VerticalInterpolation.o:  Mod_VerticalInterpolation.f90 Mod_InputParameters.o
+	$(MPIF90_C) -I$(NEMSIO_INC) Mod_VerticalInterpolation.f90
+
+clean_chopping:
+	-rm -f $(CHOPPING_OBJ)
+
+#
+.F90.o :
+	$(MPIF90_C) $<
+
+.f90.o:
+	$(MPIF90_C) $<
+.c.o:
+	$(CC) $(C_FLAGS) -c $<

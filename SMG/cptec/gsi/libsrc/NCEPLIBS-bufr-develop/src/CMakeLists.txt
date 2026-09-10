@@ -1,0 +1,215 @@
+# ==============================================================================
+# File: CMakeLists.txt
+# Directory: src
+# Project: NCEPLIBS-bufr
+#
+# Description:
+#   CMake build file for the src directory of NCEPLIBS-bufr.
+#   It defines Fortran and C source file lists, generates necessary header files
+#   from templates, sets up preprocessor and compiler flags, and creates library
+#   targets for different data kinds.
+#
+# Authors:
+#   Kyle Gerheiser, Jeff Ator
+#
+# Revision History:
+#   2025-02-24: Added bufr_types.F90 to handle Fortran kinds and inserted the 
+#               "-cpp" flag for proper preprocessor directive processing.
+#               The "-DBUFR_INT8" directive is also included in the 8-byte precision 
+#               build settings.
+# ==============================================================================
+
+# Ensure that the current source directory is added to the include search paths.
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+#--------------------------------------------------------------------------
+# Fortran Preprocessor Flags
+#--------------------------------------------------------------------------
+# Add -cpp flag to ensure that preprocessor directives (e.g., #ifdef)
+# are properly processed, particularly for Cray's Fortran compiler (ftn).
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+
+#==============================================================================
+# Define Source File Lists
+#------------------------------------------------------------------------------
+# Fortran Source Files:
+#   List of Fortran source files needed to build the library.
+#   Note: 'bufr_types.f90' defines the kind (precision) used by the rest of the code,
+#         so it is inserted first.
+list(APPEND fortran_src
+  bufr_types.F90          # BUFR Types Module defining 'bufr_int'
+  modules_vars.F90 modules_arrs.F90
+  adn30.f atrcpt.f blocks.f bort.f bort2.f cadn30.f capit.f chekstab.f cktaba.f closmg.f
+  cmpmsg.f cmsgini.f cnved4.f codflg.f conwin.f copybf.f copymg.f copysb.f cpbfdx.f cpdxmm.f cpymem.f
+  cpyupd.f datebf.f datelen.f digit.f drfini.f drstpl.f dumpbf.f dxdump.f dxinit.f dxmini.f elemdx.f
+  errwrt.f exitbufr.f fstag.f getabdb.f getbmiss.f getcfmng.f getlens.f getntbe.f gets1loc.f gettagpr.f
+  gettagre.f gettbh.f getvalnb.f getwin.f hold4wlc.f i4dy.f ibfms.f icbfms.f icmpdx.f icopysb.f
+  idn30.f idxmsg.f ifbget.f ifxy.f igetdate.f igetfxy.f igetmxby.f igetntbi.f igetntbl.f igetprm.f
+  igetrfel.f igetsc.f igettdi.f imrkopr.f inctab.f invcon.f invmrg.f invtag.f invwin.f iok2cpy.f
+  iokoper.f ipkm.f ipks.f ireadmg.f ireadmm.f ireadns.f ireadsb.f ishrdx.f isize.f istdesc.f iupb.f
+  iupbs01.f iupbs3.f iupm.f iupvs01.f jstnum.f lcmgdf.f lmsg.f lstjpb.f makestab.f maxout.f
+  mesgbc.f mesgbf.f minimg.f mrginv.f msgfull.f msgini.f msgupd.f msgwrt.f mtfnam.f mtinfo.f mvb.f
+  nemdefs.f nemock.f nemspecs.f nemtab.f nemtba.f nemtbax.f nemtbb.f nemtbd.f nenubd.f nevn.f newwin.f
+  nmsub.f nmwrd.f numbck.f numtab.f numtbd.f nvnwin.f nwords.f nxtwin.f openbt.f openmb.f openmg.f pad.f
+  padmsg.f parstr.f parusr.f parutg.f pkb.f pkbs1.f pkc.f pkftbv.f pktdd.f posapx.f rcstpl.f rdbfdx.f
+  rdcmps.f rdmemm.f rdmems.f rdmgsb.f rdmsgw.F90 rdmtbb.f rdmtbd.f rdmtbf.f rdtree.f rdusdx.f readdx.f
+  readerme.f readlc.f readmg.f readmm.f readns.f reads3.f readsb.f rewnbf.f rsvfvm.f rtrcpt.f
+  rtrcptb.f seqsdx.f setblock.f setbmiss.f setvalnb.f sntbbe.f sntbde.f sntbfe.f status.f stbfdx.f
+  stdmsg.f stndrd.f stntbi.f stntbia.f strbtm.f strcln.f strcpt.f string.f strnum.F90 strsuc.F90 tabent.f
+  tabsub.f trybump.f ufbcnt.f ufbcpy.f ufbcup.f ufbdmp.f ufbevn.f ufbget.f ufbin3.f ufbint.f ufbinx.f
+  ufbmem.f ufbmex.f ufbmms.f ufbmns.f ufbovr.f ufbpos.f ufbqcd.f ufbqcp.f ufbrep.f ufbrms.f ufbrp.f
+  ufbrw.f ufbseq.f ufbsp.f ufbstp.f ufbtab.f ufbtam.f ufdump.f upb.f upbb.f upc.f upds3.f upftbv.f
+  ups.f uptdd.f usrtpl.f wrcmps.f wrdxtb.f writcp.f writdx.f writlc.f writsa.f writsb.f
+  wrtree.f wtstat.f arallocf.f ardllocf.f closbf.f ireadmt.f irev.F isetprm.f openbf.f pkvs01.f
+  wrdlen.F fortran_open.F90 fortran_close.F90 bufr_interface.F90 pkb8.f upb8.f up8.f setim8b.F90
+  bufr_c2f_interface.F90 x48.F x84.F bufrlib.F90)
+
+# C Source Files:
+#   List of C source files required for the library.
+list(APPEND c_src
+  arallocc.c ardllocc.c bort_exit.c cpmstabs.c cread.c crwbmg.c cfe.c
+  icvidx.c restd.c stseq.c wrdesc.c)
+
+# C Header Files:
+#   List of C header files used by the library.
+list(APPEND c_hdr
+  cread.h mstabs.h bufr_interface.h)
+
+#==============================================================================
+# Configure Generated Source Files
+#------------------------------------------------------------------------------
+# Generate bvers.f and bfrini.f90 from their corresponding template (.in) files.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bvers.f.in ${CMAKE_CURRENT_BINARY_DIR}/bvers.f @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bfrini.f90.in ${CMAKE_CURRENT_BINARY_DIR}/bfrini.f90 @ONLY)
+list(APPEND fortran_src 
+  ${CMAKE_CURRENT_BINARY_DIR}/bvers.f 
+  ${CMAKE_CURRENT_BINARY_DIR}/bfrini.f90)
+
+#==============================================================================
+# Generate bufrlib.h Header File
+#------------------------------------------------------------------------------
+# Read specific integer variable values from modules_vars.F90 to configure
+# the bufrlib.h header file. These variables include MAXNC, MXNAF, MAXCD, and NFILES.
+foreach(_var IN ITEMS MAXNC MXNAF MAXCD NFILES)
+  file(STRINGS modules_vars.F90 _${_var}_tempstr REGEX "integer[a-z ,]*:: ${_var}")
+  if(_${_var}_tempstr MATCHES "${_var} = ([0-9]+)")
+    set(${_var} ${CMAKE_MATCH_1})
+  else()
+    message(FATAL_ERROR "Unable to parse variable ${_var} value from file: modules_vars.F90")
+  endif()
+endforeach()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bufrlib.h.in ${CMAKE_CURRENT_BINARY_DIR}/bufrlib.h @ONLY)
+list(APPEND c_hdr ${CMAKE_CURRENT_BINARY_DIR}/bufrlib.h)
+
+#==============================================================================
+# Endianness Test
+#------------------------------------------------------------------------------
+# Determine if the target system is big-endian or little-endian and define
+# the corresponding preprocessor macro.
+include(TestBigEndian)
+test_big_endian(IS_BIG_ENDIAN)
+if(IS_BIG_ENDIAN)
+  list(APPEND endian_def BIG_ENDIAN)
+else()
+  list(APPEND endian_def LITTLE_ENDIAN)
+endif()
+
+#==============================================================================
+# Create Library Targets for Each Data Kind
+#------------------------------------------------------------------------------
+# The variable "kinds" should be set (e.g., in the parent CMake file) and
+# defines different precision or data kinds to build.
+foreach(kind ${kinds})
+  # Define the library name by appending the kind (e.g., "bufr_4")
+  set(lib_name ${PROJECT_NAME}_${kind})
+  
+  # Define the module directory for generated Fortran modules.
+  set(module_dir "${CMAKE_CURRENT_BINARY_DIR}/include/bufr_${kind}")
+
+  #--------------------------------------------------------------------------
+  # Create Object Libraries
+  #--------------------------------------------------------------------------
+  # Fortran Object Library:
+  add_library(${lib_name}_f OBJECT ${fortran_src})
+  set_target_properties(${lib_name}_f PROPERTIES COMPILE_FLAGS "${fortran_${kind}_flags}")
+  target_compile_definitions(${lib_name}_f PRIVATE "${endian_def}")
+
+  # C Object Library:
+  add_library(${lib_name}_c OBJECT ${c_src})
+  set_target_properties(${lib_name}_c PROPERTIES COMPILE_FLAGS "${c_${kind}_flags}")
+  target_compile_definitions(${lib_name}_c PRIVATE "${c_${kind}_defs}")
+
+  # Set the output directory for Fortran modules.
+  set_target_properties(${lib_name}_f PROPERTIES Fortran_MODULE_DIRECTORY "${module_dir}")
+
+  #--------------------------------------------------------------------------
+  # Create Combined Library Target
+  #--------------------------------------------------------------------------
+  # Combine the Fortran and C object libraries into the final library.
+  add_library(${lib_name} $<TARGET_OBJECTS:${lib_name}_f>
+                          $<TARGET_OBJECTS:${lib_name}_c>)
+  # Create an alias for easier target linking.
+  add_library(${PROJECT_NAME}::${lib_name} ALIAS ${lib_name})
+
+  #--------------------------------------------------------------------------
+  # Include Directories
+  #--------------------------------------------------------------------------
+  # Public include directory for C header files.
+  target_include_directories(${lib_name} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+  # Interface include directories for Fortran modules and installed headers.
+  target_include_directories(${lib_name} INTERFACE
+    $<BUILD_INTERFACE:${module_dir}>
+    $<INSTALL_INTERFACE:include/bufr_${kind}>)
+
+  # Add this library target to the list of installable targets.
+  list(APPEND LIB_TARGETS ${lib_name})
+  
+  # Install the Fortran module directory and C header files.
+  install(DIRECTORY ${module_dir} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+  install(FILES ${c_hdr} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/bufr_${kind})
+endforeach()
+
+#==============================================================================
+# Install Library Targets
+#------------------------------------------------------------------------------
+install(
+  TARGETS ${LIB_TARGETS}
+  EXPORT ${PROJECT_NAME}Exports
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+#==============================================================================
+# Package Configuration
+#------------------------------------------------------------------------------
+# Export the library targets and generate CMake package configuration files.
+include(CMakePackageConfigHelpers)
+set(CONFIG_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+# Export targets for the package.
+export(EXPORT ${PROJECT_NAME}Exports
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}-targets.cmake)
+
+# Configure the package configuration file from its template.
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/cmake/PackageConfig.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  INSTALL_DESTINATION ${CONFIG_INSTALL_DESTINATION})
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+# Write the version file for the package.
+write_basic_package_version_file(
+  ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+# Install the export file for use by package consumers.
+install(EXPORT ${PROJECT_NAME}Exports
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}-targets.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
+

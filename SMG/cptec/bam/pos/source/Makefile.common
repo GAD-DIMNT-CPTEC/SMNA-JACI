@@ -1,0 +1,131 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:28:03 $
+#  $Revision: 1.4 $
+#
+# $Id: Makefile.common,v 1.4 2007/10/10 20:28:03 pkubota Exp $
+#
+# Platform independent part of make procedure for POSGRIB directory, 
+# included by machine specific makefiles.
+#
+EXEC=PostGrib
+LIB=w3lib-1.4/libw3.a
+
+OBJ = \
+	mod_tables.o \
+	Communications.o \
+	Constants.o \
+	Conversion.o \
+	PrblSize.o \
+	Init.o \
+	InputArrays.o \
+	GaussPressure.o \
+	GaussSigma.o \
+	Parallelism.o \
+	RegInterp.o \
+	FileAccess.o \
+        Infgdspds.o \
+        FileGrib.o \
+	SigmaToPressure.o \
+	Transform.o \
+	SpecDynamics.o \
+	Sizes.o \
+	Utils.o \
+	PostLoop.o \
+	PhysicalFunctions.o \
+	Watches.o\
+	post.o
+
+pos:	$(OBJ)
+	$(F90) -o $(EXEC) $(F90_32BITS) $(LOADFLAG) $(OBJ) $(LIB)
+
+Watches.o:               Watches.f90
+	$(F90) -c $(F90FLAG) Watches.f90
+
+Constants.o: Constants.f90
+	$(F90) -c $(F90_32BITS) Constants.f90
+
+Parallelism.o: Parallelism.f90
+	$(F90) -c $(F90_32BITS) Parallelism.f90
+
+mod_tables.o: mod_tables.f90
+	$(F90) -c $(F90_32BITS) mod_tables.f90
+
+Communications.o: Communications.f90 Parallelism.o Constants.o Sizes.o Utils.o
+	$(F90) -c $(F90_32BITS) Communications.f90
+
+Conversion.o: Conversion.f90 Constants.o
+	$(F90) -c $(F90_32BITS) Conversion.f90
+
+PrblSize.o: PrblSize.f90 Constants.o
+	$(F90) -c $(F90_32BITS) PrblSize.f90
+
+Sizes.o: Sizes.f90 Constants.o Parallelism.o
+	$(F90) -c $(F90_32BITS) Sizes.f90
+
+GaussPressure.o: GaussPressure.f90 Constants.o Sizes.o
+	$(F90) -c $(F90_32BITS) GaussPressure.f90
+
+GaussSigma.o: GaussSigma.f90 Constants.o Sizes.o
+	$(F90) -c $(F90_32BITS) GaussSigma.f90
+
+RegInterp.o: RegInterp.f90 Constants.o Sizes.o Utils.o
+	$(F90) -c $(F90_32BITS) RegInterp.f90
+
+FileAccess.o: FileAccess.f90 Constants.o Sizes.o Parallelism.o Utils.o
+	$(F90) -c $(F90_32BITS) FileAccess.f90
+
+Infgdspds.o: Infgdspds.f90
+	$(F90) -c $(F90_32BITS) Infgdspds.f90
+
+InputArrays.o: InputArrays.f90 Constants.o Sizes.o
+	$(F90) -c $(F90_32BITS) InputArrays.f90
+
+Init.o: Init.f90 Utils.o Sizes.o Parallelism.o SpecDynamics.o Transform.o \
+			Communications.o PrblSize.o Constants.o
+	$(F90) -c $(F90_32BITS) Init.f90
+
+FileGrib.o: FileGrib.f90 RegInterp.o Constants.o Sizes.o PrblSize.o \
+			Infgdspds.o mod_tables.o Utils.o
+	$(F90) -c $(F90_32BITS) FileGrib.f90
+
+SigmaToPressure.o: SigmaToPressure.f90 Constants.o Sizes.o GaussSigma.o
+	$(F90) -c $(F90_32BITS) SigmaToPressure.f90
+
+SpecDynamics.o: SpecDynamics.f90 Parallelism.o Constants.o Sizes.o Utils.o
+	$(F90) -c $(F90_32BITS) SpecDynamics.f90
+
+Transform.o: Transform.f90 Parallelism.o Constants.o Sizes.o Utils.o \
+                         Communications.o
+	$(F90) -c $(F90_32BITS) Transform.f90
+
+Utils.o: Utils.f90 Constants.o Sizes.o Parallelism.o
+	$(F90) -c $(F90_32BITS) Utils.f90
+	
+PhysicalFunctions.o: PhysicalFunctions.f90
+	$(F90) -c $(F90_32BITS) PhysicalFunctions.f90
+
+PostLoop.o: PostLoop.f90 mod_tables.o \
+			Constants.o Conversion.o PrblSize.o Sizes.o \
+                         Communications.o GaussPressure.o GaussSigma.o \
+                         RegInterp.o InputArrays.o FileAccess.o FileGrib.o \
+                         SigmaToPressure.o Transform.o Infgdspds.o \
+                         SpecDynamics.o Utils.o PhysicalFunctions.o
+	$(F90) -c $(F90_32BITS) PostLoop.f90
+
+post.o: post.f90 Constants.o Conversion.o PrblSize.o Sizes.o Init.o \
+                 GaussSigma.o RegInterp.o FileAccess.o InputArrays.o \
+                 Parallelism.o PostLoop.o mod_tables.o Watches.o
+	$(F90) -c $(F90_32BITS) post.f90
+
+.SUFFIXES:
+.SUFFIXES: .f90 .o
+
+
+.f90.o:
+	$(F90) -c $(F90_32BITS) $<
+
+clean:
+	-rm -f $(OBJ)
+	-rm -f $(EXEC)
+	-rm -f *.mod

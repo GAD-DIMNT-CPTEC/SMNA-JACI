@@ -1,0 +1,56 @@
+ 1  28.2  0.050  0.100  7.0   0.08  0.6181  0.03385
+ 2  17.0  0.080  0.150  7.0   0.08  0.8100  0.04000
+ 3  15.0  0.040  0.100  7.5   0.08  0.7700  0.02000
+ 4  10.0  0.001  0.055  8.0   0.08  0.7400  0.01000
+ 5  10.0  0.001  0.040  8.0   0.08  0.6868  0.03385
+ 6   0.55  0.010  0.300  5.0   0.05  0.6181  0.03385
+ 7   0.55  0.010  0.300  5.0   0.05  0.6302  0.03385
+ 8   0.55  0.010  0.300  5.0   0.05  0.6181  0.03385
+ 9   0.3   0.003  0.030  5.0   0.05  0.7400  0.00000
+ 10  0.35  0.010  0.300  5.0   0.05  0.6302  0.03385
+ 11  0.55  0.010  0.300  5.0   0.05  0.6600  0.01000
+ 12  0.55  0.010  0.300  6.0   0.05  0.7700  0.00000
+ 13  0.55  0.010  0.300  5.0   0.01  0.6302  0.03385
+ IV  ZC    ZLW    ZLEN  LTMAX  STEM   ND98    ND02
+wrapper does not read beyond this line    
+
+Morph for ISLSCP, and FASIR NDVI version 2.0 data
+S.O. Los changed ND98 and ND02 values on Jan 12 1995
+S.O. Los changed stem area index for class 7 - 12 from 0.2 to 0.05 
+and for class 6 from 0.08 to 0.05 on July 5th, 1994
+
+The vegetation types are:
+# type  Name
+1  C3  Tall Broadleaf-Evergreen Trees
+             Ref: Stanford Group, Sellers et al. (1989)
+2  C3  Tall Broadleaf-Deciduous Trees
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+3  C3  Tall Broadleaf and Needleleaf Trees
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+4  C3  Tall Needleleaf Trees
+             Ref: Klink and Willmott (1985), Strebel et al. (1982)
+5  C3  Tall Needleleaf-DECIDUOUS Trees
+             Ref: Klink and Willmott (1985), Strebel et al. (1982)
+6  C4  Short Vegetation, Same as Types 6, 7, 8, and 11 (Stanford-Carnegie)
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972)
+7  C4  Short Vegetation: Ground Cover (Maize Optical Properties)
+             Ref: Klink and Willmott (1985), Miller (1972), Sellers (PC*)
+8  C4  Short Vegetation: Ground Cover (Maize Optical Properties)
+             Ref: Klink and Willmott (1985), Miller (1972), Sellers (PC)
+9  C3  Short Broadleaf Shrubs with Bare Soil
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972),
+                  Sellers (PC)
+10 C3  Short Ground Cover (Tundra)
+             Ref: Klink and Willmott (1985), Turner (1974), Miller (1972),
+                  Sellers (PC)
+11 C4  No Vegetation (Low Latitude Desert)
+             Ref: Sellers (PC) and DORMAN
+12 C3  Agriculture (Wheat) and C3 Grasslands
+             Ref: Sellers and Dorman (1987), Turner (1974), and Dorman
+13 C4  ice
+             Ref: Sellers (PC) and Dorman
+
+* personal communication
+
+**I ran statistics for the 1995 1Km avhrr data for biome classes 2,3,4,9,11,12
+for WLEF and have changed ND98/ND02 accordingly (L.P., 5/28/01)

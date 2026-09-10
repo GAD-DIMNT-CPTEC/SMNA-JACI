@@ -1,0 +1,323 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+#           Group on Data Assimilation Development - GDAD/CPTEC/INPE          #
+#-----------------------------------------------------------------------------#
+#BOP
+#
+# !DESCRIPTION: script utilizado para rodar o GSI.
+#
+#
+# !CALLING SEQUENCE:
+#
+#   ./runGSI <opções>
+#
+#      As <opções> válidas são:
+#         * -t  <val> : truncamento [default: XX]
+#         * -l  <val> : número de níveis [default: XX]
+#         * -p  <val> : prefixo dos arquivos do BAM (condição inicial e previsões) [default: CPT]
+#         * -np <val> : numero de processadores [default: 72]
+#         * -N  <val> : numero de nós [default: 12]
+#         * -d  <val> : numero de Treads por processos MPI [default: 1]
+#         * -I  <val> : Data da condição inicial
+#         * -T  <val> : truncamento da Análise (interno ao GSI) [default: o mesmo da opção -t]
+#         * -bc <val> : Número de ciclos da correção de viés do satélite [default: 0]
+#         * -om <val> : true para oneobtest e false para fullobs [default: false]
+#         * -h  <val> : Mostra este help
+#
+#      exemplo:
+#
+#         ./runGSI -t 299 -l 64 -p CPT -T 254 -I 2015050100 -bc 10 -om true
+#
+# !REVISION HISTORY:
+#    20 Ago 2018 - J. G. de Mattos - Initial Version
+#
+# !REMARKS:
+#
+#     * Neste momento está apto somente para utilizar
+#       a combinação GSI+BAM
+#
+#     * Por padrão o truncamento utilizado no GSI é o mesmo do modelo.
+#       Porém existe a possibilidade de utilizar um truncamento diferente
+#       daquele utilizado pelo BAM. Com isto, a análise é calculada em
+#       outro truncamento, porém o arquivo gerado estará no truncamento
+#       do modelo BAM, assim como deve ocorrer com o arquivo de background.
+#
+# !BUGS:
+#     Not yet!
+#
+# !USES:
+#
+#   runGSI_functions.sh - script que contém as funções utilizadas por este
+#                         script.
+#
+#EOP
+#-----------------------------------------------------------------------------#
+#BOC
+
+WhereIam=$(dirname ${BASH_SOURCE})
+
+# Carregando as variaveis do sistema
+SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+RootDir="$(dirname "$SCRIPT_PATH")"
+export SMG_ROOT=${RootDir}
+source ${SMG_ROOT}/../../config_smg.ksh vars_export
+
+# load functions used by runGSI script
+source ${WhereIam}/gsi_scripts/runGSI_Functions.sh
+
+# Define some constants
+constants
+
+# Parse options from line command
+ParseOpts $@
+
+# Define sizes
+BAM_CoordSize ${AnlTrunc}
+KMax=${AnlNLevs}
+JMax=$((JMax+2)) # This is for GSI horizontal interpolation
+
+#-----------------------------------------------------------#
+# Define diretories
+#
+# define running diretory. Here we will put all
+# files necessary to run GSI for AnlDate
+RunDir=${subt_run_gsi}/${AnlDate}
+if [ -e ${RunDir} ];then
+   rm -fr ${RunDir}/*
+else
+   mkdir -p ${RunDir}
+fi
+
+# define output diretory of this run at AnlDate
+DataOutDir=${subt_gsi_dataout}/${AnlDate}
+if [ ! -e ${DataOutDir} ];then
+   mkdir -p ${DataOutDir}
+fi
+#
+#-----------------------------------------------------------#
+# Copy GSI exec file to RunDir
+#
+if [ -e ${execGSI} ];then
+  file=$(basename ${execGSI})
+  cp -pfr ${execGSI} ${RunDir}/${file}
+  chmod +x  ${RunDir}/${file}
+  if [ $? -ne 0 ];then
+    echo -e ""
+    echo -e "\033[34;1m Copy failed !\033[m"
+    echo -e "\033[34;1m trying copy ${execGSI} to ${RunDir}\033[m"
+    echo -e ""
+    exit 1
+  fi
+else
+  echo -e "\033[34;1m[\033[m\033[31;1m Falhou \033[m\033[34;1m]\033[m"
+  echo -e "\033[31;1m !!! Arquivo Nao Encontrado !!! \033[m"
+  echo -e "\033[31;1m ${execGSI} \033[m"
+  rm -fr ${RunGSI}
+  exit 1
+fi
+
+#
+#-----------------------------------------------------------#
+# Copy GSI Angle update exec file to RunDir
+#
+if [ -e ${execBCAng} ];then
+  file=$(basename ${execBCAng})
+  cp -pfr ${execBCAng} ${RunDir}/${file}
+  chmod +x  ${RunDir}/${file}
+  if [ $? -ne 0 ];then
+    echo -e ""
+    echo -e "\033[34;1m Copy failed !\033[m"
+    echo -e "\033[34;1m trying copy ${execBCAng} to ${RunDir}\033[m"
+    echo -e ""
+    exit 1
+  fi
+else
+  echo -e "\033[34;1m[\033[m\033[31;1m Falhou \033[m\033[34;1m]\033[m"
+  echo -e "\033[31;1m !!! Arquivo Nao Encontrado !!! \033[m"
+  echo -e "\033[31;1m ${execBCAng} \033[m"
+  rm -fr ${RunGSI}
+  exit 1
+fi
+
+
+#
+#-----------------------------------------------------------#
+# link observations to be used by GSI (only for multi obs runs)
+#
+
+if [ ${ObsMod} == "false" ]; then
+  linkObs ${AnlDate} ${RunDir}
+fi
+
+#-----------------------------------------------------------#
+# link/copy background files to be used by GSI
+#
+
+for inc in $(seq -3 3 3); do
+
+   TIME=$(printf "%02g" $((inc+6)))
+   ### Date=$(${inctime} ${AnlDate} ${inc}h %y4%m2%d2%h2)
+   Date=`date -u +%Y%m%d%H -d "${AnlDate:0:8} ${AnlDate:8:2} +${inc} hours" `
+   FFCT=GFCT${BkgPrefix}${BkgDate}${Date}F.fct.${BkgMRES}
+   FDIR=GFCT${BkgPrefix}${BkgDate}${Date}F.dir.${BkgMRES}
+
+   # Forecast file
+   file=${subt_model_bam}/dataout/${BkgMRES}/DAS/${BkgDate}/${FFCT}
+   echo "Forecast file : " $file
+   if [ -e ${file} ];then
+      cp -pfr ${file} ${RunDir}/BAM.fct.${TIME}
+   else
+      echo -e ""
+      echo -e "\033[31;1m File not found !\033[m"
+      echo -e "\033[31;1m ${FFCT}\033[m"
+      echo -e ""
+      exit 1
+   fi
+
+   # Description file
+   file=${subt_model_bam}/dataout/${BkgMRES}/DAS/${BkgDate}/${FDIR}
+   if [ -e ${file} ];then
+      cp -pfr ${file} ${RunDir}/BAM.dir.${TIME}
+   else
+      echo -e ""
+      echo -e "\033[31;1m File not found !\033[m"
+      echo -e "\033[31;1m ${FDIR}\033[m"
+      echo -e ""
+      exit 1
+   fi
+
+done
+#
+#-----------------------------------------------------------#
+# Copy fixed files to use in GSI run
+FixedFiles ${AnlTrunc} ${AnlNLevs} ${RunDir}
+
+#
+#-----------------------------------------------------------#
+# Copy info Files (satInfo, convInfo, ozInfo)
+#getInfoFiles ${AnlDate}
+# Get Satellite bias files
+getSatBias ${AnlDate} ${BkgDate} ${RunDir} ${subt_gsi_dataout}
+if [ -z "${BcCycles}" ];then # verifica se a varaivel veio como argumento de entrada
+   BcCycles=$?  ### recebe =1 se não encontrar satbias_out no diretorio BkgDate (rodada anterior) 
+fi
+
+#------------------------------------------------------------#
+# running GSI at tupa
+#
+
+if [ ${BcCycles} -gt 0 ];then
+   BcCycles=$((${BcCycles}-1))
+fi
+
+echo " Entrando no ciclo de BcCycles para "$(seq 0 ${BcCycles} )
+
+for cycle in $(seq 0 ${BcCycles} ); do
+
+   if [ ${BcCycles} -gt 0 ];then
+
+      echo -ne "\033[34;1m Running GSI at BC cycle\033[m\033[32;1m $(( ${cycle} + 1 ))\033[m"
+
+      if [ ${cycle} -ne ${BcCycles} ];then
+
+         BcDirOut=$(printf "${DataOutDir}/BC.C%2.2d\n" $((${cycle} + 1)))
+         mkdir -p ${BcDirOut}
+
+      fi
+
+   else
+
+      echo -ne "\033[34;1m Running GSI \033[m"
+
+   fi
+
+   echo " runGSI >> subGSI --> ${RunDir} ${IMax} ${JMax} ${KMax} ${AnlTrunc} ${BkgTrunc} ${AnlDate} ${ObsMod}"
+
+#   if [ ${cycle} -eq 0 -a ${BcCycles} -gt 0 ];then
+   if [ ${BcCycles} -gt 0 ];then
+      subGSI ${RunDir} ${IMax} ${JMax} ${KMax} ${AnlTrunc} ${BkgTrunc} ${AnlDate} ${ObsMod} .true.
+   else
+      subGSI ${RunDir} ${IMax} ${JMax} ${KMax} ${AnlTrunc} ${BkgTrunc} ${AnlDate} ${ObsMod} .false.
+   fi
+
+   if [ $? -eq 0 ];then
+      echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+   else
+      echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+      exit 1
+   fi
+
+   echo ">>> mergeDiagFiles"
+   mergeDiagFiles ${RunDir} ${AnlDate}
+
+   echo ">>> mergeDiagFiles do diagnostico da radi�ncia"
+
+
+   ls ${RunDir}/diag_amsua_* ${RunDir}/diag_atms_* #${RunDir}/diag_atms_* 
+
+
+
+## Create links for diag AMSUA satellite files 
+#   for diagfn in diag_amsua_*  
+#   do 
+#      lennm=${#diagfn} 
+#      lenbase=$(( lennm -11 ))  # length of file name without date
+#      ln $diagfn ${diagfn:0:$lenbase}
+#   done
+
+## Create links for diag ATMS satellite files 
+#   for diagfn in diag_atms_*  
+#   do 
+#      lennm=${#diagfn} 
+#      lenbase=$(( lennm -11 ))  # length of file name without date
+#      ln $diagfn ${diagfn:0:$lenbase}
+#   done
+#echo "Depois dos links"   
+#ls diag_amsua_* diag_atms_*    
+
+#   echo -ne "\033[34;1m Running GSI Angle Update tool \033[m"
+#
+#    subBCAng ${RunDir} ${AnlDate}
+#
+#   if [ $? -eq 0 ];then
+#      echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+#   else
+#      echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+#      exit 1
+#   fi
+
+   #-----------------------------------------------------------#
+   # Copy files to output diretory
+   #
+
+   if [ ${BcCycles} -gt 0 ];then
+
+      if [ ${cycle} -eq ${BcCycles} ];then
+         # save data, diag and bias corretions files
+         copyFiles ${RunDir} ${DataOutDir}
+      else
+         copyFiles ${RunDir} ${BcDirOut}
+
+         #
+         # copy satellite bias.out to bias.in for next cycle
+         #
+         # while in BC Cycle update In satbias with thoses new ones (Ou) 
+         echo cp -pfr ${BcDirOut}/${satbiasOu} ${RunDir}/${satbiasIn}
+         cp -pfr ${BcDirOut}/${satbiasOu} ${RunDir}/${satbiasIn}
+         echo cp -pfr ${BcDirOut}/${satbiasPCOu} ${RunDir}/${satbiasPCIn}
+         cp -pfr ${BcDirOut}/${satbiasPCOu} ${RunDir}/${satbiasPCIn}
+#         echo cp -pfr ${BcDirOut}/${satbiasAngOu} ${RunDir}/${satbiasAngIn}
+#         cp -pfr ${BcDirOut}/${satbiasAngOu} ${RunDir}/${satbiasAngIn}
+
+      fi
+
+   else
+      copyFiles ${RunDir} ${DataOutDir}
+   fi
+
+done
+#
+#-----------------------------------------------------------#
+
+#EOC
+#-----------------------------------------------------------------------------#

@@ -1,0 +1,62 @@
+#!/bin/ksh
+export FRUN=`pwd`
+export FEXE=`pwd`
+node=1
+cpu0=1
+cpu1=0
+cpu2=0
+cpu3=0
+CpuPerNode=1
+TaskPerProc=1
+MemPerNode=2gb
+QUEUE=Mini
+BUFFER=20480
+cputime=3600
+nnode=`expr ${node} - 1`
+cpu=`expr ${cpu0} + ${cpu1} + ${cpu2} + ${cpu3}`
+data=`date +'%Y%m%d%H%M'`
+cat <<EOF1 >${FEXE}/mpisep.sh
+#!/usr/bin/sh
+exec ${FEXE}/ParModel_MPI <${FRUN}/MODELIN>  ${FRUN}/xmit_model.`date +'%Y%m%d'`_`date +'%Y%m%d'`.MODEL
+EOF1
+chmod 777 ${FEXE}/mpisep.sh
+cat <<EOT1> ${FEXE}/xmit.sh
+#!/usr/bin/ksh
+#PBS -q multi                    # queue: dq for <=8 CPUs
+#PBS -T mpisx                    # Job type: mpisx for MPI
+#PBS -l cpunum_prc=${CpuPerNode} # cpus per Node
+#PBS -l tasknum_prc=${TaskPerProc}
+#PBS -b ${node}                  # number of nodes
+#PBS -l cputim_job=${cputime}    # max accumulated cputime
+#PBS -l memsz_job=${MemPerNode}  # memory per node
+#PBS -o turi:${FRUN}/run${cpu}${QUEUE}${data}.out
+#PBS -e turi:${FRUN}/run${cpu}${QUEUE}${data}.out
+#PBS -j o                        # join stdout/stderr
+#PBS -N xmit                     # job name
+#
+# we should ALWAYS
+cd ${FEXE}
+export OMP_NUM_THREADS=1
+export F_RSVTASK=${TaskPerProc}
+export MPIPROGINF=DETAIL
+export F_FILEINF=DETAIL
+export F_PROGINF=DETAIL
+export F_ERRCNT=1
+export F_SETBUF=20480
+export MPIMULTITASKMIX=YES
+#MPIEXPORT="OMP_NUM_THREADS F_FILEINF"
+#export MPIEXPORT
+if [[ ${node} -eq  4 ]] ; then
+mpirun  -v -host 0 -np ${cpu0} -host 1 -np ${cpu1} -host 2 -np ${cpu2} -host 3 -np ${cpu3} ${FEXE}/mpisep.sh
+fi
+if [[ ${node} -eq  3 ]] ; then
+mpirun  -v -host 0 -np ${cpu0} -host 1 -np ${cpu1} -host 2 -np ${cpu2}  ${FEXE}/mpisep.sh
+fi
+if [[ ${node} -eq  2 ]] ; then
+mpirun  -v -host 0 -np ${cpu0} -host 1 -np ${cpu1}  ${FEXE}/mpisep.sh
+fi
+if [[ ${node} -eq  1 ]] ; then
+mpirun  -v -host 0 -np ${cpu0}  ${FEXE}/mpisep.sh
+fi
+EOT1
+qsub -q ${QUEUE} -N xmit ${FEXE}/xmit.sh

@@ -1,0 +1,42 @@
+TOTAL PRECIPITATION                         1  121    0
+CONVECTIVE PRECIPITATION                    1  121    0
+LARGE SCALE PRECIPITATION                   1  121    0
+SNOWFALL                                    1  121    0
+RUNOFF                                      1  121    0
+INTERCEPTION LOSS                           1  170    0
+SENSIBLE HEAT FLUX FROM SURFACE             1  170    0
+LATENT HEAT FLUX FROM SURFACE               1  170    0
+SURFACE ZONAL WIND STRESS                   1  130    0
+SURFACE MERIDIONAL WIND STRESS              1  130    0
+CLOUD COVER                                 1    0    0
+DOWNWARD LONG WAVE AT BOTTOM                1  170    0
+UPWARD LONG WAVE AT BOTTOM                  1  170    0
+OUTGOING LONG WAVE AT TOP                   1  170    0
+DOWNWARD SHORT WAVE AT GROUND               1  170    0
+UPWARD SHORT WAVE AT GROUND                 1  170    0
+UPWARD SHORT WAVE AT TOP                    1  170    0
+SHORT WAVE ABSORBED AT GROUND               1  170    0
+NET LONG WAVE AT BOTTOM                     1  170    0
+GROUND/SURFACE COVER TEMPERATURE            1   40    0
+TIME MEAN AT 10 METRE U-WIND COMPONENT      1   60    0
+TIME MEAN AT 10 METRE V-WIND COMPONENT      1   60    0
+VERTICALLY INTEGRATED OZONE CONTENT         1    0    0
+CONVECTIVE AVAIL. POT.ENERGY                1  180    0
+CONVECTIVE INHIB. ENERGY                    1  180    0
+SEVERE WEATHER THREAT                       1    0    0
+TIME MEAN TEMP AT 2-M FROM SFC              1   40    0
+TIME MEAN SPEC HUMIDITY AT 2-M FROM SFC     1    0    0
+SPEED WIND AT 10-M FROM SURFACE             1   60    0
+SPEED WIND AT 50-M FROM SURFACE LAYER       1   60    0
+SPEED WIND AT 100-M FROM SURFACE LAYER      1   60    0
+DIR WIND AT 10-M FROM SURFACE LAYER         1  300    0
+DIR WIND AT 50-M FROM SURFACE LAYER         1  300    0
+DIR WIND AT 100-M FROM SURFACE LAYER        1  300    0
+TIME MEAN SURFACE TEMPERATURE               1   40    0
+HEALTH INDEXES                              1  201    0
+TIME MEAN MINIMUM TEMP AT 2-M FROM SFC      1   40    0
+TIME MEAN MAXIMUM TEMP AT 2-M FROM SFC      1   40    0
+TIME MEAN MAXIMUM TENDENCY SFC PRESSURE     1  150    0
+K-INDEX                                     1   40    0
+TOTAL TOTALS - INDEX                        1   40    0
+SURFACE BEST (4 LAYER) LIFTED INDEX [K]     1   40    0

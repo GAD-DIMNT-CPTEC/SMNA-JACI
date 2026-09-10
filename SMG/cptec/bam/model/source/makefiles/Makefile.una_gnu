@@ -1,0 +1,22 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+FTRACE= -O1
+#FTRACE=-check all  -fpe0 -traceback
+OPENMP= 
+F90=mpif90 -ccl gfortran $(FTRACE) $(OPENMP) 
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=
+include Makefile.common

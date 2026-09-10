@@ -1,0 +1,49 @@
+# This is a GitHub actions workflow for the NCEPLIBS-bacio project.
+#
+# This workflow does the MacOS build.
+#
+# Ed Hartnett 1/19/23
+name: MacOS
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  MacOS:
+    runs-on: macos-latest
+    env:
+      FC: gfortran-11
+      CC: gcc-11
+    strategy:
+      matrix:
+        shared: [ON, OFF]
+
+    steps:
+
+    - name: checkout
+      uses: actions/checkout@v2
+      with: 
+        path: bacio
+
+    - name: build
+      run: |
+        cd bacio
+        mkdir build 
+        cd build
+        cmake -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DCMAKE_INSTALL_PREFIX=~/install .. 
+        make -j2 VERBOSE=1
+        make install
+        ls -l ~/install
+        ls -l ~/install/lib
+    
+    - name: test
+      run: |
+        set -e
+        cd $GITHUB_WORKSPACE/bacio/build
+        ctest --verbose --output-on-failure --rerun-failed
+
+        

@@ -1,0 +1,62 @@
+# This is a GitHub CI workflow for the NCEPLIBS-bufr project.
+#
+# This workflow tests on MacOS.
+#
+# Ed Hartnett, 1/10/23
+name: MacOS
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  MacOS:
+    runs-on: macos-latest
+    env:
+      FC: gfortran-11
+
+    steps:
+    
+    - name: install-deps
+      run: |
+        pip3 install setuptools
+        pip3 install numpy
+        pip3 install netCDF4
+        sudo ln -sf /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+          
+    - name: checkout-bufr
+      uses: actions/checkout@v2
+      with: 
+        path: bufr
+
+    - name: cache-data
+      id: cache-data
+      uses: actions/cache@v2
+      with:
+        path: ~/data
+        key: data-9
+
+    - name: build-bufr
+      run: |
+        cd bufr
+        mkdir build 
+        cd build
+        cmake -DTEST_FILE_DIR=/Users/runner/data -DCMAKE_INSTALL_PREFIX=./install -DENABLE_PYTHON=ON ..
+        make -j2 VERBOSE=1
+        make install
+        cd python
+        sudo python3 setup.py install
+
+    - name: test-bufr
+      run: |
+        cd bufr/build
+        ctest --verbose --output-on-failure --rerun-failed
+
+    - name: cache-data
+      if: steps.cache-data.outputs.cache-hit != 'true'
+      run: |
+        mkdir ~/data
+        cp $GITHUB_WORKSPACE/bufr/build/test/bufr-11.6.0.tgz ~/data

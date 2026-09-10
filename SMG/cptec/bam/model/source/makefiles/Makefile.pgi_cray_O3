@@ -1,0 +1,33 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+FTRACE= 
+#FTRACE=-check all  -fpe0 -traceback
+OPENMP= 
+#F90=ftn -Mbyteswapio -O0 -Ktrap=ovf,divz,inv -g -Mbounds  -Minform=inform -C  -Minline -V -tp k8-64 $(FTRACE) $(OPENMP) 
+#F90=ftn -Mbyteswapio -O0 -Ktrap=ovf,divz,inv -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 $(FTRACE) $(OPENMP)
+#F90=ftn              -C -g -gopt -M[no]bounds -Mchkfpstk -Mchkptr -Mchkstk -Mcoff -Mdwarf1 -Mdwarf2 -Mdwarf3 -Melf -Mnodwarf -M[no]pgicoff -[no]traceback
+#F90=ftn -Mbyteswapio -O0 -g -Mbounds -Mchkstk -Mchkptr -Mchkfpstk  -Minform=inform -C  -Minline=reshape  -tp k8-64 -traceback $(FTRACE) $(OPENMP)
+#OPENMP=-mp=nonuma
+OPENMP=-mp
+
+F90=ftn -Mbyteswapio -fast  -Kieee -Ktrap=inv $(OPENMP)
+F90=ftn -Mbyteswapio  -Kieee -Ktrap=inv -O3 $(OPENMP)
+F90=ftn -Mbyteswapio  -Kieee  -O3 $(OPENMP)
+
+
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG= 
+include Makefile.common

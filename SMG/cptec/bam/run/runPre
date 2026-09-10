@@ -1,0 +1,633 @@
+#!/bin/bash
+#---------------------------------------------------------------------------------------------------#
+#                         Brazilian global Atmospheric Model - BAM_V2.2.1                           #
+#---------------------------------------------------------------------------------------------------#
+#BOP
+#  !DESCRIPTION:
+#      Wrapper that drives the **BAM pre‑processing suite** (chopping, SST/SM, gradient files,
+#      ozone, tracers, GrADS output, etc.) on any supported HPC system (EGEON, XC50, …).  
+#      Command‑line flags follow the same grouped pattern adopted in `runModel` so that users
+#      have a uniform interface across scripts.
+#
+#  !CALLING SEQUENCE:
+#      ./runPre <options>
+#
+#  !OPTIONS – grouped by theme
+#  ────────────────────────────────────────────────────────────────────────────
+#  ◉ Model grid / resolution
+#      -t  | --truncation        <val>   Spectral truncation (T)               [default: 62]
+#      -l  | --levels            <val>   Vertical levels                       [default: 28]
+#
+#  ◉ Calendar / input date
+#      -I  | --icold             <yyyymmddhh>  Initial (analysis) date
+#
+#  ◉ Parallel resources (MPI × OpenMP) – **identical flags to runModel**
+#      -np | --ntasks            <val>   MPI ranks (tasks)                     [default: 240]
+#      -d  | --cpus-per-task     <val>   Threads per MPI task                  [default: 1]
+#      -N  | --nodes             <val>   Compute nodes requested               [default: —]*
+#      -c  | --cores-per-node    <val>   Override cores per node
+#      -P  | --procs             <val>   Total logical cores (derive layout)
+#
+#  ◉ Input‑analysis resolution (chopping)
+#      -ti | --trunc-in          <val>   Input spectral truncation             [default: 1534]
+#      -li | --levels-in         <val>   Input vertical levels                 [default: 64]
+#
+#  ◉ Process‑selection / namelist
+#      -n, | --proc-set          <0|full|1|essential|2|debug|3|das|4|chp>      [default: 0]
+#      -f  | --nml-file          <file>  External namelist overrides `-n`
+#
+#  ◉ GDAS acquisition
+#      -Gt | --gdas-type         <Spec|Grid|Netcdf>   GDAS file type           [default: Grid]
+#      -Gp | --gdas-prefix       <gdas1|gdas|gblav>   GDAS prefix              [default: gblav]
+#
+#  ◉ Optional fields / outputs
+#      -s  | --smooth-topo                 Smooth orography
+#      -sp | --smooth-percent     <val>    % amplitude for topo smoothing      [default: 0.12]
+#      -A  | --gdas-only                    Write only GDAS spectral files
+#      -O  | --ozone                        Generate ozone file
+#      -T  | --tracers                      Generate tracer file
+#      -G  | --grads                        Generate GrADS output (in addition)
+#      -Go | --grads-only                   Generate **only** GrADS output
+#      -rm | --rm-ganl                      Remove GANL file after use
+#      -L  | --linear-grid                  Force linear Gaussian grid
+#
+#  ◉ Scheduler
+#      -pw | --walltime     <HH:MM:SS>  Wall‑clock limit
+#      -pq | --queue        <name>      Queue/partition
+#      -pn | --job-name     <name>      Job name in scheduler
+#
+#  ◉ Misc / diagnostics
+#      -v  | --verbose                      Verbose mode
+#      -D  | --dry-run      (alias -dryrun) Parse only, no execution
+#      -h  | --help                         Display this block & exit
+#
+#      *If `-N` is omitted the script auto‑computes nodes from  -np/-d/-c
+#
+#  !EXAMPLES:
+#      # Simple pre‑processing (T299/L64), default resources
+#      ./runPre -t 299 -l 64 -I 2013010100
+#
+#      # Full pre, 480 cores pure MPI on EGEON (4 nodes)
+#      ./runPre -t 299 -l 64 -P 480 -d 1 -I 2020061900 -s -G
+#
+#      # Debug: run only selected sub‑routines with external namelist
+#      ./runPre -f myPre.nml -n debug -v
+#
+#
+#  !NOTES:
+#     * Until 14/Jan/2015 at 06Z (2015011406), NCEP analyses used resolution TQ00574L064;
+#       after this date, analyses adopted resolution TQ1534L064. From this moment on,
+#       the SST file read is: `rtgssthr_grb_0.083.grib2.${DATA}` (note the resolution: 0.083 degrees),
+#       and the snow file (SNOW) is no longer used (previously: `gdas1.T00Z.sstgrb2.${DATA}`).
+#       More info on the new SST files: http://www.nco.ncep.noaa.gov/pmb/products/sst/
+#     * Until 19/Jul/2017 at 12Z (2017071912), NCEP analyses were in spectral format,
+#       with resolution TQ01534L064. After that, files are written in grid-point format
+#       (using nemsio), named: `gdas.T${HH}Z.atmanl.nemsio.${DATA}`.
+#       More details on NCEP model/product changes: https://www.nco.ncep.noaa.gov/pmb/changes/
+#
+#  !REVISIONS:
+#     * 22-06-2016: Khamis, E. G.    – initial version
+#     * 14-07-2016: Khamis, E. G.    – made `runPre` independent from external scripts via namelist
+#                                      still depends on `run_Chopping_parallel.bash` and
+#                                      `run_Chopping_serial.bash`
+#     * 21-07-2016: Khamis, E. G.    – removed dependency on chopping scripts
+#     * 26-07-2016: Khamis, E. G.    – included function to create one submission script per process
+#     * 28-07-2016: Khamis, E. G.    – changed submission logic and added output check/waiting logic
+#                                      notes that some subroutines (e.g., NormalModes,
+#                                      TopographyGradient) lack "ENDS NORMALLY" messages;
+#                                      users must recompile Fortran code to include these
+#     * 20-09-2016: Bastarz, C. F.   – fixed analysis file check for smoothed topo
+#                                      fixed chopping processor count (N=24)
+#                                      generalized prefixes for SSTClima, FLUXCO2Clima,
+#                                      SSTWeekly, etc.
+#     * 17-02-2020: Bastarz, C. F.   – general review and improvements
+#     * 10-03-2020: Bastarz, C. F.   – added CO2MonthlyDirec process
+#     * 09-09-2020: Khamis, E. G.    – adapted to BAM v1.4.0
+#     * 20-04-2021: Khamis, E. G.    – adapted to BAM v2.2.1
+#     * 19-05-2021: de Mattos, J. G. – script refactor
+#     * 12-08-2021: de Mattos, J. G. – added external namelist support
+#     * 21‑05‑2021: de Mattos, J. G. – full refactor with shift‑based parser
+#     * 02‑05‑2025: de Mattos, J. G. – header unified with runModel interface
+#                                      • reused -np/-d/-N/-P flags (compatibility)
+#                                      • grouped options by function
+#                                      • added long-form aliases
+#
+#  !REMARKS:
+#     ▸ **Process set (-n | --proc-set)**  
+#          0 → full chain | 1 → essential subset | 2 → debug subset | 3 → DA subset
+#     ▸ Flags identical to *runModel* allow copy/paste of resource configs between scripts.
+#
+#  !TODO:
+#     * validate `fileout` function to check process outputs
+#     * include processor and per-node counts in the submission line
+#
+# DIMNT/CGCT/INPE, 2021
+#EOP
+#---------------------------------------------------------------------------------------------------##
+
+# Set script's real directory (follows symlinks; works when sourced or executed)
+resolve_script_dir() {
+  local __out="${1:?out var required}"
+  local __src="${2:-${BASH_SOURCE[0]}}"
+
+  # Follow symlinks
+  while [[ -L "$__src" ]]; do
+    local __link="$(readlink -- "$__src")"
+    if [[ "$__link" = /* ]]; then
+      __src="$__link"
+    else
+      __src="$(cd -- "$(dirname -- "$__src")" && cd -- "$(dirname -- "$__link")" && pwd)/$(basename -- "$__link")"
+    fi
+  done
+
+  # Assign result = directory of resolved file
+  local __dir="$(cd -- "$(dirname -- "$__src")" && pwd -P)"
+  printf -v "$__out" '%s' "$__dir"
+}
+resolve_script_dir LOCALDIR
+
+#
+# Include generic functions
+# shellcheck disable=SC1091
+. ${LOCALDIR}/runPre.func
+
+### Define hpc_name below is needed because in some cases (ex.: First Run),
+### this script may be called from the command line.
+###
+detect_hpc_system || { echo "[FATAL] Unable to detect HPC"; exit 1; }
+
+#
+# define some paths
+#
+
+dirExec=${SUBTBASE}/pre/exec
+dirData=${SUBTBASE}/pre/datain
+dirDataBCS=${SUBTBASE}/pre/databcs
+
+###############################################################################
+# 2.  Parse command‑line – long & short aliases                               #
+###############################################################################
+args="$@"
+declare -a mpi_flags                       # to forward into getMPIinfo
+while (( $# )); do
+    case $1 in
+        # ---------------- grid / resolution --------------------------------
+        -t|--truncation)          TRC=$2;            shift 2;;
+        -l|--levels)              LV=$2;             shift 2;;
+
+        # ---------------- calendar -----------------------------------------
+        -I|--icold)               LABELI=$2;         shift 2;;
+
+        # ---------------- prefix -------------------------------------------
+        -p|--prefix)              PREFIX=$2;         shift 2;;
+
+        # ---------------- parallel resources (share with runModel) ---------
+        -np|--ntasks)             MPITasks=$2;       mpi_flags+=( -np "$2" ); shift 2;;
+        -d|--cpus-per-task)       ThreadsPerMPITask=$2; mpi_flags+=( -d "$2" ); shift 2;;
+        -N|--nodes)               Nodes=$2;          mpi_flags+=( -N "$2" ); shift 2;;
+        -c|--cores-per-node)      CoresPerNode=$2;   mpi_flags+=( -c "$2" ); shift 2;;
+        -P|--procs)               TotalCoresRequested=$2; mpi_flags+=( -P "$2" ); shift 2;;
+
+        # ---------------- chopping resolution ------------------------------
+        -ti|--trunc-in)           TRCinp=$2;         shift 2;;
+        -li|--levels-in)          LVinp=$2;          shift 2;;
+
+        # ---------------- process‑set / namelist ---------------------------
+        -n|--proc-set)            NMLOPT=$2;         shift 2;;
+        -f|--nml-file)            nmlFile=$2;        shift 2;;
+
+        # ---------------- GDAS options -------------------------------------
+        -Gt|--gdas-type)          GDASType=$2;       shift 2;;
+        -Gp|--gdas-prefix)        GDASPrefix=$2;     shift 2;;
+
+        # ---------------- toggles ------------------------------------------
+        -s|--smooth-topo)         SmoothTopo='.TRUE.';  shift 1;;
+        -sp|--smooth-percent)     SmthPerCut=$2;        shift 2;;
+        -A|--gdas-only)           GDASOnly='.TRUE.';    shift 1;;
+        -O|--ozone)               GetOzone='.TRUE.';    shift 1;;
+        -T|--tracers)             GetTracers='.TRUE.';  shift 1;;
+        -G|--grads)               GrADS='.TRUE.';       shift 1;;
+        -Go|--grads-only)         GrADSOnly='.TRUE.';   shift 1;;
+        -rm|--rm-ganl)            rmGANL='.TRUE.';      shift 1;;
+        -L|--linear-grid)         SetLinear='.TRUE.';   shift 1;;
+
+        # ----------------- Scheduler----------------------------------------
+        -pw|--walltime)   walltime=$2;    shift 2 ;;
+        -pq|--queue)      queue=$2;       shift 2 ;;
+        -pn|--job-name)   queue_name=$2;  shift 2 ;;
+        
+        # ---------------- diagnostics --------------------------------------
+        -v|--verbose)             verbose=true; shift 1;;
+        -D|--dry-run|-dryrun)     DRYRUN=true;       shift 1 ;;
+        -h|--help)                sed -n '/^#BOP/,/^#EOP/p' "$0"; exit 0;;
+        *)
+            printf '\033[31;1m[WARN]\033[0m Unknown option: %s\n' "$1"; shift 1;;
+    esac
+done
+set -- $args #restore arguments
+
+
+# Defining variables with default values if not set
+# TRC: Model truncation (default: 62)
+TRC=${TRC:-62}
+
+# LV: Number of vertical levels for the model (default: 28)
+LV=${LV:-28}
+
+# PREFY: Prefix for BAM input and output files (default: NMC)
+PREFY=${PREFY:-NMC}
+
+# LABELI: Initial condition date (required)
+if [ -z ${LABELI} ]; then
+   echo -e "\033[31;1m LABELI not set \033[m"
+   echo -e ""
+   echo -e "For help, try:"
+   echo -e ""
+   echo -e "${0} -h"
+   echo -e ""
+   exit 1
+fi
+
+# TRCinp: Input file truncation (default: 1534)
+TRCinp=${TRCinp:-1534}
+
+# LVinp: Number of vertical levels in the input file (default: 64)
+LVinp=${LVinp:-64}
+
+# SmoothTopo: Apply topography smoothing? (default: .FALSE.)
+SmoothTopo=${SmoothTopo:-'.FALSE.'}
+
+# SmthPerCut: Percentage for topography smoothing (default: 0.12)
+SmthPerCut=${SmthPerCut:-0.12}
+
+# GDASOnly: Write only GDAS spectral files? (default: .FALSE.)
+GDASOnly=${GDASOnly:-'.FALSE.'}
+
+# NMLOPT: Pre-processing process group (0=full, 1=essential, 2=debug, 3=DA) (default: 0)
+NMLOPT=${NMLOPT:-0}
+
+case "${NMLOPT,,}" in
+  0|full)                     NMLOPT=0 ;;
+  1|essential)                NMLOPT=1 ;;
+  2|debug)                    NMLOPT=2 ;;
+  3|das|da)                   NMLOPT=3 ;;
+  4|chp|chop|chopping)        NMLOPT=4 ;;
+  *) echo "[WARN] Unknown -n '${NMLOPT}', using 0 (full)"; NMLOPT=0 ;;
+esac
+export NMLOPT
+
+# GDASType: Type of GDAS file (Spec, Grid, Netcdf) (default: Netcdf)
+GDASType=${GDASType:-'Netcdf'}
+
+# GetOzone: Generate ozone file? (default: .FALSE.)
+GetOzone=${GetOzone:-'.FALSE.'}
+
+# GetTracers: Generate tracers file? (default: .FALSE.)
+GetTracers=${GetTracers:-'.FALSE.'}
+
+# GrADS: Generate GrADS output (default: .FALSE.)
+GrADS=${GrADS:-'.FALSE.'}
+
+# GrADSOnly: Generate **only** GrADS output (default: .FALSE.)
+GrADSOnly=${GrADSOnly:-'.FALSE.'}
+
+# rmGANL: Remove GANL file after use? (default: .FALSE.)
+rmGANL=${rmGANL:-'.FALSE.'}
+
+# SetLinear: Use linear Gaussian grid? (default: .FALSE.)
+SetLinear=${SetLinear:-'.FALSE.'}
+
+# Job Wall Time
+walltime=${walltime:-00:45:00}
+
+# Job Queue
+# Set specific queue for each HPC system if not already defined
+case ${hpc_name} in
+  egeon) queue=${queue:-PESQ1} ;;
+  jaci) queue=${queue:-pesqmidi} ;;
+  XC50) queue=${queue:-pesq} ;;
+esac
+
+# Job Queue Name
+queue_name=${queue_name:-"PreBAM${TRC}"}
+
+#
+if [[ ${verbose} == true ]];then
+   echo -e "\033[34;1m Running BAM Pre-process for \033[m\033[32;1m${LABELI}\033[m"
+   [[ "${DRYRUN}" == '.TRUE.' ]] && echo -e "\033[36;1m[DRY-RUN MODE]\033[m"
+   echo
+fi
+
+
+# Prefix with smoothTopo on
+if [ ${SmoothTopo} = '.TRUE.' ];then
+   echo -e "\033[32;1m SmoothTopo = ${SmoothTopo}\033[m"
+   echo -e "\033[32;1m set PREFIX = \033[m\033[31;1m SMT\033[m"
+   PREFIX=SMT
+fi
+
+# Resolve MPI/OpenMP layout via getMPIinfo
+[[ ${verbose} == true ]] && mpi_flags+=( -v )
+getMPIinfo "${mpi_flags[@]}" || { echo "[FATAL] MPI layout error"; exit 1; }
+
+# Derive TasksPerNode (needed for PBS & sanity)
+TasksPerNode=$(( (MPITasks + Nodes - 1) / Nodes ))
+
+# Show final configuration if verbose
+if [[ ${verbose} == true ]]; then
+    echo "--- Final runPre configuration ---"
+    echo "TRC=${TRC}  LV=${LV}  LABELI=${LABELI}"
+    echo "MPI tasks=${MPITasks}  Threads/task=${ThreadsPerMPITask}  Nodes=${Nodes}"
+    echo "-----------------------------------"
+fi
+# Get BAM sizes
+
+getBAMSize ${TRC}
+if [ $? -ne 0 ];then
+   exit $?
+fi
+
+#Spectral Resolution Cut Off for Topography Smoothing
+MendCut=$(echo $TRC | awk '{ print (int(1/((5+(40000/($1*3)))*(3/(40000)))) +1) }')
+
+#-----------------------------------------------------------------------------#
+# Parse NameList to get Pre-processes
+if ! parse_namelist "${NMLOPT}" "${nmlFile}"; then
+    exit 1
+fi
+
+# Ensure numeric Chopping flag
+case "${Chopping:-}" in
+  1|0) : ;;  # já numérico
+  '.TRUE.'|'.true.'|'TRUE'|'true') Chopping=1 ;;
+  *) 
+    # infer from NMLOPT or modulesToRun list
+    if [[ "${NMLOPT}" -eq 4 ]] || [[ ",${modulesToRun}," == *",Chopping,"* ]]; then
+      Chopping=1
+    else
+      Chopping=0
+    fi
+    ;;
+esac
+export Chopping
+
+# get NCEP anl (only when chopping is enabled)
+if [ "${Chopping:-0}" -eq 1 ]; then
+   getAnlNCEP ${LABELI} ${GDASPrefix}
+   STATUS=$?
+   if [ $STATUS -ne 0 ];then
+      echo -e "\033[31;1m Nenhum arquivo de Análise encontrado para o dia:\033[m \033[32;1m${LABELI}\033[m"
+      exit $STATUS
+   fi
+   
+   if [ ${GDASPrefix} = 'gdas' -a -z ${GDASType} ];then
+      GDASType='Netcdf'
+   fi
+
+   if [ ${GDASPrefix} = 'gdas1' -a -z ${GDASType} ];then
+      GDASType='spec'
+   fi
+
+   if [ ${GDASPrefix} = 'gblav' ];then
+      echo -e "\033[31;1m >>>> WARNNING <<<<\033[m"
+      echo -e " Using \033[33;1m gblav \033[m anl file"
+      echo -e " GDASType was set as:\033[33;1m ${GDASType^}\033[m"
+      echo -e "\033[33;1m Is this correct?\033[m"      
+      echo -e "\033[31;1m >>>>>>>>><<<<<<<<<\033[m"
+   fi
+
+fi
+
+# get SST files
+if [ ${SSTWeekly} -eq 1 ];then
+   getSST ${LABELI}
+   STATUS=$?
+   if [ $STATUS -ne 0 ];then
+      echo -e "\033[31;1m Nenhum arquivo de SST encontrado para o dia:\033[m \033[32;1m${LABELI}\033[m"
+      exit $STATUS
+   fi
+fi
+
+# get SoilMoisture files
+if [ ${SoilMoistureWeekly} -eq 1 ];then
+   getSoilFiles ${LABELI}
+   STATUS=$?
+   if [ $STATUS -ne 0 ];then
+      echo -e "\033[31;1m Nenhum arquivo de Umidade do Solo encontrado para o dia:\033[m \033[32;m${LABELI}\033[m"
+      exit $STATUS
+   fi
+fi
+
+
+#
+#-----------------------------------------------------------------------------#
+# Parse Pre_run.nml
+#
+sed -e "s;#MODULESTORUN#;${modulesToRun};g" \
+    -e "s;#dirdata#;${SUBTBASE};g"           \
+    -e "s;#IM#;$IM;g"                       \
+    -e "s;#JM#;$JM;g"                       \
+    -e "s;#RESOUT#;${TRC};g"                \
+    -e "s;#KMOUT#;${LV};g"                  \
+    -e "s;#RESO#;${TRC};g"                  \
+    -e "s;#RESIN#;${TRCinp};g"              \
+    -e "s;#KMIN#;${LVinp};g"                \
+    -e "s;#GetOzone#;${GetOzone};g"         \
+    -e "s;#GetTracers#;${GetTracers};g"     \
+    -e "s;#GrADS#;${GrADS};g"               \
+    -e "s;#GrADSOnly#;${GrADSOnly};g"       \
+    -e "s;#GDASOnly#;${GDASOnly};g"         \
+    -e "s;#SmoothTopo#;${SmoothTopo};g"     \
+    -e "s;#RmGANL#;${rmGANL};g"             \
+    -e "s;#PREFIXO#;$PREFIX;g"              \
+    -e "s;#DataGDAS#;${GDASType^};g"        \
+    -e "s;#AnlPref#;${GDASPrefix};g"        \
+    -e "s;#DATA#;${LABELI};g"               \
+    -e "s;#MendCut#;$MendCut;g"             \
+    -e "s;#SmthPerCut#;$SmthPerCut;g"       \
+    -e "s;#SetLinear#;${SetLinear};g"       \
+    -e "s;!.*;;g"                           \
+    -e "s;^ \+;;g"                          \
+    -e "/^[\s\t]*$/d"                       \
+    ${LOCALDIR}/PRE_run.nml_default > ${dirExec}/PRE_run.nml
+
+# Link Lateral Boundary Conditions 
+   mkdir -p ${dirDataBCS}
+   ln -sf ${public_gdad}/BAM/PRE/databcs/* ${dirDataBCS}/
+
+# get PRE_cfg.nml
+if [ ${NMLOPT} -eq 3 ];then
+   cp -pfr ${LOCALDIR}/PRE_cfg.nml_das ${dirExec}/PRE_cfg.nml 
+else
+   cp -pfr ${LOCALDIR}/PRE_cfg.nml_default ${dirExec}/PRE_cfg.nml
+fi
+sed -i "s;#nproc#;${MPITasks};g" ${dirExec}/PRE_cfg.nml
+
+files=(sstmtd.nml sstdld.nml sstssd.nml co2mtd.nml)
+for file in ${files[@]};do
+   sed "s;#dirdata#;${SUBTBASE};g" ${LOCALDIR}/${file}_default > ${dirExec}/${file}
+done
+
+# submit Pre-process
+labelOut=${LABELI}_${tmstp}
+echo -e "\033[34;1m Log Label:\033[m \033[32;1m${labelOut}\033[m"
+echo -ne "\033[34;1m Running Pre-processes at $hpc_name \033[m" 
+case ${hpc_name} in
+
+   egeon)
+         {
+            printf '%s\n' '#!/bin/bash'
+            printf '%s\n' '#SBATCH --output='"${dirExec}/Out.MPI${MPITasks}"
+            printf '%s\n' '#SBATCH --error='"${dirExec}/Err.MPI${MPITasks}"
+            printf '%s\n' '#SBATCH --time='${walltime}
+            printf '%s\n' '#SBATCH --ntasks='${MPITasks}
+            printf '%s\n' '#SBATCH --ntasks-per-node='${TasksPerNode}
+            printf '%s\n' '#SBATCH --cpus-per-task='${ThreadsPerMPITask}
+            printf '%s\n' '#SBATCH --job-name='${queue_name}
+            printf '%s\n' '#SBATCH --partition='${queue}
+            printf '\n'
+
+            printf '%s\n' 'set -euo pipefail'
+            printf '%s\n' 'export OMP_NUM_THREADS=1'
+            printf '%s\n' 'export KMP_AFFINITY=verbose,granularity=thread,compact,1'
+            printf '%s\n' 'export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE'
+            printf '%s\n' 'export I_MPI_COMPATIBILITY=4'
+            printf '%s\n' 'export MP_EUIDEVELOP=min'
+            printf '%s\n' 'export KMP_STACKSIZE=128m'
+            printf '%s\n' 'ulimit -s unlimited'
+            printf '%s\n' 'ulimit -v unlimited'
+            printf '\n'
+
+            printf '%s\n' 'module purge'
+            printf '%s\n' 'module load intel/2021.4.0'
+            printf '%s\n' 'module load mpi/2021.4.0 impi/2021.4.0'
+            printf '%s\n' 'module load netcdf/4.7.4 pnetcdf/1.12.2 netcdf-fortran/4.5.3'
+            printf '%s\n' 'module list'
+            printf '\n'
+
+            printf '%s\n' 'cd '"${dirExec}"
+            printf '%s\n' "mpirun -np \${SLURM_NTASKS} ./${preEXEC} > saida_${labelOut}.txt"
+            printf '%s\n' 'rm -f Dump.* > /dev/null 2>&1'
+         } > "${dirExec}/pre.qsb"
+
+         # submit Pre-process
+         echo -ne "\033[34;1m Running PreBAM \033[m"
+         cd "${dirExec}"
+     
+         if [[ "${DRYRUN}" == true ]]; then
+             echo "[DRYRUN] sbatch --wait ${dirExec}/pre.qsb"
+             qstatus=0
+         else
+             PID=$(sbatch --wait "${dirExec}/pre.qsb"; exit ${PIPESTATUS[0]})
+             qstatus=$?
+         fi
+         
+   ;;
+   jaci)
+	 {
+	    printf '%s\n' '#!/bin/bash'
+            printf '%s\n' '#PBS -V'
+            printf '%s\n' '#PBS -j oe'
+            printf '%s\n' '#PBS -S /bin/bash'
+            printf '%s\n' '#PBS -o '"${dirExec}/Out.MPI${MPITasks}"
+            printf '%s\n' '#PBS -l walltime='${walltime}
+            printf '%s\n' '#PBS -l select='${Nodes}':ncpus='${MaxCoresPerNode}':mpiprocs='${MaxCoresPerNode}
+            printf '%s\n' '#PBS -N '"${queue_name}"
+            printf '%s\n' '#PBS -q '"${queue}"
+            printf '%s\n' '#PBS -l place=scatter:excl'
+            #printf '%s\n' '#PBS -A '"${QUOTA}"
+            printf '\n'
+
+            printf '%s\n' 'set -euo pipefail'
+     
+            # Garantir navegacao para o diretorio do job
+            #printf '%s\n' 'cd $PBS_O_WORKDIR'
+            #printf '%s\n' 'cd '"${dirExec}"
+            #printf '\n'
+
+            # Configuracoes de Threads e Memoria
+            printf '%s\n' 'export OMP_NUM_THREADS=1'
+            printf '%s\n' 'export OMP_WAIT_POLICY=PASSIVE'
+            printf '%s\n' 'export KMP_AFFINITY=disabled'
+            printf '%s\n' 'export KMP_STACKSIZE=128m'
+            printf '%s\n' 'export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE'
+            printf '%s\n' 'ulimit -s unlimited'
+            printf '%s\n' 'ulimit -v unlimited'
+            printf '\n'
+
+            # Modulos do Ambiente Cray da Jaci
+            printf '%s\n' 'module swap PrgEnv-cray PrgEnv-intel'
+            printf '%s\n' 'module load cray-libpals cray-pals'
+            printf '%s\n' 'module load cray-hdf5 cray-netcdf'
+            printf '%s\n' 'module list'
+            printf '\n'
+
+            # Execucao do MPI via PALS/Cray
+	    printf '%s\n' 'cd '"${dirExec}"
+            printf '%s\n' "time mpiexec -n ${MPITasks} ./${preEXEC} > saida_${labelOut}.txt"
+            printf '%s\n' 'rm -f Dump.* > /dev/null 2>&1'
+         } > "${dirExec}/pre.pbs"
+
+	 # submit Job
+         echo -ne "\033[34;1m Running preBAM \033[m"
+     
+         cd ${dirExec}
+     
+         if [[ "${DRYRUN}" == true ]]; then
+             echo "[DRYRUN] qsub -W block=true ${dirExec}/pre.pbs"
+             qstatus=0
+         else
+             PID=$(qsub -W block=true "${dirExec}/pre.pbs"; exit ${PIPESTATUS[0]})
+             qstatus=$?
+         fi
+
+   ;;
+   XC50)
+         {
+            printf '%s\n' '#!/bin/bash'
+            printf '%s\n' '#PBS -V'
+            printf '%s\n' '#PBS -j oe'
+            printf '%s\n' '#PBS -S /bin/bash'
+            printf '%s\n' '#PBS -o '"${dirExec}/Out.MPI${MPITasks}"
+            printf '%s\n' '#PBS -l walltime='${walltime}
+            printf '%s\n' '#PBS -l nodes='${Nodes}':ppn='${MaxCoresPerNode}
+            printf '%s\n' '#PBS -N '"${queue_name}"
+            printf '%s\n' '#PBS -q '"${queue}"
+            printf '%s\n' '#PBS -A '"${QUOTA}"
+            printf '\n'
+
+            printf '%s\n' 'set -euo pipefail'
+            printf '%s\n' '. /opt/modules/default/etc/modules.sh'
+            printf '%s\n' 'module load craype-x86-skylake'
+            printf '%s\n' 'export OMP_WAIT_POLICY=PASSIVE'
+            printf '%s\n' 'cd '"${dirExec}"
+            printf '%s\n' 'time aprun -n ${PEs} -N ${TasksPerNode} -d ${ThreadsPerMPITask} ./${preEXEC} > saida_${labelOut}.txt'
+            printf '%s\n' 'rm -f Dump.* > /dev/null 2>&1'
+         } > "${dirExec}/pre.qsb"
+         
+         # submit Job
+         echo -ne "\033[34;1m Running preBAM \033[m"
+     
+         cd ${dirExec}
+     
+         if [[ "${DRYRUN}" == true ]]; then
+             echo "[DRYRUN] qsub -W block=true ${dirExec}/pre.qsb"
+             qstatus=0
+         else
+             PID=$(qsub -W block=true "${dirExec}/pre.qsb"; exit ${PIPESTATUS[0]})
+             qstatus=$?
+         fi
+   ;;
+
+esac
+
+if [ $qstatus -eq 0 ];then
+   echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+else
+   echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+   cat ${dirExec}/saida_${labelOut}.txt | grep -i error | sort -u
+   cat ${dirExec}/saida_${labelOut}.txt | grep -i warning | sort -u 
+   exit $status
+fi
+
+

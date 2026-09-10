@@ -1,0 +1,29 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.4 $
+#
+# $Id: Makefile.tupay,v 1.4 2007/10/10 20:24:23 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+
+#
+# INTEL COMPILER - TUPAY
+#
+#
+#  TX7
+#
+FTRACE=
+OPENMP=
+F90=/opt/NECmpi/bin/mpif90 $(FTRACE) $(OPENMP)
+NOASSUME=
+HVECTOR=-C vsafe
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=-static
+
+include Makefile.common

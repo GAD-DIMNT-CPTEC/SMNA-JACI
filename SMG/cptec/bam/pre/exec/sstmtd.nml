@@ -1,0 +1,7 @@
+ &fnsstnml
+ drsst='./datainout/pre/datasst/oiv2monthly/',
+ ndsst(    1)='2015041512',
+ ndsst(    2)='2015051612',
+ ndsst(    3)='2015061512',
+ nsst=  3
+/

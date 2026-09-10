@@ -1,0 +1,306 @@
+#! /bin/bash
+#---------------------------------------------------------------------------------------------#
+#                  Grupo de Computacao Cientifica - DIDMD/CPTEC/INPE - 2019                   #
+#---------------------------------------------------------------------------------------------#
+#BOP
+#
+# !DESCRIPTION:
+#      Script para criar e submeter job do pre-processamento do BAM 
+#
+# !CALLING SEQUENCE:
+#           ./runPre_Tupa cpuMPI cpuNODE
+#
+# example:  ./runPre 24 24
+#
+#           * cpuMPI        :  numero de processadores
+#           * cpuNODE       :  processadores por no'
+#
+# !REVISION HISTORY:
+#      10-07-2019 - Eduardo Khamis      - Codigo Inicial
+#      12-07-2019 - Eduardo Khamis      - Inclusao do testcase
+#      16-12-2019 - Denis Eiras         - Um testcase por teste (ver pasta no svn root/test)
+#      15-06-2021 - Denis Eiras   - Melhorias
+#
+# !REMARKS:
+#
+# !BUGS:
+#
+#---------------------------------------------------------------------------------------------#
+#EOP
+
+#BOC
+
+#**********************************************************************************************
+#------------------------------------FUNCOES COMUNS--------------------------------------------
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+function usageprincipal()
+{
+   echo ""
+   echo -e "\033[34;1m          >>>>>> Execucao do Pre-processamento <<<<<<\033[m"
+   echo " "
+   echo " ==> Para rodar o pre-processamento digite:"
+   echo " "
+   echo " > ./runPre  cpuMPI cpuNODE"
+   echo " "
+   echo "   exemplo: ./runPre 24 24 "
+   echo " "
+   echo "     * cpuMPI       :  numero de processadores "
+   echo "     * cpuNODE      :  processadores por no' "
+   echo " "
+   echo " "
+   echo -e "\033[33;1m  Creditos: GCC/DIDMD/CPTEC/INPE \033[m"
+   echo " "    
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+mostraHelice() {
+#   tput civis
+   for i in / - \\ \|
+   do
+      echo -ne "\033[31;1m"
+      echo -ne "\033[1D$i"
+      echo -ne "\033[m"
+      sleep .1
+   done
+#   tput cnorm
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+function WaitUntil()
+{
+   local file
+   file=${1}
+   file2=${2}
+
+   echo " "
+   echo -en "       Aguardando o arquivo ${file2}   "
+
+   itr=0
+   while [ ${itr} -eq 0 ] ; do
+   while [ \( ! -s ${file} \) ] ; do
+      sleep 0.33 | mostraHelice;
+      if test ! -e ${file2} ; then
+         itr=1
+      else
+         break
+      fi
+   done
+   done
+
+   echo " "
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+diffdate() 
+{
+   di=${1}
+   df=${2}
+   si=$(date --date "${di:0:8} ${di:8:2}:${di:10:2}:${di:12:2}" +%s)
+   sf=$(date --date "${df:0:8} ${df:8:2}:${df:10:2}:${df:12:2}" +%s)
+   (( horas = (sf - si )/3600 ))
+   (( minutos = ( (sf - si ) - horas*3600 )/60 ))
+   (( segundos = (sf - si ) - horas*3600 - minutos*60 ))
+   if [ $horas    -lt 10 ]; then horas='0'$horas       ; fi
+   if [ $minutos  -lt 10 ]; then minutos='0'$minutos   ; fi
+   if [ $segundos -lt 10 ]; then segundos='0'$segundos ; fi
+   diffd=$horas'h'$minutos'm'$segundos's'
+   echo
+   echo -e "\033[32;1m     Tempo Total do Pre-Processamento: $diffd \033[m"
+   echo
+   echo
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+function spid() 
+{
+   echo
+   for i in `seq 1 1 12`; do
+      host=eslogin$(printf "%02i\n" $i)
+      echo ------------ $host ------------
+      ssh $host "ps -u $USER"
+      echo -----------------------------------
+      echo
+      if [ $host = $HOSTNAME ]; then
+         echo "AVISO: O PID $$ e' o proprio runPre que esta' executando o spid"
+         echo
+         echo
+      fi 
+   done
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+function criabash() 
+{
+   export cpu_mpi=$1
+   export cpu_node=$2
+   export varname=$3
+   num=$(($cpu_mpi+$cpu_node-1))
+   fra=$(($num/$cpu_node))
+   cpu_tot=$(($fra*$cpu_node))
+
+   echo " "
+   host=`hostname`
+   echo "     ${host}"
+   RUNTM=`date +'%d_%H:%M'`
+#
+
+   rm -f ${direxe}/set${varname}.bash > /dev/null 2>&1
+   rm -f ${out_err_file_basename} > /dev/null 2>&1
+   rm -f ${direxe}/.${varname}.ok > /dev/null 2>&1
+
+cat <<EOT1 > ${direxe}/set${varname}.bash
+#!/bin/bash
+
+#PBS -o ${out_err_file_basename}
+#PBS -e ${out_err_file_basename}_err
+
+#PBS -j oe
+#PBS -l walltime=01:00:00
+#PBS -A CPTEC
+#PBS -l mppwidth=${cpu_mpi}
+#### PBS -l mppdepth=4           #- sem ganhos para o chopping
+#PBS -l mppnppn=${cpu_node}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N ${varname}
+#PBS -q pesq
+
+#export ATP_ENABLED=1
+#ulimit -c unlimited
+
+#
+.  /opt/modules/default/etc/modules.sh
+module load stat
+module list
+#
+export PBS_SERVER=eslogin13
+
+export KMP_STACKSIZE=128m
+
+# sem ganhos para o chopping
+# export OMP_NUM_THREADS=4
+
+
+#
+cd ${direxe}
+date
+
+time aprun -n ${cpu_mpi} -N ${cpu_node} ${direxe}/${varname} > saida_MPI${cpu_mpi_aux}_NODES${cpu_node_aux}_${exe_name}_`date +%Y%m%d-%H:%M`.txt   # use -d para OpenMP Threads
+
+wait
+date
+wait
+> ${direxe}/.${varname}.ok
+
+EOT1
+
+#
+#  Change mode to be executable
+#
+   chmod +x ${direxe}/set${varname}.bash 
+
+}
+#**********************************************************************************************
+#**********************************************************************************************
+#**********************************************************************************************
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#--------------------- I N I C I O   D O   P R E - P R O C E S S A M E N T O ------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+export PATHENV=$(dirname $(readlink -e ${0})) # Local (path) onde está este script
+export PATHBASE=`cd ${PATHENV};cd ../;pwd`
+export direxe=${PATHENV}
+export dir_testcase=${PATHBASE}
+export exe_name=ParPre_MPI
+export QSUB=/opt/pbs/default/bin/qsub
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
+#
+# Verificando argumentos de entrada
+#
+if [ "$#" -ne 2 ]; then
+  if [ 'x'$1 = 'xtestcase' ]; then
+     testcase 
+     exit 
+  fi
+  if [ 'x'$1 = 'xspid' ]; then
+     spid
+     exit 
+  else
+     usageprincipal
+     exit 1
+  fi
+fi
+
+#
+# pegando argumentos
+#
+cpuMPI=${1}           # cpu_mpi  : numero de processadores    
+cpuNODE=${2}          # cpu_node : processadores por no'
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
+# Machine options: Tupa; Linux
+export MAQUI=`uname -s`
+#export PBS_SERVER=eslogin13
+
+export cpu_mpi_aux=${cpuMPI}   # 24   # numero de processadores
+export cpu_node_aux=${cpuNODE} # 24   # processadores por no'
+
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+echo
+echo -e "   > \033[32;1mExecutando o Pre-processamento\033[m"
+echo
+rm -f ${direxe}/.${exe_name}.ok > /dev/null 2>&1
+
+date +%Y%m%d%H%M%S > ${direxe}/.tempoi
+
+export out_err_file_basename=${direxe}/Out.MPI${cpu_mpi_aux}_NODES${cpu_node_aux}_${exe_name}_`date +%Y%m%d-%H:%M`
+criabash ${cpu_mpi_aux} ${cpu_node_aux} ${exe_name}
+
+#  submete processo 
+
+export QPIDpre=$(${QSUB} ${direxe}/set${varname}.bash)
+echo "     QPIDpre: ${QPIDpre}"
+
+WaitUntil ${out_err_file_basename} ${direxe}/.${exe_name}.ok
+
+date +%Y%m%d%H%M%S > ${direxe}/.tempof
+diffdate $(cat ${direxe}/.tempoi) $(cat ${direxe}/.tempof) 
+rm -f ${direxe}/.tempoi ${direxe}/.tempof > /dev/null 2>&1
+rm -f ${direxe}/Dump.* > /dev/null 2>&1
+rm -f ${direxe}/.${exe_name}.ok > /dev/null 2>&1
+rm -f ${direxe}/fort.20 > /dev/null 2>&1
+
+
+echo
+echo -e "\033[32;1m     ------------------------------------------------------------ \033[m"
+echo -e "\033[32;1m                                  F I M \033[m"
+echo -e "\033[32;1m     ------------------------------------------------------------ \033[m"
+echo
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#---------------------- F I M   D O   P R E - P R O C E S S A M E N T O -----------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#
+#EOC
+#---------------------------------------------------------------------------------------------#

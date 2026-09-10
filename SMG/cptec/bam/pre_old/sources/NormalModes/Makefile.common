@@ -1,0 +1,52 @@
+#
+#  $Author: bonatti $
+#  $Date: 2009/03/20 18:00:00 $
+#  $Revision: 1.1.1.1 $
+#
+EXEC=NormalModes
+
+.SUFFIXES: .o .f90 .F90 .c 
+#
+# *****************************************************************
+#
+
+OBJS = 	InputParameters.o \
+	Eigen.o \
+	VerticalModes.o \
+	HorizontalModes.o \
+	NormalModes.o
+
+$(EXEC): $(OBJS)
+	$(F90) -o $(EXEC) $(F90FLAG) $(LOADFLAG) $(OBJS)
+
+InputParameters.o: 	InputParameters.f90
+	$(F90) -c $(FTNFLAG) InputParameters.f90
+
+Eigen.o: 	Eigen.f90 InputParameters.o
+	$(F90) -c $(FTNFLAG) Eigen.f90
+
+VerticalModes.o: 	VerticalModes.f90 InputParameters.o Eigen.o
+	$(F90) -c $(FTNFLAG) VerticalModes.f90
+
+HorizontalModes.o: 	HorizontalModes.f90 InputParameters.o Eigen.o
+	$(F90) -c $(FTNFLAG) HorizontalModes.f90
+
+NormalModes.o: 	NormalModes.f90 InputParameters.o Eigen.o \
+		VerticalModes.o HorizontalModes.o
+	$(F90) -c $(FTNFLAG) NormalModes.f90
+
+SRC	= $(OBJ_MOD:.o=.f90) $(OBJS:.o=.f90) $(OBJS_CC:.o=.c)
+
+clean:
+	-rm -f $(OBJS)
+	-rm -f $(OBJS_CC)
+	-rm -f $(EXEC)
+	-rm -f *.mod
+
+.F90.o :
+	$(F90) $(F90FLAG) -c  $<
+
+.f90.o:
+	$(F90) $(F90FLAG) -c $< 
+.c.o:
+	$(CC) $(CFLAGS) $(DEFS) -c $< 

@@ -1,0 +1,132 @@
+# ==============================================================================
+# Config file for GSI compilation on 'Jaci' Cluster (Cray EX / AMD EPYC Turin)
+# Compiler Suite: IntelLLVM (ifx/icx) with Cray Programming Environment (PrgEnv-intel)
+# ==============================================================================
+
+USER_NAME := $(shell whoami)
+
+# ----------------------------------
+# Path definitions for Jaci Cluster
+# ----------------------------------
+
+# NetCDF uses Cray Environment Module paths ($NETCDF_DIR)
+# Fallback to standard Cray PE path if variable is not defined
+NETCDF  ?= $(NETCDF_DIR)
+NETCDFF ?= $(NETCDF_DIR)
+
+COREGSI  = /p/projetos/monan_das/$(USER_NAME)/SMNA_v3.0.0.t12717/SMG/cptec/gsi
+CORELIB  = $(COREGSI)/libsrc
+CORECRTM = $(COREGSI)/libsrc
+
+INCgsi   = $(COREGSI)/build/src/gsi/include/gsi
+INCdiag  = $(COREGSI)/build/src/ncdiag/include/ncdiag
+
+INCsfcio = $(CORELIB)/NCEPLIBS-sfcio-develop/build/src/include
+INCsigio = $(CORELIB)/NCEPLIBS-sigio-develop/build/src/include
+INCnemsio= $(CORELIB)/NCEPLIBS-nemsio-develop/build/src/include
+INCw3    = $(CORELIB)/NCEPLIBS-w3emc-develop/build/src/include_d
+INCcrtm  = $(CORECRTM)/crtm-master/build/module/crtm/IntelLLVM
+
+GSI_LIB    = $(COREGSI)/build/src/gsi/libgsi.a
+NCDIAG_LIB = $(COREGSI)/build/src/ncdiag/libncdiag.a
+
+BACIO_LIB4 = $(CORELIB)/NCEPLIBS-bacio-develop/build/src/libbacio.a
+BUFR_LIBd  = $(CORELIB)/NCEPLIBS-bufr-develop/build/src/libbufr_4.a
+CRTM_LIB   = $(CORECRTM)/crtm-master/build/lib/libcrtm.so
+NEMSIO_LIB = $(CORELIB)/NCEPLIBS-nemsio-develop/build/src/libnemsio.a
+sfcio_lib  = $(CORELIB)/NCEPLIBS-sfcio-develop/build/src/libsfcio.a
+SIGIO_LIB  = $(CORELIB)/NCEPLIBS-sigio-develop/build/src/libsigio.a
+SP_LIBd    = $(CORELIB)/NCEPLIBS-sp-develop/build/src/libsp_d.a
+W3EMC_LIBd = $(CORELIB)/NCEPLIBS-w3emc-develop/build/src/libw3emc_d.a
+
+# WRF Dependencies (if applicable)
+WRFPATH ?= /p/projetos/monan_das/$(USER_NAME)/WRFV4.4.1
+
+LIBwrfio_int    = $(CORELIB)/NCEPLIBS-wrf_io-develop/build/src/libwrf_io.a
+LIBwrfio_netcdf = $(WRFPATH)/external/io_netcdf/libwrfio_nf.a
+OBJwrf_frame_pk = $(WRFPATH)/frame/pack_utils.o
+OBJwrf_sizeof_int = $(WRFPATH)/frame/module_machine.o
+WRFLIB = $(LIBwrfio_int) $(LIBwrfio_netcdf) $(OBJwrf_frame_pk) $(OBJwrf_sizeof_int)
+
+# In Cray PE, wrappers (ftn/cc) inject NetCDF automatically, but explicit include/libs are provided as fallback
+INCnetcdf       = -I$(NETCDF)/include
+LIBnetcdf       = -L$(NETCDF)/lib -lnetcdff -lnetcdf
+
+# ---------------------------
+# General targets/definitions
+# ---------------------------
+
+AR = ar -rv
+
+# ----------------------------
+# Fortran compiler and options
+# ----------------------------
+
+# Cray wrapper 'ftn' automatically handles IntelLLVM (ifx) + cray-mpich
+CF = ftn
+FC = $(CF)
+
+PROF = 
+OMP  = -qopenmp
+
+# IntelLLVM Flags
+FFLAGS_F90 = -D_REAL8_ $(OMP)
+
+# -fpp enables Fortran Preprocessor (replaces traditional cpp)
+# -fp-model=precise replaces legacy -fp-model source in ifx
+# --- Normal mode options
+FFLAGS_COM_N = -fpp -I ./ -I $(INCgsi) -I $(INCdiag) -I $(INCcrtm) -I $(INCsfcio) -I $(INCsigio) -I $(INCnemsio) \
+               $(INCnetcdf) -I $(INCw3) -O3 -traceback -convert big_endian -assume byterecl \
+               -g -fp-model=precise -warn nointerfaces
+
+FFLAGS_COM_N_NOSWAP = -fpp -I ./ -I $(INCcrtm) -I $(INCsfcio) -I $(INCsigio) \
+                      -I $(INCnemsio) $(INCnetcdf) -I $(INCw3) \
+                      -O3 -traceback -g -fp-model=precise \
+                      -convert big_endian -assume byterecl -warn nointerfaces
+
+FFLAGS_N        = $(FFLAGS_F90) $(FFLAGS_COM_N) $(PROF)
+FFLAGS_NOSWAP_N = $(FFLAGS_F90) $(FFLAGS_COM_N_NOSWAP) $(PROF)
+FFLAGS_f        = $(FFLAGS_COM_N) $(PROF)
+FFLAGS          = $(FFLAGS_N) $(PROF)
+
+# Debug mode options
+# --- Debug mode options
+FFLAGS_COM_D = -fpp -I ./ -I $(INCcrtm) -I $(INCsfcio) -I $(INCsigio) -I $(INCnemsio) \
+               $(INCnetcdf) -I $(INCw3) \
+               -O0 -fp-model=strict -convert big_endian -assume byterecl \
+               -g -traceback -check all -fp-stack-check -fstack-protector -warn nointerfaces
+
+FFLAGS_COM_NOSWAP_D = -fpp -I ./ -I $(INCcrtm) -I $(INCsfcio) -I $(INCsigio) \
+                      -I $(INCnemsio) $(INCnetcdf) -I $(INCw3) \
+                      -O0 -fp-model=strict -convert big_endian -assume byterecl \
+                      -g -traceback -check all -fp-stack-check -fstack-protector -warn nointerfaces
+
+FFLAGS_D        = $(FFLAGS_F90) $(FFLAGS_COM_D)
+FFLAGS_NOSWAP_D = $(FFLAGS_F90) $(FFLAGS_COM_NOSWAP_D)
+
+# ----------------------
+# C Compiler and options
+# ----------------------
+
+# Cray wrapper 'cc' uses IntelLLVM C compiler (icx)
+CC = cc
+
+CFLAGS_N = -DLINUX -Dfunder -I ./ -DFortranByte=char -DFortranInt=int -DFortranLlong='long long' -O3 $(PROF)
+CFLAGS_D = -DLINUX -Dfunder -I ./ -DFortranByte=char -DFortranInt=int -DFortranLlong='long long' -g
+
+# ------------------
+# Linker and options
+# ------------------
+
+LD = $(CF) $(OMP) -qmkl -Wl,-Map,loadmap.txt
+
+LIBS_N = $(W3EMC_LIBd) $(CRTM_LIB) $(LIBnetcdf) $(NCDIAG_LIB) $(GSI_LIB)
+LDFLAGS_N = 
+
+LDFLAGS = $(LDFLAGS_N)
+
+LIBS_D = $(LIBS_N)
+LDFLAGS_D = 
+
+# MPI library is embedded natively into Cray 'ftn' wrapper
+LIBmpi =

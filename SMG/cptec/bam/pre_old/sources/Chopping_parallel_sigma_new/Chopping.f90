@@ -1,0 +1,2924 @@
+!
+!  $Author: tomita $
+!  $Date: 2007/08/01 20:09:58 $
+!  $Revision: 1.1.1.1 $
+!
+PROGRAM Chopping
+
+! use nemsio_module_mpi
+ use nemsio_module
+ use nemsio_gfs
+
+
+  USE Parallelism, ONLY:   &
+       CreateParallelism,  &
+       DestroyParallelism, &
+       MsgOne,             &
+       FatalError,         &
+       unitDump,           &
+       myId_four,          &
+       myId
+
+  !  USE Dumpgraph, ONLY:   &
+  !       dumpgra, Writectl 
+
+  USE Init, ONLY:   &
+       Initall
+
+  USE InputParameters, ONLY: InitParameters, i4, r4, r8, nferr, nfinp, nfprt, nftop, &
+       nfsig, nfnmc, nfcpt, nfozw, nftrw, nficr, nfozr, &
+       nftrr, nficw, nfozg, nftrg, nfgrd, nfctl, &
+       MendInp, KmaxInp, KmaxInpp, MendOut, KmaxOut, KmaxOutp, MendMin, &
+       MendCut, Iter, SmthPerCut, GetOzone, GetTracers, &
+       GrADS, GrADSOnly, GDASOnly, SmoothTopo, &
+       ImaxOut, JmaxOut, TruncInp, TruncOut, &
+       givenfouriergroups, nproc_vert, &
+       Mnwv2Inp, Mnwv2Out, Mnwv3Inp, Mnwv3Out, &
+       NTracers, Kdim, ICaseDec, IcaseRec, &
+       IDVCInp, IDSLInp, ForecastDay, TimeOfDay, cTv, MonChar, &
+       DataCPT, DataInp, DataOut, DataOup, DataTop,DataTopG, DataSig, DataSigInp, &
+       GDASInp, OzonInp, TracInp, OzonOut, TracOut, &
+       DirMain, DirInp, DirOut, DirTop, &
+       DirSig, DirGrd, DGDInp, DataGDAS,&
+       RoCp, RoCp1, RoCpR,iMaxInp,jmaxInp
+
+  USE InputArrays, ONLY: GetArrays, ClsArrays, GetSpHuTracers, ClsSpHuTracers, &
+       DateInitial, DateCurrent, DelSInp, SigIInp, SigLInp, SigIOut, &
+       SigLOut, qWorkInp,qWorkOut, DelSigmaInp, SigInterInp, &
+       SigLayerInp, DelSigmaOut, SigInterOut, SigLayerOut, &
+       qTopoInp, qLnPsInp, qTopoOut, qLnPsOut, &
+       qDivgInp, qVortInp, qTvirInp, qDivgOut, qVortOut, &
+       qTvirOut, qUvelInp, qVvelInp, qSpHuInp, qSpHuOut, &
+       qUvelOut, qVvelOut, qWorkOut1, qworkprout,        &
+       gworkprout, qtorto, gpresaux,                     &
+       gWorkOut, gTopoInp, gTopoOut,qTopoOutSpec, gTopoOutGaus,gTopoOutGaus8,gTopoDel, gLnPsInp, &
+       gPsfcInp, gLnPsOut, gPsfcOut, gUvelInp, gVvelInp, &
+       gTvirInp, gDivgInp, gVortInp, gPresInp, gUvelOut, &
+       gPresInpp,gWorkprInp,         &
+       gVvelOut  ,gVvelInp, gTvirOut,gTvirInp, gPresOut, gSpHuInp, gSpHuOut,&
+       gSpHuInp,qWorkInOut,qWorkInOut1,qSpHuInp,qDivgInp,qVortInp,qTvirInp,&
+       qVvelInp
+
+  USE VerticalInterpolation, ONLY: VertSigmaInter
+
+  USE Communications, ONLY: Collect_Grid_Full, Collect_Spec,Clear_Communications
+
+  USE Transform, ONLY: DepositSpecToGrid, CreateSpecToGrid, DoSpecToGrid, &
+                       DestroySpecToGrid, CreateGridToSpec, DoGridToSpec, &
+                       DepositGridToSpec, DestroyGridToSpec,DepositGridToSpec_PK,Clear_Transform
+
+  USE SpecDynamics, ONLY: dztouv, uvtodz,Clear_SpecDynamics
+
+  USE Utils, ONLY: NewSigma, SigmaInp, NewPs, coslat, rcl, lati,IJtoIBJB,CyclicLinear_inter,Clear_Utils
+
+  USE Sizes, ONLY: jbmax, Ibmaxperjb, mymmax, msinproc, mnmap, mymnmap, &
+       mnmap_out, myfirstlev, mylastlev, ibmax, mynMap,     &
+       ThreadDecomp, ReshapeVerticalGroups, havesurf, kmaxloc, &
+       mnmax, mymnextmax, mymnmax, kmaxloc_out, kMaxloc_In,kmax, lm2m, &
+       gridmap, ibperij,jbperij,mmax, &
+       iperijb,jperijb, myfirstlon,mylastlon,mnmax_out,&
+       imax, jmax,Ibmaxperjb,myfirstlat,myfirstlat_diag,mylastlat_diag,mylastlat,Clear_Sizes
+
+  IMPLICIT NONE
+
+  INTEGER :: ios, nRec, IOL
+
+  INTEGER :: i, j, k, nt, ierror, ib, jb,lrec,i1,i2,m,mm,nn,mw
+
+  LOGICAL :: GetNewTop=.FALSE., GetNewSig=.FALSE., ExistGDAS=.FALSE., &
+             ExistGANLCPT=.FALSE., ExistGANLSMT=.FALSE., ExistGANL=.FALSE., &
+             VerticalInterp=.TRUE.
+
+  CHARACTER (LEN=12) :: Tdef='  z         '
+  REAL (KIND=r8) :: m1,m2,m3,m4,m5
+
+  INCLUDE 'mpif.h'
+
+  ! engage MPI
+
+  CALL CreateParallelism()
+
+  CALL InitParameters(1)
+
+     CALL InitAll (MendInp, MendOut, KmaxInp, ImaxOut, KmaxOut)
+
+     CALL GetArrays()
+
+     IF(TRIM(DataGDAS) == 'Grid')THEN
+
+     INQUIRE (FILE=TRIM(DGDInp)//TRIM(GDASInp), EXIST=ExistGDAS)
+     INQUIRE (FILE=TRIM(DirInp)//TRIM(DataCPT), EXIST=ExistGANLCPT)
+     INQUIRE (FILE=TRIM(DirInp)//TRIM(DataInp), EXIST=ExistGANLSMT)
+
+     IF (myid.eq.0) THEN
+      WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DGDInp)//TRIM(GDASInp), ExistGDAS
+      WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DirInp)//TRIM(DataCPT), ExistGANLCPT
+      WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DirInp)//TRIM(DataInp), ExistGANLSMT
+     ENDIF
+     IF (.NOT.ExistGDAS .AND. .NOT.ExistGANLCPT .AND. .NOT.ExistGANLSMT) THEN
+        WRITE (UNIT=nfprt, FMT='(/,3(A,/))') &
+              ' The NCEP Input File Does Not Exist and', &
+              ' The CPTEC Input File Does Not Exist Also and', &
+              ' The CPTEC Topo-Smoothed Input File Does Not Exist Also'
+        STOP 'No NCEP or GANL File'
+     END IF
+
+     ExistGANL = ExistGANLCPT .OR. ExistGANLSMT
+     IF ((ExistGANLSMT).and. (.not.ExistGDAS)) THEN
+        IF (SmoothTopo) SmoothTopo=.FALSE.
+     ELSE
+        IF (ExistGANLCPT) THEN
+           DataInp=DataCPT
+           IF (.NOT.SmoothTopo .AND. MendOut > MendMin) SmoothTopo=.TRUE.
+        END IF
+     END IF
+     CALL MPI_BARRIER(MPI_COMM_WORLD, ierror)
+     
+
+     IF (ExistGDAS .AND. .NOT.ExistGANL) THEN
+       CALL GetSpHuTracers
+
+       CALL GDAStoGANL2
+
+     END IF
+     END IF
+     
+     CALL ClsArrays
+
+     CALL ClsSpHuTracers
+     
+     CALL Clear_Sizes()
+     
+     CALL Clear_Utils()
+     
+     CALL Clear_Communications()
+
+     CALL  Clear_SpecDynamics()
+     
+     CALL  Clear_Transform()
+     
+     CALL MPI_BARRIER(MPI_COMM_WORLD, ierror)
+
+     CALL InitParameters(0)
+
+     CALL InitAll (MendInp, MendOut, KmaxInp, ImaxOut, KmaxOut)
+
+     CALL GetArrays()
+
+  !  if (myid.eq.0) call writectl(1)
+
+  INQUIRE (FILE=TRIM(DGDInp)//TRIM(GDASInp), EXIST=ExistGDAS)
+  INQUIRE (FILE=TRIM(DirInp)//TRIM(DataCPT), EXIST=ExistGANLCPT)
+  INQUIRE (FILE=TRIM(DirInp)//TRIM(DataInp), EXIST=ExistGANLSMT)
+
+  IF (myid.eq.0) THEN
+     WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DGDInp)//TRIM(GDASInp), ExistGDAS
+     WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DirInp)//TRIM(DataCPT), ExistGANLCPT
+     WRITE (UNIT=nfprt, FMT='(A,L6)') TRIM(DirInp)//TRIM(DataInp), ExistGANLSMT
+  ENDIF
+
+  IF (.NOT.ExistGDAS .AND. .NOT.ExistGANLCPT .AND. .NOT.ExistGANLSMT) THEN
+     WRITE (UNIT=nfprt, FMT='(/,3(A,/))') &
+           ' The NCEP Input File Does Not Exist and', &
+           ' The CPTEC Input File Does Not Exist Also and', &
+           ' The CPTEC Topo-Smoothed Input File Does Not Exist Also'
+     STOP 'No NCEP or GANL File'
+  END IF
+
+  ExistGANL = ExistGANLCPT .OR. ExistGANLSMT
+  IF ((ExistGANLSMT).and. (.not.ExistGDAS)) THEN
+     IF (SmoothTopo) SmoothTopo=.FALSE.
+  ELSE
+     IF (ExistGANLCPT) THEN
+        DataInp=DataCPT
+        IF (.NOT.SmoothTopo .AND. MendOut > MendMin) SmoothTopo=.TRUE.
+     END IF
+  END IF
+
+  CALL MPI_BARRIER(MPI_COMM_WORLD, ierror)
+  IF (ExistGDAS .AND. .NOT.ExistGANL) THEN
+     IF(TRIM(DataGDAS) == 'Spec')THEN
+        IF(myid.eq.0) THEN
+          CALL GDAStoGANL
+        ELSE
+          IF (GetOzone) THEN
+             NTracers=NTracers+1
+             IF (GetTracers) NTracers=NTracers+1
+          ENDIF
+        ENDIF     
+        CALL MPI_BARRIER(MPI_COMM_WORLD, ierror)
+        CALL GetSpHuTracers
+     END IF
+  ELSE
+
+    IF (myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' GANL File Already Exists'
+
+    INQUIRE (FILE=TRIM(DirInp)//TRIM(OzonInp), EXIST=GetOzone)
+    INQUIRE (FILE=TRIM(DirInp)//TRIM(TracInp), EXIST=GetTracers)
+    IF (GetOzone) THEN
+      NTracers=NTracers+1
+      IF (GetTracers) THEN
+        IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') &
+              ' Considering Just One Other Tracer Than Ozone'
+        NTracers=NTracers+1
+      END IF
+    END IF
+    CALL GetSpHuTracers
+
+    mw = min(mendout+1,mendinp+1)
+
+    IF (GetOzone) THEN
+
+      IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Get Ozone from '//TRIM(OzonInp)
+      OPEN (UNIT=nfozr, FILE=TRIM(DirInp)//TRIM(OzonInp), FORM='UNFORMATTED', &
+            ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+      IF (ios /= 0) THEN
+        WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                          TRIM(TRIM(DirInp)//TRIM(OzonInp)), &
+                                          ' returned IOStat = ', ios
+        STOP ' ** (Error) **'
+      END IF
+      IF(TRIM(DataGDAS) == 'Grid')THEN
+         nt=2
+         DO k=1,KmaxInp
+            READ (UNIT=nfozr) qWorkInp
+            IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+               DO mm=1,mymmax
+                  m = msinproc(mm,myid_four)
+                  i2 = 2*mymnmap(mm,m)-1
+                  IF (m.gt.mendinp+1) THEN 
+                     DO nn=0,2*(mendout+1-m)+1
+                      qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                     ENDDO
+                  ELSE
+                     i1 = 2*mnmap(m,m)-1
+                     DO nn=0,2*(mw-m)+1
+                        qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+                     ENDDO
+                     DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                        qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                     ENDDO
+                  ENDIF
+               ENDDO
+            END IF
+         END DO
+      ELSE
+         nt=2
+         DO k=1,KmaxInp
+            READ (UNIT=nfozr) qWorkInp
+            IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+               DO mm=1,mymmax
+                  m = msinproc(mm,myid_four)
+                  i2 = 2*mymnmap(mm,m)-1
+                  IF (m.gt.mendinp+1) THEN 
+                     DO nn=0,2*(mendout+1-m)+1
+                      qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                     ENDDO
+                  ELSE
+                     i1 = 2*mnmap(m,m)-1
+                     DO nn=0,2*(mw-m)+1
+                        qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+                     ENDDO
+                     DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                        qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                     ENDDO
+                  ENDIF
+               ENDDO
+            END IF
+         END DO
+      END IF
+      CLOSE(UNIT=nfozr)
+   
+   
+       mw = min(mendout+1,mendinp+1)
+
+      IF (GetTracers) THEN
+        if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Get Tracers from '//TRIM(TracInp)
+        OPEN (UNIT=nftrr, FILE=TRIM(DirInp)//TRIM(TracInp), FORM='UNFORMATTED', &
+              ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+        IF (ios /= 0) THEN
+          WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                            TRIM(TRIM(DirInp)//TRIM(TracInp)), &
+                                            ' returned IOStat = ', ios
+          STOP ' ** (Error) **'
+        END IF
+        IF(TRIM(DataGDAS) == 'Grid')THEN
+           Do nt=3,NTracers
+              DO k=1,KmaxInp
+                 READ (UNIT=nftrr) qWorkInp
+                 IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+                 DO mm=1,mymmax
+                    m = msinproc(mm,myid_four)
+                    i2 = 2*mymnmap(mm,m)-1
+                    IF (m.gt.mendinp+1) THEN 
+                       DO nn=0,2*(mendout+1-m)+1
+                          qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                       ENDDO
+                    ELSE
+                       i1 = 2*mnmap(m,m)-1
+                       DO nn=0,2*(mw-m)+1
+                         qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+                       ENDDO
+                       DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                          qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                       ENDDO
+                    ENDIF
+                 ENDDO
+                 END IF
+              END DO
+           END DO
+        ELSE
+           Do nt=3,NTracers
+              DO k=1,KmaxInp
+                 READ (UNIT=nftrr) qWorkInp
+                 IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+                 DO mm=1,mymmax
+                    m = msinproc(mm,myid_four)
+                    i2 = 2*mymnmap(mm,m)-1
+                    IF (m.gt.mendinp+1) THEN 
+                       DO nn=0,2*(mendout+1-m)+1
+                          qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                       ENDDO
+                    ELSE
+                       i1 = 2*mnmap(m,m)-1
+                       DO nn=0,2*(mw-m)+1
+                         qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+                       ENDDO
+                       DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                          qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                       ENDDO
+                    ENDIF
+                 ENDDO
+                 END IF
+              END DO
+           END DO
+        END IF
+        CLOSE(UNIT=nftrr)
+
+      ELSE
+        if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Other Tracers File Does Not Exist'
+      END IF
+
+    ELSE
+
+      if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') &
+            ' Ozone file Does Not Exist. Ignore Other Tracers'
+      GetTracers=.FALSE.
+      NTracers=1
+
+    END IF
+
+  END IF
+  if (myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A,I5)') ' NTracers = ', NTracers
+
+  CALL MPI_BARRIER(MPI_COMM_WORLD, ierror)
+
+  CALL ICRead_and_Chop(myid,ibMax,jbMax,GetNewTop)
+
+
+  !TopoOut for New Grid Topography:
+       
+  INQUIRE(IOLENGTH=lrec)gWorkprOut
+  INQUIRE (FILE=TRIM(DirTop)//TRIM(DataTopG), EXIST=GetNewTop)
+  IF(GetNewTop)THEN
+
+      OPEN (UNIT=nftop, FILE=TRIM(DirTop)//TRIM(DataTopG), FORM='UNFORMATTED', &
+          ACCESS='DIRECT', ACTION='READ',recl=lrec, STATUS='OLD', IOSTAT=ios)
+      IF (ios /= 0) THEN
+           WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+             TRIM(TRIM(DirTop)//TRIM(DataTopG)), &
+                ' returned IOStat = ', ios
+           STOP ' ** (Error) **'
+      END IF
+      READ  (UNIT=nftop,rec=1) gWorkprOut 
+
+      DO j=1,jmaxout
+         DO i=1,imaxout
+            gTopoOutGaus8(i,j)=REAL(gWorkprOut(i,jmaxout+1-j),KIND=r8)
+         END DO
+      END DO  
+
+      IF(myid.EQ.0) THEN
+          WRITE (UNIT=nfprt, FMT='(/,A)') ' TopoOut for New Grid Topography:'
+          WRITE (UNIT=nfprt, FMT='(1P3G12.5)') gWorkprOut(1,1), &
+               MINVAL(gWorkprOut),MAXVAL(gWorkprOut)
+      ENDIF
+      CLOSE (UNIT=nftop)
+
+       DO jb = 1, jbMax
+          DO ib = 1,ibMaxPerJB(jb)
+             i = iPerIJB(ib,jb)
+             j = jPerIJB(ib,jb)
+             gTopoOutGaus(ib,jb)=gTopoOutGaus8(i,j)
+          END DO
+       END DO
+       DO jb=1,jbMax
+          DO ib=1,Ibmaxperjb(jb)
+             gTopoOut(ib,jb)=gTopoOutGaus(ib,jb)
+          END DO
+       END DO  
+       IF(myid.EQ.0) THEN
+          WRITE (UNIT=nfprt, FMT='(/,A)') ' TopoOut for New Grid Block Topography:'
+          WRITE (UNIT=nfprt, FMT='(1P3G12.5)') gTopoOut(1,1), &
+               MINVAL(gTopoOut),MAXVAL(gTopoOut)
+       ENDIF
+
+  END IF
+  
+  INQUIRE (FILE=TRIM(DirSig)//TRIM(DataSig), EXIST=GetNewSig)
+  IF (GetNewSig) THEN
+     IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Getting New Delta Sigma'
+        OPEN  (UNIT=nfsig, FILE=TRIM(DirSig)//TRIM(DataSig), FORM='FORMATTED', &
+           ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+        IF (ios /= 0) THEN
+           WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirSIg)//TRIM(DataSig)), &
+                                        ' returned IOStat = ', ios
+           STOP ' ** (Error) **'
+        END IF
+        READ  (UNIT=nfsig, FMT='(5F9.6)') DelSigmaOut
+        CLOSE (UNIT=nfsig)
+	
+     IF (KmaxOut == KmaxInp) THEN
+         !IF (MAXVAL(ABS(DelSigmaOut-DelSigmaInp)) < 1.0E-04_r8) THEN
+            IF (myid.eq.0) THEN
+               WRITE (UNIT=nfprt, FMT='(/,A)') ' KmaxOut = KmaxInp And DelSima Is Quite The Same'
+               !WRITE (UNIT=nfprt, FMT='(A,1PG12.5,/)') ' MAXVAL(ABS(DelSigmaOut-DelSigmaInp)) = ', &
+               !                                 MAXVAL(ABS(DelSigmaOut-DelSigmaInp))
+            ENDIF
+            CALL NewSigma
+            !SigInterInp=SigInterOut
+            !SigLayerInp=SigLayerOut
+            !DelSigmaInp=DelSigmaOut
+         !ELSE
+         !   CALL NewSigma
+         !ENDIF
+     ELSE
+        CALL NewSigma()
+     END IF
+  ELSE
+     IF (KmaxOut /= KmaxInp) THEN
+        WRITE (UNIT=nfprt, FMT='(A,/)')   ' Error In Getting New Sigma: KmaxInp /= KmaxOut'
+        WRITE (UNIT=nfprt, FMT='(2(A,I5))') ' KmaxInp = ', KmaxInp, ' KmaxOut = ', KmaxOut
+        STOP
+     END IF
+     SigInterOut=SigInterInp
+     SigLayerOut=SigLayerInp
+     DelSigmaOut=DelSigmaInp
+  END IF
+
+  IF (KmaxOut == KmaxInp .AND. &
+     (.NOT.GetNewTop .AND. .NOT.SmoothTopo)) VerticalInterp = .FALSE.
+  IF (GetNewTop)VerticalInterp=.true.
+
+!WRITE (UNIT=nfprt, FMT=*) VerticalInterp .OR. GrADS,VerticalInterp , GrADS
+  IF (VerticalInterp .OR. GrADS) THEN
+
+    CALL ICRecomposition
+
+    IF (GrADS) THEN
+      WRITE (Tdef(1: 2),'(I2.2)') DateCurrent(1)
+      WRITE (Tdef(4: 5),'(I2.2)') DateCurrent(3)
+      WRITE (Tdef(6: 8),'(A3)')   MonChar(DateCurrent(2))
+      WRITE (Tdef(9:12),'(I4.4)') DateCurrent(4)
+      CALL GetGrADSInp
+      IF (GrADSOnly) THEN
+         CALL DestroyParallelism("*** Chopping ENDS NORMALLY ***")
+         STOP
+      ENDIF
+    END IF
+
+  END IF
+
+  IF (VerticalInterp) THEN
+
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') 'Doing Vertical Interpolation'
+
+  ! Calculate pressure for each layer according to vertical coordinate
+    IF ( IDVCInp == 0_i4 .OR. IDVCInp == 1_i4 ) THEN
+        ! Sigma case, calculate pressure for each layer directly
+        DO j=1,Jbmax
+           DO k=1,KmaxInp
+              DO I=1,Ibmaxperjb(j)
+                 gPresInp(i,k,j)=gPsfcInp(i,j)*SigLayerInp(k)
+              END DO
+           END DO
+        END DO
+      ELSE IF ( IDVCInp == 2_i4 ) THEN
+          ! Sigma-p case, first calculate pressure for each interface and then
+          ! calculate pressure on each layer according to vertical structure
+          DO j=1,Jbmax
+             DO k=1,KmaxInpp
+                DO I=1,Ibmaxperjb(j)
+                   gPresInpp(i,k,j)=SigInterInp(k)+gPsfcInp(i,j)*SigLayerInp(k)
+                END DO
+             END DO
+          END DO
+          IF ( IDSLInp == 2_i4 ) THEN
+             ! Mean over two interfaces
+             DO j=1,Jbmax
+                DO k=1,KmaxInp
+                   DO I=1,Ibmaxperjb(j)
+                      gPresInp(i,k,j)=(gPresInpp(i,k,j)+gPresInpp(i,k+1,j))/2.0_r8
+                   END DO
+                END DO
+             END DO
+          ELSE
+             ! Phillips interpolation over two interfaces
+             DO j=1,Jbmax
+                DO k=1,KmaxInp
+                   DO I=1,Ibmaxperjb(j)
+                      gPresInp(i,k,j)=(gPresInpp(i,k,j)+gPresInpp(i,k+1,j))/2.0_r8
+
+!                      gPresInp(i,k,j) = ((gPresInpp(i,k,j)**RoCp1-gPresInpp(i,k+1,j)**RoCp1)/ &
+!                           (RoCp1*(gPresInpp(i,k,j)-gPresInpp(i,k+1,j))))**RoCpR
+                   END DO
+                END DO
+             END DO
+          END IF
+      END IF
+
+
+
+     CALL NewPs
+
+  ! Calculate pressure for each layer according to vertical coordinate
+!    IF ( IDVCInp == 0_i4 .OR. IDVCInp == 1_i4 ) THEN
+        ! Sigma case, calculate pressure for each layer directly
+       DO j=1,Jbmax
+          DO k=1,KmaxOut
+             DO I=1,Ibmaxperjb(j)
+                gPresOut(i,k,j)=gPsfcOut(i,j)*SigLayerOut(k)
+             END DO
+          END DO
+      END DO
+!   ELSE IF ( IDVCInp == 2_i4 ) THEN
+!       ! Sigma-p case, first calculate pressure for each interface and then
+!       ! calculate pressure on each layer according to vertical structure
+!
+!       DO j=1,Jbmax
+!          DO k=1,KmaxOutp
+!             DO I=1,Ibmaxperjb(j)
+!                gPresaux(i,k)=SigInterOut(k)+gPsfcOut(i,j)*SigLayerOut(k)
+!             END DO
+!          END DO
+!          IF ( IDSLInp == 2_i4 ) THEN
+!             DO k=1,KmaxOut
+!                DO I=1,Ibmaxperjb(j)
+!                   gPresOut(i,k,j)= 0.5_r8 * (gPresaux(i,k)+gPresaux(i,K+1))
+!                END DO
+!             END DO
+!          ELSE
+!             DO k=1,KmaxOut
+!                DO I=1,Ibmaxperjb(j)
+!                   gPresOut(i,k,j)= ((gPresaux(i,k)**RoCp1-gPresaux(i,k+1)**RoCp1)/ &
+!                                   (RoCp1*(gPresaux(i,k)-gPresaux(i,k+1))))**RoCpR
+!                END DO
+!             END DO
+!          ENDIF
+!       END DO
+!   END IF
+!   DO j=1,Jbmax
+!       DO i=1,Ibmaxperjb(j)
+!          IF (iPerIJB(i,j).EQ.123.AND.jPerIJB(i,j).EQ.56) THEN
+!             DO k = KmaxInp,1,-1
+!                WRITE(70,*) gPresInp(i,k,j),gUvelInp(i,k,j)
+!                WRITE(72,*) gPresInp(i,k,j),gVvelInp(i,k,j)
+!                WRITE(74,*) gPresInp(i,k,j),gTvirInp(i,k,j)
+!             ENDDO
+!             DO k = Kmaxout,1,-1
+!                WRITE(71,*) gPresOut(i,k,j),gUvelOut(i,k,j)
+!                WRITE(73,*) gPresOut(i,k,j),gVvelOut(i,k,j)
+!                WRITE(75,*) gPresOut(i,k,j),gTvirOut(i,k,j)
+!             ENDDO
+!          ENDIF
+!       END DO
+!   END DO
+
+  IF(TRIM(DataGDAS) == 'Grid')THEN
+    DO j=1,Jbmax
+       DO k=1,KmaxInp
+          DO i=1,Ibmaxperjb(j)
+             gTvirInp(i,k,j)=gTvirInp(i,k,j)!/(1.0_r8+cTv*gSpHuInp(i,k,j,1))
+          END DO
+       END DO
+    END DO
+  ELSE
+    DO j=1,Jbmax
+       DO k=1,KmaxInp
+          DO i=1,Ibmaxperjb(j)
+             gTvirInp(i,k,j)=gTvirInp(i,k,j)/(1.0_r8+cTv*gSpHuInp(i,k,j,1))
+          END DO
+       END DO
+    END DO
+  END IF
+  
+  DO j=1,Jbmax
+    CALL VertSigmaInter (ibmax,Ibmaxperjb(j), &
+                       KmaxInp, KmaxOut, NTracers, &
+                       gPresInp(:,:,j), gUvelInp(:,:,j), gVvelInp(:,:,j), &
+                       gTvirInp(:,:,j), gSpHuInp(:,:,j,:), &
+                       gPresOut(:,:,j), gUvelOut(:,:,j), gVvelOut(:,:,j), &
+                       gTvirOut(:,:,j), gSpHuOut(:,:,j,:))
+  END DO
+
+  DO j=1,Jbmax
+    DO k=1,KmaxInp
+      DO i=1,Ibmaxperjb(j)
+          gTvirInp(i,k,j)=gTvirInp(i,k,j)*(1.0_r8+cTv*gSpHuInp(i,k,j,1))
+      END DO
+    END DO
+  END DO
+  DO j=1,Jbmax
+    DO k=1,KmaxOut
+      DO i=1,Ibmaxperjb(j)
+         gTvirOut(i,k,j)=gTvirOut(i,k,j)*(1.0_r8+cTv*gSpHuOut(i,k,j,1))
+      END DO
+    END DO
+  END DO
+
+     IF (GrADS) THEN
+        WRITE (Tdef(1: 2),'(I2.2)') DateCurrent(1)
+        WRITE (Tdef(4: 5),'(I2.2)') DateCurrent(3)
+        WRITE (Tdef(6: 8),'(A3)')   MonChar(DateCurrent(2))
+        WRITE (Tdef(9:12),'(I4.4)') DateCurrent(4)
+        CALL GetGrADSOut()
+        IF (GrADSOnly) THEN
+           CALL DestroyParallelism("*** Chopping ENDS NORMALLY ***")
+           STOP
+        ENDIF
+     END IF
+
+  CALL ICDecomposition
+
+  END IF
+
+  CALL ICWrite
+
+  CALL ClsArrays
+
+  CALL ClsSpHuTracers
+
+  CALL DestroyParallelism("*** Chopping ENDS NORMALLY ***")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTAINS
+SUBROUTINE GDAStoGANL2
+
+  IMPLICIT NONE
+
+  CHARACTER (LEN=1), DIMENSION (32) :: Descriptor
+  REAL (KIND=r4)   , DIMENSION (2*100+1) :: SiSl
+  REAL (KIND=r4)   , DIMENSION (44)      :: Extra
+  integer,parameter:: nemsio_realkind=4  
+  integer             :: iret,nelements
+  type(nemsio_gfile)  :: gfile
+  character(255)      :: cin
+  integer             :: ios,ios1,ij,nroot
+  integer             ::  im,jm,nsoil,l,fieldsize,ntrac,ierr,root_pe
+  type(nemsio_head)   :: gfshead
+  type(nemsio_headv)  :: gfsheadv
+  REAL (KIND=r4)    , ALLOCATABLE  :: buff(:)
+
+
+  !
+  !Inicializa a lib nemsio
+  call nemsio_init(iret=iret)
+  ! Abertura do arquivo nemsio
+  call nemsio_open(gfile,TRIM(DGDInp)//TRIM(GDASInp),'READ',iret=iret)
+!  call nemsio_open(gfile,TRIM(DGDInp)//TRIM(GDASInp),'READ',MPI_COMM_WORLD,iret=iret)
+
+
+
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Getting GANL from GDAS NCEP File'
+
+
+!  open (read) nemsio grid file headers
+       call nemsio_getfilehead(gfile,&
+              idate=gfshead%idate,      &
+              nfhour=gfshead%nfhour,      &
+              nfminute=gfshead%nfminute,      &
+              nfsecondn=gfshead%nfsecondn,      &
+              nfsecondd=gfshead%nfsecondd,      &
+              version=gfshead%version,      &
+              nrec=gfshead%nrec,      &
+              dimx=gfshead%dimx,      &
+              dimy=gfshead%dimy,      &
+              dimz=gfshead%dimz,      &
+              jcap=gfshead%jcap,      &
+              ntrac=gfshead%ntrac,      &
+              ncldt=gfshead%ncldt,      &
+              nsoil=gfshead%nsoil,      &
+              idsl=gfshead%idsl,      &
+              idvc=gfshead%idvc,      &
+              idvm=gfshead%idvm,      &
+              idrt=gfshead%idrt,      &
+              extrameta=gfshead%extrameta,      &
+              nmetavari=gfshead%nmetavari,      &
+              nmetavarr=gfshead%nmetavarr,      &
+              nmetavarl=gfshead%nmetavarl,      &
+              nmetavarr8=gfshead%nmetavarr8,      &
+              nmetaaryi=gfshead%nmetaaryi,      &
+              nmetaaryr=gfshead%nmetaaryr,      &
+              iret=ios)
+
+       call nemsio_getheadvar(gfile,'fhour', gfshead%fhour,iret=ios)
+       if(ios/=0) gfshead%fhour = gfshead%nfhour + gfshead%nfminute/60.          &
+    &                           + gfshead%nfsecondn/(3600.*gfshead%nfsecondd)
+
+!          call nemsio_getheadvar(gfile,'dimx',    gfshead%latb,iret=ios)
+!         call nemsio_getheadvar(gfile,'dimy',    gfshead%LONB,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'LEVS',    gfshead%LEVS,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'ITRUN',   gfshead%ITRUN,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IORDER',  gfshead%IORDER,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IREALF',  gfshead%IREALF,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IGEN',    gfshead%IGEN,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'LATF',    gfshead%LATF,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'LONF',    gfshead%LONF,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'LATR',    gfshead%LATR,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'LONR',    gfshead%LONR,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'ICEN2',   gfshead%ICEN2,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IENS',    gfshead%IENS,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IDPP',    gfshead%IDPP,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IDVT',    gfshead%IDVT,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IDRUN',   gfshead%IDRUN,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IDUSR',   gfshead%IDUSR,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'PDRYINI', gfshead%PDRYINI,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'IXGR',    gfshead%IXGR,IRET=ios)
+!         CALL NEMSIO_GETHEADVAR(GFILE,'NVCOORD', gfshead%NVCOORD,IRET=ios)
+
+          call nemsio_gfs_alheadv(gfshead,gfsheadv)
+
+        CALL NEMSIO_GETFILEHEAD(GFILE                                  &
+     &,                         RECNAME  =gfsheadv%RECNAME             &
+     &,                         RECLEVTYP=gfsheadv%RECLEVTYP           &
+!     &,                         RECLEV=gfsheadv%RECLEV                &
+     &,                         VCOORD=gfsheadv%VCOORD                 &
+!     &,                         LAT=gfsheadv%LAT                      &
+!     &,                         LON=gfsheadv%LON                      &
+!     &,                         CPI=gfsheadv%CPI                      &
+!     &,                         RI=gfsheadv%RI                        &
+!     &,                         variname=gfsheadv%variname            &
+!     &,                         varrname=gfsheadv%varrname            &
+!     &,                         varlname=gfsheadv%varlname            &
+!     &,                         varival=gfsheadv%varival              &
+!     &,                         varrval=gfsheadv%varrval              &
+!     &,                         varlval=gfsheadv%varlval              &
+!     &,                         aryiname=gfsheadv%aryiname            &
+!     &,                         aryrname=gfsheadv%aryrname            &
+!     &,                         aryilen=gfsheadv%aryilen              &
+!     &,                         aryrlen=gfsheadv%aryrlen              &
+     &,                         IRET=ios1)
+
+!GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-GFS-
+
+  ! Descriptor Label (See NMC Office Note 85) (Not Used at CPTEC)
+
+    ! Forecast Time               - TimeOfDay
+    ! Initial Date                - DateInitial(1:4)
+    !  o Initial Hour             - DateInitial(1)
+    !  o Initial Month            - DateInitial(2)
+    !  o Initial Day              - DateInitial(3)
+    !  o Initial Year             - DateInitial(4)
+    ! Sigma Interfaces and Layers - SiSl(1:201)
+    ! Extra Information           - Extra(1:44)
+    !  o ID Sigma Structure       - Extra(18)
+    !    = 1 Phillips
+    !    = 2 Mean
+    !  o ID Vertical Coordinate   - Extra(19)
+    !    = 1 Sigma (0 for old files)
+    !    = 2 Sigma-p  READ (UNIT=nfnmc) TimeOfDay, DateInitial, SigIInp, SigLInp
+
+   !PK READ (UNIT=nfnmc) TimeOfDay, DateInitial, SiSl, Extra
+   TimeOfDay         =gfshead%nfsecondn
+   DateInitial   (1) =gfshead%idate(4)
+   DateInitial   (2) =gfshead%idate(2)
+   DateInitial   (3) =gfshead%idate(3)
+   DateInitial   (4) =gfshead%idate(1)
+
+   SiSl(1        :  KmaxInp+1)=gfsheadv%VCOORD(1: KmaxInp+1,1,1)
+   SiSl(KmaxInp+2:2*KmaxInp+2)=gfsheadv%VCOORD(1: KmaxInp+1,2,1)
+
+    IF(myid.EQ.0)THEN
+       WRITE (UNIT=nfprt, FMT='(A,1X,F15.4)') 'TimeOfDay:', TimeOfDay
+       WRITE (UNIT=nfprt, FMT='(A,1X,4I5)'  ) 'DateInitial:', DateInitial
+       WRITE (UNIT=nfprt, FMT='(A)'         ) 'SiSl-1:'
+       WRITE (UNIT=nfprt, FMT='(7F13.6)'    )  SiSl(1        :  KmaxInp+1)
+       WRITE (UNIT=nfprt, FMT='(A)'         ) 'SiSl-2:'
+       WRITE (UNIT=nfprt, FMT='(7F13.6)'    )  SiSl(KmaxInp+2:2*KmaxInp+2)
+
+        PRINT*,' VCOORD(:,1,1)=',gfsheadv%VCOORD(:,1,1)
+        print *, "-------------------"
+
+        PRINT*,' VCOORD(:,2,1)=',gfsheadv%VCOORD(:,2,1)
+        print *, "-------------------"
+
+        PRINT*,' VCOORD(:,3,1)=',gfsheadv%VCOORD(:,3,1)
+        print *, "-------------------"
+
+        PRINT*,' VCOORD(:,1,2)=',gfsheadv%VCOORD(:,1,2)
+        print *, "-------------------"
+
+        PRINT*,' VCOORD(:,2,2)=',gfsheadv%VCOORD(:,2,2)
+        print *, "-------------------"
+
+        PRINT*,' VCOORD(:,3,2)=',gfsheadv%VCOORD(:,3,2)
+        print *, "-------------------"
+
+        PRINT*,' RECNAME  =',gfsheadv%RECNAME  
+        print *, "-------------------"
+
+        PRINT*,' RECLEVTYP=',gfsheadv%RECLEVTYP
+        print *, "-------------------"
+    END IF
+
+    IDSLInp=gfshead%idsl
+    IDVCInp=gfshead%idvc
+
+    IF ( IDVCInp == 0_i4 .OR. IDVCInp == 1_i4 ) THEN
+       ! Sigma Interfaces   (kmax+1) - SigIInp
+       ! Sigma Layers       (kmax  ) - SigLInp
+       SigIInp(1:KmaxInp+1)=SiSl(1        :  KmaxInp+1)
+       SigLInp(1:KmaxInp  )=SiSl(KmaxInp+2:2*KmaxInp+1)
+    ELSE IF ( IDVCInp == 2_i4 ) THEN
+       ! Hybrid Interface A (kmax+1) - SigIInp
+       ! Hybrid Interface B (kmax+1) - SigLInp
+       SigIInp(1:KmaxInp+1)=SiSl(1        :  KmaxInp+1)/100.0_r4  ! conversion from Pa to mbar 
+       SigLInp(1:KmaxInp+1)=SiSl(KmaxInp+2:2*KmaxInp+2)
+    ELSE
+       STOP ' ** (Error) **'
+    END IF
+    IF(myid.EQ.0)THEN
+       WRITE (UNIT=nfprt,FMT= *) 'IDSLInp ', IDSLInp   
+       WRITE (UNIT=nfprt,FMT= *) 'IDVCINP ', IDVCINP   
+       IF(IDVCInp == 2_i4)THEN
+          WRITE (UNIT=nfprt, FMT='(/,A)')   'a_hybr  (in Pa):'
+          WRITE (UNIT=nfprt, FMT=*) SigIInp * 100.0_r4
+          WRITE (UNIT=nfprt, FMT='(/,A)')   'b_hybr  '
+          WRITE (UNIT=nfprt, FMT=*) SigLInp
+       ELSE
+          WRITE (UNIT=nfprt, FMT='(/,A)')   'SigIInp:'
+          WRITE (UNIT=nfprt, FMT=*) SigIInp
+          WRITE (UNIT=nfprt, FMT='(/,A)')   'SigLInp:'
+          WRITE (UNIT=nfprt, FMT=*) SigLInp
+       END IF
+    END IF
+
+  DateCurrent=DateInitial
+  ! Forecast Day      - ForecastDay
+  ! Time of Day       - TimeOfDay
+  ! Initial Date      - DateInitial
+  ! Current Date      - DateCurrent
+  WRITE (UNIT=nfcpt) ForecastDay, TimeOfDay, DateInitial, &
+         DateCurrent, SigIInp, SigLInp, IDVCInp, IDSLInp 
+
+!
+!---read out data from nemsio file
+!
+  call nemsio_getfilehead(gfile,dimx=im,dimy=jm,nsoil=nsoil,ntrac=ntrac,iret=ierr)
+  if((myid.eq.0) .and. (ierr /= 0)) then
+       print *,iret , ierr
+       print *,'ERROR: cannot get dimension from gfile'
+       STOP
+  endif
+  fieldsize = im*jm
+  if(im*jm/=iMaxInp*jmaxInp) then
+      PRINT*,iMaxInp,jmaxInp,im,jm
+      print *,'ERROR: dimension not match'
+      STOP
+  endif
+
+  ALLOCATE(buff(fieldsize))
+  call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+  nelements = size(buff)
+
+
+  ! Spectral Coefficients of Orography (m)
+  if(myid.eq.0)THEN
+      call nemsio_readrecv(gfile,'hgt','sfc',1,buff,iret=ierr)
+  END IF
+  root_pe=0
+  call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+  call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+  IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                               MINVAL(buff), &
+                                               MAXVAL(buff)
+  ENDIF
+  IF(MINVAL(buff) < -1000.0 .AND.MAXVAL(buff) > 10000.0 )THEN
+      CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+      STOP
+  END IF 
+  ij=0
+  DO j=1,jmaxInp
+     DO i=1,iMaxInp
+         ij=ij+1
+         IF(buff(ij)<0.5)buff(ij)=0.0
+         gWorkprInp(i,j) = buff(ij)
+     END DO
+  END DO   
+  DO jb = 1, jbMax
+      DO ib = 1,ibMaxPerJB(jb)
+         i = iPerIJB(ib,jb)
+         j = jPerIJB(ib,jb)
+         gTopoInp(ib,jb)=gWorkprInp(i,j)
+      END DO
+  END DO
+
+ ! Spectral coefficients of ln(Ps) (ln(hPa)/10)
+
+  if(myid.eq.0)THEN
+     call nemsio_readrecv(gfile,'pres','sfc', 1, buff(:), iret=iret)
+  END IF
+  root_pe=0
+  call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+  call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+  IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                               MINVAL(buff), &
+                                               MAXVAL(buff)
+  ENDIF
+  IF(MINVAL(buff) < 0.0 .AND.MAXVAL(buff) > 200000.0 )THEN
+      CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+      STOP
+  END IF 
+  ij=0
+  DO j=1,jmaxInp
+     DO i=1,iMaxInp
+        ij=ij+1
+        gWorkprInp(i,j) = buff(ij)
+     END DO
+  END DO
+  DO jb = 1, jbMax
+     DO ib = 1,ibMaxPerJB(jb)
+        i = iPerIJB(ib,jb)
+        j = jPerIJB(ib,jb)
+        gPsfcInp(ib,jb)=gWorkprInp(i,j)/100.0_r8!convert Pa to hPa
+        gLnpsInp(ib,jb)=log(gPsfcInp(ib,jb)/10.0_r8)!convert hPa to log(cPa)
+     END DO
+  END DO
+
+ ! Spectral Coefficients of Virtual Temp (K)
+
+  DO k=1,KmaxInp
+      if(myid.eq.0)THEN
+         call nemsio_readrecv(gfile,'tmp', 'mid layer', k, buff(:), iret=iret)
+      END IF
+      root_pe=0
+      call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      IF(myid.eq.0) THEN
+          WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                 MINVAL(buff), &
+                                                 MAXVAL(buff)
+      ENDIF
+      IF(MINVAL(buff) < 0.0 .AND.MAXVAL(buff) > 400.0 )THEN
+         CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+         STOP
+      END IF 
+      ij=0
+      DO j=1,jmaxInp
+         DO i=1,iMaxInp
+            ij=ij+1
+            gWorkprInp(i,j) = buff(ij)
+         END DO
+      END DO
+      DO jb = 1, jbMax
+         DO ib = 1,ibMaxPerJB(jb)
+            i = iPerIJB(ib,jb)
+            j = jPerIJB(ib,jb)
+            gTvirInp(ib,k,jb)=gWorkprInp(i,j)
+         END DO
+      END DO
+  END DO
+
+
+ ! Spectral Coefficients of zonal wind (m/seg)
+
+  DO k=1,KmaxInp
+      if(myid.eq.0)THEN
+         call nemsio_readrecv(gfile,'ugrd','mid layer', k, buff(:), iret=iret)
+      endif
+      root_pe=0
+      call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      IF(myid.eq.0) THEN
+          WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                 MINVAL(buff), &
+                                                 MAXVAL(buff)
+      ENDIF
+      IF(MINVAL(buff) < -200.0 .AND.MAXVAL(buff) > 200.0 )THEN
+         CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+         STOP
+      END IF 
+      ij=0
+      DO j=1,jmaxInp
+         DO i=1,iMaxInp
+            ij=ij+1
+            gWorkprInp(i,j) = buff(ij)
+         END DO
+      END DO
+      DO jb = 1, jbMax
+         DO ib = 1,ibMaxPerJB(jb)
+            i = iPerIJB(ib,jb)
+            j = jPerIJB(ib,jb)
+            gUvelInp(ib,k,jb)=gWorkprInp(i,j)
+         END DO
+      END DO
+  END DO
+
+
+! ! Spectral Coefficients of meridional wind (m/seg)
+
+  DO k=1,KmaxInp
+      if(myid.eq.0)THEN
+         call nemsio_readrecv(gfile,'vgrd','mid layer', k, buff(:), iret=iret)
+      endif
+      root_pe=0
+      call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      IF(myid.eq.0) THEN
+          WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                 MINVAL(buff), &
+                                                 MAXVAL(buff)
+      ENDIF
+      IF(MINVAL(buff) < -200.0 .AND.MAXVAL(buff) > 200.0 )THEN
+         CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+         STOP
+      END IF 
+      ij=0
+      DO j=1,jmaxInp
+        DO i=1,iMaxInp
+           ij=ij+1
+           gWorkprInp(i,j) = buff(ij)
+        END DO
+      END DO
+      DO jb = 1, jbMax
+         DO ib = 1,ibMaxPerJB(jb)
+            i = iPerIJB(ib,jb)
+            j = jPerIJB(ib,jb)
+            gVvelInp(ib,k,jb)=gWorkprInp(i,j)
+         END DO
+      END DO
+  END DO
+
+
+  ! Spectral Coefficients of Specific Humidity (g/g)
+ 
+  DO k=1,KmaxInp
+      if(myid.eq.0)THEN 
+         call nemsio_readrecv(gfile,'spfh','mid layer', k, buff(:), iret=iret)
+      endif
+      root_pe=0
+      call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      IF(myid.eq.0) THEN
+          WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                 MINVAL(buff), &
+                                                 MAXVAL(buff)
+      ENDIF
+      IF(MINVAL(buff) < -1.0e-2 .AND.MAXVAL(buff) > 0.4 )THEN
+         CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+         STOP
+      END IF 
+     ij=0
+     DO j=1,jmaxInp
+        DO i=1,iMaxInp
+           ij=ij+1
+           gWorkprInp(i,j) = MAX(buff(ij),1e-21)
+        END DO
+     END DO
+     DO jb = 1, jbMax
+        DO ib = 1,ibMaxPerJB(jb)
+           i = iPerIJB(ib,jb)
+           j = jPerIJB(ib,jb)
+           gSpHuInp(ib,k,jb,1)=gWorkprInp(i,j)
+        END DO
+     END DO
+  END DO
+
+  ! Spectral Coefficients of ozonio (g/g)
+
+  IF (GetOzone) THEN
+      NTracers=NTracers+1
+      DO k=1,KmaxInp
+         if(myid.eq.0)THEN
+            call nemsio_readrecv(gfile,'o3mr','mid layer', k, buff(:), iret=iret)
+         endif
+         root_pe=0
+         call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+         call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+         IF(myid.eq.0) THEN
+             WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                     MINVAL(buff), &
+                                                     MAXVAL(buff)
+         ENDIF
+         IF(MINVAL(buff) < -1.0e-2 .AND.MAXVAL(buff) > 0.4 )THEN
+            CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+            STOP
+         END IF 
+         ij=0
+         DO j=1,jmaxInp
+            DO i=1,iMaxInp
+               ij=ij+1
+               gWorkprInp(i,j) = MAX(buff(ij),1e-21)
+            END DO
+         END DO
+         DO jb = 1, jbMax
+            DO ib = 1,ibMaxPerJB(jb)
+               i = iPerIJB(ib,jb)
+               j = jPerIJB(ib,jb)
+              gSpHuInp(ib,k,jb,2)=gWorkprInp(i,j)
+            END DO
+         END DO
+      END DO
+      IF (GetTracers) THEN
+         ! Spectral Coefficients of liquid cloud water (g/g)
+         NTracers=NTracers+1
+          DO k=1,KmaxInp
+             if(myid.eq.0)THEN
+                call nemsio_readrecv(gfile,'clwmr','mid layer', k, buff(:), iret=iret)
+             endif
+             root_pe=0
+             call MPI_BCAST(buff, nelements, MPI_REAL, root_pe, MPI_COMM_WORLD, ierr)
+             call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+             IF(myid.eq.0) THEN
+                WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, buff(1), &
+                                                     MINVAL(buff), &
+                                                     MAXVAL(buff)
+             ENDIF
+             IF(MINVAL(buff) < -1.0e-2 .AND.MAXVAL(buff) > 0.4 )THEN
+                CALL DestroyParallelism("*** Chopping ENDS ERROR ***")
+                STOP
+             END IF 
+             ij=0
+             DO j=1,jmaxInp
+                DO i=1,iMaxInp
+                   ij=ij+1
+                  gWorkprInp(i,j) = MAX(buff(ij),1e-21)
+                END DO
+             END DO
+             DO jb = 1, jbMax
+                DO ib = 1,ibMaxPerJB(jb)
+                   i = iPerIJB(ib,jb)
+                   j = jPerIJB(ib,jb)
+                   gSpHuInp(ib,k,jb,3)=gWorkprInp(i,j)
+                END DO
+             END DO
+          END DO
+       END IF
+  END IF
+  IF(myid.EQ.0)THEN
+     PRINT*,'GetTracers,NTracers',GetTracers,NTracers
+  END IF
+
+  IF (GrADS) THEN
+     WRITE (Tdef(1: 2),'(I2.2)') DateCurrent(1)
+     WRITE (Tdef(4: 5),'(I2.2)') DateCurrent(3)
+     WRITE (Tdef(6: 8),'(A3)')   MonChar(DateCurrent(2))
+     WRITE (Tdef(9:12),'(I4.4)') DateCurrent(4)
+     CALL GetGrADSInp_GDAS()
+     IF (GrADSOnly) THEN
+        CALL DestroyParallelism("*** Chopping ENDS NORMALLY ***")
+        STOP
+     ENDIF
+  END IF
+
+
+  CALL ICDecompositionInput()
+
+  CALL ICWriteGDAS()
+
+   !Fecha o arquivo nemsio
+   call nemsio_close(gfile,iret=iret)
+ 
+   !Finaliza
+   call nemsio_finalize()
+
+  DEALLOCATE(buff)
+
+
+  CLOSE(UNIT=nfnmc)
+
+  IF (GDASOnly) STOP ' GDASOnly = .TRUE. '
+
+END SUBROUTINE GDAStoGANL2
+
+
+SUBROUTINE GDAStoGANL
+
+  IMPLICIT NONE
+
+  CHARACTER (LEN=1), DIMENSION (32) :: Descriptor
+  REAL (KIND=r4)   , DIMENSION (2*100+1) :: SiSl
+  REAL (KIND=r4)   , DIMENSION (44)      :: Extra
+
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' Getting GANL from GDAS NCEP File'
+
+  OPEN (UNIT=nfnmc, FILE=TRIM(DGDInp)//TRIM(GDASInp), FORM='UNFORMATTED', &
+        ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+  IF (ios /= 0) THEN
+    WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DGDInp)//TRIM(GDASInp)), &
+                                      ' returned IOStat = ', ios
+    STOP ' ** (Error) **'
+  END IF
+
+  OPEN (UNIT=nfcpt, FILE=TRIM(DirInp)//TRIM(DataInp), FORM='UNFORMATTED', &
+        ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+  IF (ios /= 0) THEN
+    WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirInp)//TRIM(DataInp)), &
+                                      ' returned IOStat = ', ios
+    STOP ' ** (Error) **'
+  END IF
+
+    ! Descriptor Label (See NMC Office Note 85) (Not Used at CPTEC)
+    READ (UNIT=nfnmc) Descriptor
+
+    ! Forecast Time               - TimeOfDay
+    ! Initial Date                - DateInitial(1:4)
+    !  o Initial Hour             - DateInitial(1)
+    !  o Initial Month            - DateInitial(2)
+    !  o Initial Day              - DateInitial(3)
+    !  o Initial Year             - DateInitial(4)
+    ! Sigma Interfaces and Layers - SiSl(1:201)
+    ! Extra Information           - Extra(1:44)
+    !  o ID Sigma Structure       - Extra(18)
+    !    = 1 Phillips
+    !    = 2 Mean
+    !  o ID Vertical Coordinate   - Extra(19)
+    !    = 1 Sigma (0 for old files)
+    !    = 2 Sigma-p
+    READ (UNIT=nfnmc) TimeOfDay, DateInitial, SiSl, Extra
+
+    IF(myid.EQ.0)THEN
+       WRITE (UNIT=nfprt, FMT='(A,1X,F15.4)') 'TimeOfDay:', TimeOfDay
+       WRITE (UNIT=nfprt, FMT='(A,1X,4I5)'  ) 'DateInitial:', DateInitial
+       WRITE (UNIT=nfprt, FMT='(A)'         ) 'SiSl:'
+       WRITE (UNIT=nfprt, FMT='(7F13.6)'    )  SiSl
+       WRITE (UNIT=nfprt, FMT='(A)'         ) 'Extra:'
+       WRITE (UNIT=nfprt, FMT='(7F13.6)'    )  Extra
+    END IF
+
+    IDSLInp=INT(Extra(18),i4)
+    IDVCInp=INT(Extra(19),i4)
+
+
+    IF ( IDVCInp == 0_i4 .OR. IDVCInp == 1_i4 ) THEN
+       ! Sigma Interfaces   (kmax+1) - SigIInp
+       ! Sigma Layers       (kmax  ) - SigLInp
+       SigIInp(1:KmaxInp+1)=SiSl(1        :  KmaxInp+1)
+       SigLInp(1:KmaxInp  )=SiSl(KmaxInp+2:2*KmaxInp+1)
+    ELSE IF ( IDVCInp == 2_i4 ) THEN
+       ! Hybrid Interface A (kmax+1) - SigIInp
+       ! Hybrid Interface B (kmax+1) - SigLInp
+       SigIInp(1:KmaxInp+1)=SiSl(1        :  KmaxInp+1)/100.0_r4  ! conversion from Pa to mbar 
+       SigLInp(1:KmaxInp+1)=SiSl(KmaxInp+2:2*KmaxInp+2)
+    ELSE
+       STOP ' ** (Error) **'
+    END IF
+
+    WRITE (UNIT=nfprt,FMT= *) 'IDSLInp ', IDSLInp
+    WRITE (UNIT=nfprt,FMT= *) 'IDVCINP ', IDVCINP
+    IF(myid.EQ.0.AND.IDVCInp == 2_i4)THEN
+       WRITE (UNIT=nfprt, FMT='(/,A)')   'a_hybr  (in Pa):'
+       WRITE (UNIT=nfprt, FMT=*) SigIInp * 100.0_r4
+       WRITE (UNIT=nfprt, FMT='(/,A)')   'b_hybr  '
+       WRITE (UNIT=nfprt, FMT=*) SigLInp
+    ELSE
+       WRITE (UNIT=nfprt, FMT='(/,A)')   'SigIInp:'
+       WRITE (UNIT=nfprt, FMT=*) SigIInp
+       WRITE (UNIT=nfprt, FMT='(/,A)')   'SigLInp:'
+       WRITE (UNIT=nfprt, FMT=*) SigLInp
+    END IF
+
+
+!  IF (ANY(SigIInp < 0.0_r8 .OR. SigIInp > 1.0_r8)) THEN
+!    WRITE (UNIT=nferr, FMT='(/,A)') ' SigI and SIgLi will be recalculated based on DelSInp'
+!    INQUIRE (FILE=TRIM(DirSig)//TRIM(DataSigInp), EXIST=GetNewSig)
+!    IF (GetNewSig) THEN
+!      WRITE (UNIT=nfprt, FMT='(/,A)') ' Getting New Delta Sigma'
+!      OPEN  (UNIT=nfsig, FILE=TRIM(DirSig)//TRIM(DataSigInp), FORM='FORMATTED', &
+!            ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+!      IF (ios /= 0) THEN
+!        WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+!                                          TRIM(TRIM(DirSIg)//TRIM(DataSigInp)), &
+!                                          ' returned IOStat = ', ios
+!        STOP ' ** (Error) **'
+!      END IF
+!      READ  (UNIT=nfsig, FMT='(5F9.6)') DelSInp
+!      CLOSE (UNIT=nfsig)
+!      CALL SigmaInp
+!    ELSE
+!      WRITE (UNIT=nferr, FMT='(A)') ' There is no file : '//TRIM(DirSig)//TRIM(DataSigInp)
+!    END IF
+!  END IF
+
+  DateCurrent=DateInitial
+  ! Forecast Day      - ForecastDay
+  ! Time of Day       - TimeOfDay
+  ! Initial Date      - DateInitial
+  ! Current Date      - DateCurrent
+    WRITE (UNIT=nfcpt) ForecastDay, TimeOfDay, DateInitial, &
+         DateCurrent, SigIInp, SigLInp, IDVCInp, IDSLInp
+
+
+  ! Spectral Coefficients of Orography (m)
+  READ  (UNIT=nfnmc) qWorkInp
+  WRITE (UNIT=nfcpt) qWorkInp
+
+  ! Spectral coefficients of ln(Ps) (ln(hPa)/10)
+  READ  (UNIT=nfnmc) qWorkInp
+  WRITE (UNIT=nfcpt) qWorkInp
+
+  ! Spectral Coefficients of Virtual Temp (K)
+  DO k=1,KmaxInp
+    READ  (UNIT=nfnmc) qWorkInp
+    WRITE (UNIT=nfcpt) qWorkInp
+  END DO
+
+  ! Spectral Coefficients of Divergence and Vorticity (1/seg)
+  DO k=1,KmaxInp
+    READ  (UNIT=nfnmc) qWorkInp
+    WRITE (UNIT=nfcpt) qWorkInp
+    READ  (UNIT=nfnmc) qWorkInp
+    WRITE (UNIT=nfcpt) qWorkInp
+  END DO
+
+  ! Spectral Coefficients of Specific Humidity (g/g)
+  DO k=1,KmaxInp
+    READ  (UNIT=nfnmc) qWorkInp
+    WRITE (UNIT=nfcpt) qWorkInp
+  END DO
+
+  CLOSE(UNIT=nfcpt)
+
+  IF (GetOzone) THEN
+
+    ! Spectral Coefficients of Ozone (?)
+    OPEN (UNIT=nfozw, FILE=TRIM(DirInp)//TRIM(OzonInp), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirInp)//TRIM(OzonInp)), &
+                                        ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+
+    DO k=1,KmaxInp
+      READ  (UNIT=nfnmc) qWorkInp
+      WRITE (UNIT=nfozw) qWorkInp
+    END DO
+    CLOSE(UNIT=nfozw)
+    NTracers=NTracers+1
+
+    IF (GetTracers) THEN
+      ! Spectral Coefficients of Tracers (?)
+      OPEN (UNIT=nftrw, FILE=TRIM(DirInp)//TRIM(TracInp), FORM='UNFORMATTED', &
+            ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+      IF (ios /= 0) THEN
+        WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                          TRIM(TRIM(DirInp)//TRIM(TracInp)), &
+                                          ' returned IOStat = ', ios
+        STOP ' ** (Error) **'
+      END IF
+
+      ios=0
+      Tracer: DO
+        DO k=1,KmaxInp
+          READ (UNIT=nfnmc, IOSTAT=ios) qWorkInp
+          IF (ios /= 0) THEN
+            IF (ios == -1) THEN
+              WRITE (UNIT=nfprt, FMT='(/,A,I5,A)') ' End of File Found - NTracers = ', &
+                                                     NTracers, '  in:'
+            ELSE
+              WRITE (UNIT=nfprt, FMT='(/,A,I5,A)') ' Reading Error - ios = ', ios, '  in:'
+            END IF
+            WRITE (UNIT=nfprt, FMT='(1X,A,/)') TRIM(DGDInp)//TRIM(GDASInp)
+            EXIT Tracer
+          END IF
+          WRITE (UNIT=nftrw) qWorkInp
+        END DO
+        NTracers=NTracers+1
+      END DO Tracer
+      CLOSE(UNIT=nftrw)
+    END IF
+
+  END IF
+
+  CLOSE(UNIT=nfnmc)
+
+  IF (GDASOnly) STOP ' GDASOnly = .TRUE. '
+
+END SUBROUTINE GDAStoGANL
+
+
+
+
+  SUBROUTINE ICRead_and_Chop(myid,ibMax,jbMax,GetNewTop)
+
+  IMPLICIT NONE
+    INTEGER, INTENT(IN   ) :: myid
+    INTEGER, INTENT(IN   ) :: ibMax
+    INTEGER, INTENT(IN   ) :: jbMax
+    LOGICAL, INTENT(INOUT) :: GetNewTop
+    INTEGER :: mm, nn, i,j,i1, i2, k, m, mlast, mw,lrec,ib,jb,j1,mpi_err
+    !REAL(KIND=r8) ::gTopoOutGaus8(iMaxout,jMaxout)
+    OPEN (UNIT=nficr, FILE=TRIM(DirInp)//TRIM(DataInp), FORM='UNFORMATTED', &
+        ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirInp)//TRIM(DataInp)), &
+                                      ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+
+    mw = min(mendout+1,mendinp+1)
+    IF ( GDASOnly) THEN
+       ! Old file with sigma level   
+       READ (UNIT=nficr) ForecastDay, TimeOfDay, DateInitial(1:4), &
+            DateCurrent(1:4), SigIInp(1:KmaxInpp), SigLInp(1:KmaxInp)
+    ELSE
+
+       READ (UNIT=nficr) ForecastDay, TimeOfDay, DateInitial(1:4), &
+            DateCurrent(1:4), SigIInp(1:KmaxInpp), SigLInp(1:KmaxInpp), IDVCInp, IDSLInp
+    END IF
+    SigInterInp=SigIInp
+    SigLayerInp=SigLInp
+
+    IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A,I5,A,F15.4)') ' ForecastDay = ', ForecastDay, &
+         ' TimeOfDay = ', TimeOfDay
+    IF(myid.EQ.0)WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateInitial = ', DateInitial
+    IF(myid.EQ.0)WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateCurrent = ', DateCurrent
+
+    IF ( GDASOnly) THEN
+       DO k=1,KmaxInp
+          DelSigmaInp(k)=SigInterInp(k)-SigInterInp(k+1)
+       END DO
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A)')  ' DelSigmaInp:'
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(7F10.6)') DelSigmaInp
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A)')  ' SigInterInp:'
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(7F10.6)') SigInterInp
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A)')  ' SigLayerInp:'
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(7F10.6)') SigLayerInp
+    ELSE
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A)')  ' a_hybr:'
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(7F12.6)') SigInterInp
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(/,A)')  ' b_hybr:'
+       IF(myid.EQ.0)  WRITE (UNIT=nfprt, FMT='(7F12.6)') SigLayerInp
+    ENDIF
+
+  READ (UNIT=nficr) qWorkInp
+  DO mm=1,mymmax
+     m = msinproc(mm,myid_four)
+     i2 = 2*mymnmap(mm,m)-1
+     IF (m.gt.mendinp+1) THEN 
+        DO nn=0,2*(mendout+1-m)+1
+           qTopoInp(i2+nn) = 0.0_r8
+        ENDDO
+      ELSE 
+        i1 = 2*mnmap(m,m)-1
+        DO nn=0,2*(mw-m)+1
+           qTopoInp(i2+nn) = qWorkInp(i1+nn)
+        ENDDO
+        DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+           qTopoInp(i2+nn) = 0.0_r8
+        ENDDO
+     ENDIF
+  ENDDO
+  IF(myid.eq.0) THEN
+     WRITE (UNIT=nfprt, FMT='(/,A)') ' TopoInp:'
+     WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') 0, qWorkInp(1), &
+                                             MINVAL(qWorkInp(2:)), &
+                                             MAXVAL(qWorkInp(2:))
+  ENDIF
+
+  qTopoOut=qTopoInp
+  qTopoOutSpec=qTopoInp
+  gTopoDel=0.0_r8
+  INQUIRE (FILE=TRIM(DirTop)//TRIM(DataTop), EXIST=GetNewTop)
+  IF (GetNewTop.and.havesurf) THEN
+    WRITE (UNIT=nfprt, FMT='(/,A)')' Getting New Topography'
+    OPEN (UNIT=nftop, FILE=TRIM(DirTop)//TRIM(DataTop), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirTop)//TRIM(DataTop)), &
+                                        ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+       READ  (UNIT=nftop) qWorkprOut
+       CLOSE (UNIT=nftop)
+       !
+       !i1 = 1
+       !DO m=1,mendout+1
+       !   i2 = m
+       !   DO nn=mendout+1,m,-1
+       !      qtorto(2*i2-1) = qWorkprOut(2*i1-1)
+       !      qtorto(2*i2  ) = qWorkprOut(2*i1  )
+       !      i1 = i1+1
+       !      i2 = i2 + nn
+       !   ENDDO
+       !ENDDO
+       !qWorkprOut = qtorto
+       !
+       DO mm=1,mymmax
+          m = msinproc(mm,myid_four)
+          i2 = 2*mymnmap(mm,m)-1
+          IF (m.GT.mendinp+1) THEN
+             DO nn=0,2*(mendout+1-m)+1
+                qTopoOut(i2+nn) = 0.0_r8
+                qTopoOutSpec(i2+nn) = 0.0_r8
+             ENDDO
+          ELSE
+             i1 = 2*mnmap_out(m,m)-1
+             IF (myid.EQ.0) WRITE(*,*) ' reading topo i1 i2 ',i1,i2
+             DO nn=0,2*(mw-m)+1
+                qTopoOut(i2+nn) = qWorkprOut(i1+nn)
+                qTopoOutSpec(i2+nn) = qWorkprOut(i1+nn)
+             ENDDO
+             IF (myid.EQ.0) THEN
+                WRITE(98,*) ' qtopoinp for m',m
+                WRITE(98,*) (qtopoinp(i2+nn),nn=0,2*(mw-m)-1)
+                WRITE(99,*) ' qtopoout for m',m
+                WRITE(99,*) (qtopoout(i2+nn),nn=0,2*(mw-m)-1)
+             ENDIF
+             DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                qTopoOut(i2+nn) = 0.0_r8
+                qTopoOutSpec(i2+nn) = 0.0_r8
+             ENDDO
+          ENDIF
+       ENDDO
+
+
+  ELSE
+    IF (SmoothTopo.and.havesurf) THEN
+      IF(myid.eq.0) THEN
+           WRITE (UNIT=nfprt, FMT='(/,A)') ' Chopping Old Topography for Smoothing'
+      ENDIF
+      qTopoOut = qTopoInp
+    END IF
+  END IF
+  IF (SmoothTopo.and.havesurf) THEN
+    CALL SmoothCoef()
+  END IF
+
+  READ (UNIT=nficr) qWorkInp
+  DO mm=1,mymmax
+     m = msinproc(mm,myid_four)
+     i2 = 2*mymnmap(mm,m)-1
+     IF (m.gt.mendinp+1) THEN 
+        DO nn=0,2*(mendout+1-m)+1
+           qLnPsInp(i2+nn) = 0.0_r8
+        ENDDO
+      ELSE
+        i1 = 2*mnmap(m,m)-1
+        DO nn=0,2*(mw-m)+1
+           qLnPsInp(i2+nn) = qWorkInp(i1+nn)
+        ENDDO
+        DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+           qLnPsInp(i2+nn) = 0.0_r8
+        ENDDO
+     ENDIF
+  ENDDO
+!  IF (SmoothTopo.and.havesurf) THEN
+!    CALL SmoothCoefAtm(qLnPsInp (1:Mnwv2Inp))
+!  END IF
+
+  IF(myid.eq.0) THEN
+     WRITE (UNIT=nfprt, FMT='(/,A)') ' LnPsInp:'
+     WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') 0, qWorkInp(1), &
+                                             MINVAL(qWorkInp(2:)), &
+                                             MAXVAL(qWorkInp(2:))
+  ENDIF
+
+  IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' TvirInp:'
+  DO k=1,KmaxInp
+    READ (UNIT=nficr) qWorkInp
+    IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+       DO mm=1,mymmax
+          m = msinproc(mm,myid_four)
+          i2 = 2*mymnmap(mm,m)-1
+          IF (m.gt.mendinp+1) THEN 
+             DO nn=0,2*(mendout+1-m)+1
+                qTvirInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+           ELSE
+             i1 = 2*mnmap(m,m)-1
+             DO nn=0,2*(mw-m)+1
+                qTvirInp(i2+nn,k+1-myfirstlev) = qWorkInp(i1+nn)
+             ENDDO
+             DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                qTvirInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+          ENDIF
+       ENDDO
+!       IF (SmoothTopo.and.havesurf) THEN
+!          CALL SmoothCoefAtm(qTvirInp (1:Mnwv2Inp,k+1-myfirstlev))
+!       END IF
+    END IF
+
+    IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkInp(1), &
+                                               MINVAL(qWorkInp(2:)), &
+                                               MAXVAL(qWorkInp(2:))
+    ENDIF
+  END DO
+
+  IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' DivgInp - VortInp:'
+  DO k=1,KmaxInp
+    READ (UNIT=nficr) qWorkInp
+    IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+       DO mm=1,mymmax
+          m = msinproc(mm,myid_four)
+          i2 = 2*mymnmap(mm,m)-1
+          IF (m.gt.mendinp+1) THEN 
+             DO nn=0,2*(mendout+1-m)+1
+                qDivgInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+           ELSE
+             i1 = 2*mnmap(m,m)-1
+             DO nn=0,2*(mw-m)+1
+                qDivgInp(i2+nn,k+1-myfirstlev) = qWorkInp(i1+nn)
+             ENDDO
+             DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                qDivgInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+          ENDIF
+       ENDDO
+!       IF (SmoothTopo.and.havesurf) THEN
+!          CALL SmoothCoefAtm(qDivgInp (1:Mnwv2Inp,k+1-myfirstlev))
+!       END IF
+    END IF
+
+    IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkInp(1), &
+                                               MINVAL(qWorkInp(2:)), &
+                                               MAXVAL(qWorkInp(2:))
+    ENDIF
+
+    READ (UNIT=nficr) qWorkInp
+    IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+       DO mm=1,mymmax
+          m = msinproc(mm,myid_four)
+          i2 = 2*mymnmap(mm,m)-1
+          IF (m.gt.mendinp+1) THEN 
+             DO nn=0,2*(mendout+1-m)+1
+                qVortInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+           ELSE
+             i1 = 2*mnmap(m,m)-1
+             DO nn=0,2*(mw-m)+1
+                qVortInp(i2+nn,k+1-myfirstlev) = qWorkInp(i1+nn)
+             ENDDO
+             DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                qVortInp(i2+nn,k+1-myfirstlev) = 0.0_r8
+             ENDDO
+          ENDIF
+       ENDDO
+!       IF (SmoothTopo.and.havesurf) THEN
+!          CALL SmoothCoefAtm(qVortInp (1:Mnwv2Inp,k+1-myfirstlev))
+!       END IF
+    END IF
+
+
+    IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkInp(1), &
+                                               MINVAL(qWorkInp(2:)), &
+                                               MAXVAL(qWorkInp(2:))
+    ENDIF
+  END DO
+
+  IF(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A)') ' SpHuInp:'
+  DO k=1,KmaxInp
+    READ (UNIT=nficr) qWorkInp
+    IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+       DO mm=1,mymmax
+          m = msinproc(mm,myid_four)
+          i2 = 2*mymnmap(mm,m)-1
+          IF (m.gt.mendinp+1) THEN 
+             DO nn=0,2*(mendout+1-m)+1
+                qSpHuInp(i2+nn,k+1-myfirstlev,1) = 0.0_r8
+             ENDDO
+           ELSE
+             i1 = 2*mnmap(m,m)-1
+             DO nn=0,2*(mw-m)+1
+                qSpHuInp(i2+nn,k+1-myfirstlev,1) = qWorkInp(i1+nn)
+             ENDDO
+             DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                qSpHuInp(i2+nn,k+1-myfirstlev,1) = 0.0_r8
+             ENDDO
+          ENDIF
+       ENDDO
+!       IF (SmoothTopo.and.havesurf) THEN
+!          CALL SmoothCoefAtm(qSpHuInp (1:Mnwv2Inp,k+1-myfirstlev,1))
+!       END IF
+    END IF
+
+    IF(myid.eq.0) THEN
+       WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkInp(1), &
+                                               MINVAL(qWorkInp(2:)), &
+                                               MAXVAL(qWorkInp(2:))
+    ENDIF
+  END DO
+    IF(GDASOnly)THEN
+       CLOSE(UNIT=nficr,STATUS='KEEP')
+    ELSE
+       CLOSE(UNIT=nficr,STATUS='KEEP')
+    END IF
+  IF (GetOzone) THEN
+
+    OPEN (UNIT=nfozr, FILE=TRIM(DirInp)//TRIM(OzonInp), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirInp)//TRIM(OzonInp)), &
+                                        ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+
+    nt=2
+    DO k=1,KmaxInp
+      READ (UNIT=nfozr) qWorkInp
+      IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+         DO mm=1,mymmax
+            m = msinproc(mm,myid_four)
+            i2 = 2*mymnmap(mm,m)-1
+            IF (m.gt.mendinp+1) THEN 
+               DO nn=0,2*(mendout+1-m)+1
+                  qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+               ENDDO
+             ELSE
+               i1 = 2*mnmap(m,m)-1
+               DO nn=0,2*(mw-m)+1
+                  qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+               ENDDO
+               DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                  qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+               ENDDO
+            ENDIF
+         ENDDO
+!         IF (SmoothTopo.and.havesurf) THEN
+!            CALL SmoothCoefAtm(qSpHuInp (1:Mnwv2Inp,k+1-myfirstlev,nt))
+!         END IF
+      END IF
+
+    END DO
+    CLOSE(UNIT=nfozr)
+
+    IF (GetTracers) THEN
+      OPEN (UNIT=nftrr, FILE=TRIM(DirInp)//TRIM(TracInp), FORM='UNFORMATTED', &
+            ACCESS='SEQUENTIAL', ACTION='READ', STATUS='OLD', IOSTAT=ios)
+      IF (ios /= 0) THEN
+        WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                          TRIM(TRIM(DirInp)//TRIM(TracInp)), &
+                                          ' returned IOStat = ', ios
+        STOP ' ** (Error) **'
+      END IF
+      Do nt=3,NTracers
+        DO k=1,KmaxInp
+          READ (UNIT=nftrr) qWorkInp
+          IF (k.ge.myfirstlev.and.k.le.mylastlev) THEN
+             DO mm=1,mymmax
+                m = msinproc(mm,myid_four)
+                i2 = 2*mymnmap(mm,m)-1
+                IF (m.gt.mendinp+1) THEN 
+                   DO nn=0,2*(mendout+1-m)+1
+                      qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                   ENDDO
+                 ELSE
+                   i1 = 2*mnmap(m,m)-1
+                   DO nn=0,2*(mw-m)+1
+                      qSpHuInp(i2+nn,k+1-myfirstlev,nt) = qWorkInp(i1+nn)
+                   ENDDO
+                   DO nn=2*(mw-m)+2,2*(mendout+1-m)+1
+                      qSpHuInp(i2+nn,k+1-myfirstlev,nt) = 0.0_r8
+                   ENDDO
+                ENDIF
+             ENDDO
+!            IF (SmoothTopo.and.havesurf) THEN
+!               CALL SmoothCoefAtm(qSpHuInp (1:Mnwv2Inp,k+1-myfirstlev,nt))
+!            END IF
+          END IF
+        END DO
+      END DO
+      CLOSE(UNIT=nftrr)
+    END IF
+
+  END IF
+
+END SUBROUTINE ICRead_and_Chop
+
+
+SUBROUTINE ICWrite
+
+  IMPLICIT NONE
+
+  IF (myid.eq.0) THEN
+    OPEN (UNIT=nficw, FILE=TRIM(DirOut)//TRIM(DataOut), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirOut)//TRIM(DataOut)), &
+                                        ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+  END IF
+
+  SigIOut(1:KmaxOutp)=SigInterOut(1:KmaxOutp)
+  SigLOut(1:KmaxOut )=SigLayerOut(1:KmaxOut )
+
+  IF (myid.eq.0) THEN
+    WRITE (UNIT=nficw) ForecastDay, TimeOfDay, DateInitial, &
+                       DateCurrent, SigIOut(1:KmaxOutp), SigLOut(1:KmaxOut)
+
+    WRITE (UNIT=nfprt, FMT='(/,A,I5,A,F15.4)') ' ForecastDay = ', ForecastDay, &
+                                             ' TimeOfDay = ', TimeOfDay
+    WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateInitial = ', DateInitial
+    WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateCurrent = ', DateCurrent
+    WRITE (UNIT=nfprt, FMT='(/,A)')  ' DelSigmaOut:'
+    WRITE (UNIT=nfprt, FMT='(7F10.6)') DelSigmaOut(1:KmaxOut)
+    WRITE (UNIT=nfprt, FMT='(/,A)')  ' SigInterOut:'
+    WRITE (UNIT=nfprt, FMT='(7F10.6)') SigInterOut(1:KmaxOutp)
+    WRITE (UNIT=nfprt, FMT='(/,A)')  ' SigLayerOut:'
+    WRITE (UNIT=nfprt, FMT='(7F10.6)') SigLayerOut(1:KmaxOut)
+  END IF
+
+  IF (VerticalInterp) THEN
+     if (havesurf) CALL Collect_Spec(qTopoOut, qWorkOut(:,1), 1, 1, 0)
+    ELSE
+     if (havesurf) CALL Collect_Spec(qTopoInp, qWorkOut(:,1), 1, 1, 0)
+  ENDIF
+
+  IF (myid.eq.0) THEN
+    qWorkprOut=qWorkOut(:,1)
+    WRITE (UNIT=nficw) qWorkprOut
+    WRITE (UNIT=nfprt, FMT='(/,A)') ' TopoOut:'
+    WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') 0, qWorkOut(1,1), &
+                           MINVAL(qWorkOut(2:,1)),MAXVAL(qWorkOut(2:,1))
+  END IF
+
+  IF (VerticalInterp) THEN
+     if (havesurf) CALL Collect_Spec(qLnpsOut, qWorkOut(:,1), 1, 1, 0)
+    ELSE
+     if (havesurf) CALL Collect_Spec(qLnpsInp, qWorkOut(:,1), 1, 1, 0)
+  ENDIF
+  IF (myid.eq.0) THEN
+    qWorkprOut=qWorkOut(:,1)
+    WRITE(nfprt,*) 'qLnpsOut  ', (qWorkprOut(i),i=1,20)
+    WRITE (UNIT=nficw) qWorkprOut
+    WRITE (UNIT=nfprt, FMT='(/,A)') ' LnPsOut:'
+    WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') 0, qWorkOut(1,1), &
+                           MINVAL(qWorkOut(2:,1)),MAXVAL(qWorkOut(2:,1))
+
+    WRITE (UNIT=nfprt, FMT='(/,A)') ' TvirOut:'
+  END IF
+  IF (VerticalInterp) THEN
+     CALL Collect_Spec(qTvirOut, qWorkOut, kmaxloc, kmaxout, 0)
+    ELSE
+     CALL Collect_Spec(qTvirInp, qWorkOut, kmaxloc, kmaxout, 0)
+  ENDIF
+
+  IF (myid.eq.0) THEN
+    DO k=1,KmaxOut
+      qWorkprOut=qWorkOut(:,k)
+      WRITE (UNIT=nficw) qWorkprOut
+      WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkOut(1,k), &
+                                              MINVAL(qWorkOut(2:,k)), &
+                                              MAXVAL(qWorkOut(2:,k))
+    END DO
+  END IF
+
+  IF (VerticalInterp) THEN
+     CALL Collect_Spec(qDivgOut, qWorkOut, kmaxloc, kmaxout, 0)
+     CALL Collect_Spec(qVortOut, qWorkOut1, kmaxloc, kmaxout, 0)
+    ELSE
+     CALL Collect_Spec(qDivgInp, qWorkOut, kmaxloc, kmaxout, 0)
+     CALL Collect_Spec(qVortInp, qWorkOut1, kmaxloc, kmaxout, 0)
+  ENDIF
+  IF (myid.eq.0) THEN
+    WRITE (UNIT=nfprt, FMT='(/,A)') ' DivgOut - VortOut:'
+    DO k=1,KmaxOut
+      qWorkprOut=qWorkOut(:,k)
+      WRITE (UNIT=nficw) qWorkprOut
+      WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkOut(1,k), &
+                                              MINVAL(qWorkOut(2:,k)), &
+                                              MAXVAL(qWorkOut(2:,k))
+      qWorkprOut=qWorkOut1(:,k)
+      WRITE (UNIT=nficw) qWorkprOut
+      WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkOut1(1,k), &
+                                              MINVAL(qWorkOut1(2:,k)), &
+                                              MAXVAL(qWorkOut1(2:,k))
+    END DO
+
+    WRITE (UNIT=nfprt, FMT='(/,A)') ' SpHuOut:'
+  END IF
+  IF (VerticalInterp) THEN
+     CALL Collect_Spec(qSpHuOut(:,:,1), qWorkOut, kmaxloc, kmaxout, 0)
+    ELSE
+     CALL Collect_Spec(qSpHuInp(:,:,1), qWorkOut, kmaxloc, kmaxout, 0)
+  ENDIF
+  IF (myid.eq.0) THEN
+    DO k=1,KmaxOut
+      qWorkprOut=qWorkOut(:,k)
+      WRITE (UNIT=nficw) qWorkprOut
+      WRITE (UNIT=nfprt, FMT='(I5,1P3G12.5)') k, qWorkOut(1,k), &
+                                              MINVAL(qWorkOut(2:,k)), &
+                                              MAXVAL(qWorkOut(2:,k))
+    END DO
+    WRITE (UNIT=nfprt, FMT='(A)') ' '
+
+    CLOSE(UNIT=nficw)
+  END IF
+
+  IF (GetOzone) THEN
+
+    nt=2
+    IF (VerticalInterp) THEN
+       CALL Collect_Grid_Full(gSpHuOut(:,:,:,nt), gWorkOut, KmaxOut, 0)
+      ELSE
+       CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxOut, 0)
+    ENDIF
+
+    IF (myid.eq.0) THEN
+      INQUIRE (IOLENGTH=IOL) gWorkprOut
+      OPEN (UNIT=nfozg, FILE=TRIM(DirOut)//TRIM(OzonOut), FORM='UNFORMATTED', &
+            ACCESS='DIRECT', RECL=IOL, ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+      IF (ios /= 0) THEN
+        WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                          TRIM(TRIM(DirOut)//TRIM(OzonOut)), &
+                                          ' returned IOStat = ', ios
+        STOP ' ** (Error) **'
+      END IF
+      DO k=1,KmaxOut
+        gWorkprOut=gWorkOut(:,:,k)
+        WRITE (UNIT=nfozg, REC=k) gWorkprOut
+      END DO
+      CLOSE(UNIT=nfozg)
+    END IF
+
+    IF (GetTracers) THEN
+
+     IF (myid.eq.0) THEN
+      OPEN (UNIT=nftrg, FILE=TRIM(DirOut)//TRIM(TracOut), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+      IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                        TRIM(TRIM(DirOut)//TRIM(TracOut)), &
+                                        ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+      END IF
+     END IF
+      DO nt=3,Ntracers
+        IF (VerticalInterp) THEN
+           CALL Collect_Grid_Full(gSpHuOut(:,:,:,nt), gWorkOut, KmaxOut, 0)
+          ELSE
+           CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxOut, 0)
+        ENDIF
+        IF (myid.eq.0) THEN
+           DO k=1,KmaxOut
+             gWorkprOut=gWorkOut(:,:,k)
+             WRITE (UNIT=nftrg)gWorkprOut 
+           END DO
+        END IF
+      END DO
+      IF  (myid.eq.0) CLOSE(UNIT=nftrg)
+    END IF
+
+  END IF
+
+END SUBROUTINE ICWrite
+
+
+
+SUBROUTINE ICWriteGDAS
+
+  IMPLICIT NONE
+
+  IF (myid.eq.0) THEN
+     OPEN (UNIT=nfcpt, FILE=TRIM(DirInp)//TRIM(DataInp), FORM='UNFORMATTED', &
+          ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+
+     IF (ios /= 0) THEN
+       WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirInp)//TRIM(DataInp)), &
+                                      ' returned IOStat = ', ios
+       STOP ' ** (Error) **'
+     END IF
+  END IF
+
+
+  IF (myid.eq.0) THEN
+    WRITE (UNIT=nfcpt) ForecastDay, TimeOfDay, DateInitial, &
+            DateCurrent, SigIInp, SigLInp, IDVCInp, IDSLInp 
+
+    WRITE (UNIT=nfprt, FMT='(/,A,I5,A,F15.4)') ' ForecastDay = ', ForecastDay, &
+                                             ' TimeOfDay = ', TimeOfDay
+    WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateInitial = ', DateInitial
+    WRITE (UNIT=nfprt, FMT='(/,A,4I5)') ' DateCurrent = ', DateCurrent
+  END IF
+
+  ! Spectral Coefficients of Orography (m)
+
+  if (havesurf) CALL Collect_Spec(qTopoInp, qWorkOut(:,1), 1, 1, 0)
+  IF (myid.eq.0) THEN
+    qWorkprOut=qWorkOut(:,1)
+    WRITE (UNIT=nfcpt) qWorkprOut
+  END IF
+
+  ! Spectral coefficients of ln(Ps) (ln(hPa)/10)
+
+  if (havesurf) CALL Collect_Spec(qLnpsInp, qWorkOut(:,1), 1, 1, 0)
+  IF (myid.eq.0) THEN
+    qWorkprOut=qWorkOut(:,1)
+    WRITE (UNIT=nfcpt) qWorkprOut
+  END IF
+
+  ! Spectral Coefficients of Virtual Temp (K)
+
+  CALL Collect_Spec(qTvirInp, qWorkInOut, kmaxloc_in, kmaxinp, 0)
+  IF (myid.eq.0) THEN
+    DO k=1,KmaxInp
+      qWorkprOut=qWorkInOut(:,k)
+      WRITE (UNIT=nfcpt) qWorkprOut
+    END DO
+  END IF
+  
+  ! Spectral Coefficients of Divergence and Vorticity (1/seg)
+
+  CALL Collect_Spec(qDivgInp, qWorkInOut, kmaxloc_in, kmaxinp, 0)
+  CALL Collect_Spec(qVortInp, qWorkInOut1, kmaxloc_in, kmaxinp, 0)
+  IF (myid.eq.0) THEN
+    DO k=1,KmaxInp
+      qWorkprOut=qWorkInOut(:,k)
+      WRITE (UNIT=nfcpt) qWorkprOut
+      qWorkprOut=qWorkInOut1(:,k)
+      WRITE (UNIT=nfcpt) qWorkprOut
+    END DO
+  END IF
+
+  ! Spectral Coefficients of Specific Humidity (g/g)
+
+  CALL Collect_Spec(qSpHuInp(:,:,1), qWorkInOut,kmaxloc_in, kmaxinp, 0)
+  IF (myid.eq.0) THEN
+    DO k=1,KmaxInp
+      qWorkprOut=qWorkInOut(:,k)
+      WRITE (UNIT=nfcpt) qWorkprOut
+    END DO
+    CLOSE(UNIT=nfcpt)
+  END IF
+
+  CLOSE(UNIT=nfcpt)
+
+  IF (GetOzone) THEN
+
+      IF (myid.eq.0) THEN
+         ! Spectral Coefficients of Ozone (?)
+         OPEN (UNIT=nfozw, FILE=TRIM(DirInp)//TRIM(OzonInp), FORM='UNFORMATTED', &
+             ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+         IF (ios /= 0) THEN
+            WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                             TRIM(TRIM(DirInp)//TRIM(OzonInp)), &
+                                             ' returned IOStat = ', ios
+            STOP ' ** (Error) **'
+         END IF
+      END IF
+      nt=2
+      CALL Collect_Spec(qSpHuInp(:,:,nt), qWorkInOut, kmaxloc_in, kmaxinp, 0)
+      IF (myid.eq.0) THEN
+         DO k=1,KmaxInp
+            qWorkprOut=qWorkInOut(:,k)
+            WRITE (UNIT=nfozw) qWorkprOut
+         END DO
+         CLOSE(UNIT=nfozw)
+      END IF
+
+      IF (GetTracers) THEN
+         IF (myid.eq.0) THEN
+            ! Spectral Coefficients of Tracers (?)
+            OPEN (UNIT=nftrw, FILE=TRIM(DirInp)//TRIM(TracInp), FORM='UNFORMATTED', &
+               ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+            IF (ios /= 0) THEN
+               WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                          TRIM(TRIM(DirInp)//TRIM(TracInp)), &
+                                          ' returned IOStat = ', ios
+               STOP ' ** (Error) **'
+            END IF
+         END IF
+         DO nt=3,Ntracers
+            CALL Collect_Spec(qSpHuInp(:,:,nt), qWorkInOut,  kmaxloc_in, kmaxinp, 0)
+            IF (myid.eq.0) THEN
+               DO k=1,KmaxInp
+                  qWorkprOut=qWorkInOut(:,k)
+                  WRITE (UNIT=nftrw)qWorkprOut 
+               END DO
+            END IF
+         END DO
+         IF  (myid.eq.0) CLOSE(UNIT=nftrw)
+      END IF
+  END IF
+
+END SUBROUTINE ICWriteGDAS
+
+
+SUBROUTINE ICRecomposition
+
+  IMPLICIT NONE
+    INTEGER :: k, ib, jb, ns, nf
+    INTEGER :: jbFirst
+    INTEGER :: jbLast
+    INTEGER :: ibFirst
+    INTEGER :: ibLast
+    INTEGER :: kFirst
+    INTEGER :: kLast
+    INTEGER :: mnRIExtFirst
+    INTEGER :: mnRIExtLast
+    REAL (KIND=r8) :: m1,m2,m3,m4,m5
+
+    CALL ThreadDecomp(1, jbMax, jbFirst, jbLast, "ICRecomp ")
+    CALL ThreadDecomp(1, ibMax, ibFirst, ibLast, "ICRecomp ")
+    CALL ThreadDecomp(1,  kMaxloc,  kFirst,  kLast, "ICRecomp ")
+    CALL ThreadDecomp(1, 2*mymnExtMax, mnRIExtFirst, mnRIExtLast, "ICRecomp ")
+    !
+    CALL dztouv(qDivgInp, qVortInp, qUvelInp, qVvelInp, mnRIExtFirst, mnRIExtLast)
+
+    ns = 2
+    nf = 3 + Ntracers
+     IF (GetNewTop .OR. SmoothTopo)  ns = ns + 1
+    IF (GrADS) nf = nf + 2
+    IF (myid.EQ.0) WRITE(nfprt,*) 'a nf, ns ', nf, ns
+    !$OMP BARRIER
+    !$OMP SINGLE
+    CALL CreateSpecToGrid(nf, ns, nf, ns)
+
+    CALL DepositSpecToGrid(qTopoInp,gTopoInp)
+    CALL DepositSpecToGrid(qLnpsInp,gLnpsInp)
+    IF (GetNewTop .OR. SmoothTopo) THEN
+       CALL DepositSpecToGrid(qTopoOut,gTopoOut)
+    ENDIF
+    IF (GrADS) THEN
+       CALL DepositSpecToGrid(qDivgInp,gDivgInp)
+       CALL DepositSpecToGrid(qVortInp,gVortInp)
+    ENDIF
+    CALL DepositSpecToGrid(qTvirInp,gTvirInp)
+    CALL DepositSpecToGrid(qUvelInp,gUvelInp)
+    CALL DepositSpecToGrid(qVvelInp,gVvelInp)
+    DO nt=1,Ntracers
+       CALL DepositSpecToGrid(qSpHuInp(:,:,nt),gSpHuInp(:,:,:,nt))
+    ENDDO
+    !$OMP END SINGLE
+    CALL DoSpecToGrid()
+    !$OMP BARRIER
+    !$OMP SINGLE
+    CALL DestroySpecToGrid()
+    !$OMP END SINGLE
+    CALL MsgOne('ICRdecomp', ' after spectogrid ')
+    !   m1 =0. 
+    !   m2 = 1.e7
+    DO j=1,Jbmax
+       DO I=1,Ibmaxperjb(j)
+        gPsfcInp(i,j)=10.0_r8*EXP(gLnPsInp(i,j))
+       END DO
+    END DO
+
+   IF (GetNewTop .OR. SmoothTopo) THEN
+    IF(GetNewTop)THEN
+       gTopoOut=0.0
+       DO jb=1,jbMax
+          DO ib=1,Ibmaxperjb(jb)
+             gTopoOut(ib,jb)=gTopoOutGaus(ib,jb)
+          END DO
+       END DO  
+    END IF
+    DO j=1,Jbmax
+       DO I=1,Ibmaxperjb(j)
+         gTopoDel(i,j)=gTopoOut(i,j)-gTopoInp(i,j)
+       END DO
+    END DO
+
+  ELSE
+
+    DO j=1,Jbmax
+       DO I=1,Ibmaxperjb(j)
+         IF(gTopoInp(i,j)<0.5)gTopoInp(i,j)=0.0
+          gTopoOut(i,j)=gTopoInp(i,j)
+       END DO
+    END DO
+
+  END IF
+
+  DO j=1,Jbmax
+    DO k=1,KmaxInp
+      DO i=1,Ibmaxperjb(j)
+        gUvelInp(i,k,j)=gUvelInp(i,k,j)/coslat(i,j)
+        gVvelInp(i,k,j)=gVvelInp(i,k,j)/coslat(i,j)
+      END DO
+    END DO
+  END DO
+    !   m1 =0. 
+    !   m2 = 1.e7
+    !   m3 =0. 
+    !   m4 = 1.e7
+    !   DO j=1,Jbmax
+    !      DO I=1,Ibmaxperjb(j)
+    !       m1 = max(m1,gtvirInp(i,1,j))
+    !       m2 = min(m2,gtvirInp(i,1,j))
+    !       m3 = max(m3,gtvirInp(i,kmaxinp,j))
+    !       m4 = min(m4,gtvirInp(i,kmaxinp,j))
+    !     END DO
+    !   END DO
+    !    write(nfprt,*) myid , 'max tvir 1',m1, ' min ', m2
+    !    write(nfprt,*) myid , 'max tvir kmax',m3, ' min ', m4
+
+END SUBROUTINE ICRecomposition
+
+
+SUBROUTINE ICDecomposition()
+
+  IMPLICIT NONE
+
+  INTEGER :: ib, jb, mn, k
+
+    CALL ReshapeVerticalGroups(KmaxOut,kMaxloc_out)
+    kmaxloc = kMaxloc_out
+    kmax = KmaxOut
+
+    DO jb = 1,jbmax
+       DO k = 1, kmaxout
+          DO ib = 1, ibMaxperjb(jb)
+             gUvelOut(ib,k,jb) = gUvelOut(ib,k,jb) * coslat(ib,jb)*rcl(ib,jb)
+             gVvelOut(ib,k,jb) = gVvelOut(ib,k,jb) * coslat(ib,jb)*rcl(ib,jb)
+          END DO
+       END DO
+    END DO
+    !$OMP BARRIER
+    !$OMP SINGLE
+    CALL CreateGridToSpec(3+Ntracers, 2)
+    CALL DepositGridToSpec(qTopoOut,gTopoOut)
+    CALL DepositGridToSpec(qLnpsOut,gLnpsOut)
+    CALL DepositGridToSpec(qUvelOut,gUvelOut)
+    CALL DepositGridToSpec(qVvelOut,gVvelOut)
+    CALL DepositGridToSpec(qTvirOut,gTvirOut)
+    DO nt=1,Ntracers
+       CALL DepositGridToSpec(qSpHuOut(:,:,nt),gSpHuOut(:,:,:,nt))
+    ENDDO
+    !$OMP END SINGLE
+    CALL DoGridToSpec()
+    !$OMP BARRIER
+    !$OMP SINGLE
+    CALL DestroyGridToSpec()
+    !$OMP END SINGLE
+    !
+    !   obtain div and vort tendencies
+    !
+    CALL Uvtodz(qUvelOut,qVvelOut,qDivgOut,qVortOut,1,2*mymnmax)
+
+    IF (GetNewTop ) THEN
+       qTopoOut=qTopoOutSpec
+    END IF 
+
+END SUBROUTINE ICDecomposition
+
+
+SUBROUTINE ICDecompositionInput()
+
+  IMPLICIT NONE
+
+  INTEGER :: ib, jb, mn, k
+
+    CALL ReshapeVerticalGroups(KmaxInp,kMaxloc_In)
+    kmaxloc = kMaxloc_In
+    kmax = KmaxInp
+
+    DO jb = 1,jbmax
+       DO k = 1, KmaxInp
+          DO ib = 1, ibMaxperjb(jb)
+             gUvelInp(ib,k,jb) = gUvelInp(ib,k,jb) * coslat(ib,jb)*rcl(ib,jb)
+             gVvelInp(ib,k,jb) = gVvelInp(ib,k,jb) * coslat(ib,jb)*rcl(ib,jb)
+          END DO
+       END DO
+    END DO
+    !$OMP BARRIER
+    !$OMP SINGLE
+!    CALL CreateGridToSpec(3+Ntracers, 2)
+    CALL CreateGridToSpec(6, 2)
+    CALL DepositGridToSpec_PK(qTopoInp,gTopoInp)
+    CALL DepositGridToSpec_PK(qLnpsInp,gLnpsInp)
+    CALL DepositGridToSpec_PK(qUvelInp,gUvelInp)
+    CALL DepositGridToSpec_PK(qVvelInp,gVvelInp)
+    CALL DepositGridToSpec_PK(qTvirInp,gTvirInp)
+    CALL DepositGridToSpec_PK(qSpHuInp(:,:,1),gSpHuInp(:,:,:,1))
+    CALL DepositGridToSpec_PK(qSpHuInp(:,:,2),gSpHuInp(:,:,:,2))
+    CALL DepositGridToSpec_PK(qSpHuInp(:,:,3),gSpHuInp(:,:,:,3))
+
+    !$OMP END SINGLE
+    CALL DoGridToSpec()
+    !$OMP BARRIER
+    !$OMP SINGLE
+    CALL DestroyGridToSpec()
+    !$OMP END SINGLE
+    !
+    !   obtain div and vort tendencies
+    !
+    CALL Uvtodz(qUvelInp,qVvelInp,qDivgInp,qVortInp,1,2*mymnmax)
+
+    IF (GetNewTop) THEN
+       qTopoInp=qTopoOutSpec
+    END IF 
+
+END SUBROUTINE ICDecompositionInput
+
+SUBROUTINE SmoothCoef()
+
+! Smoothes Spherical Harmonics Coefficients
+!          Using Hoskin's(?) Filter
+
+  INTEGER :: mn, n
+
+  REAL (KIND=r8) :: rm, rn, cx, red, rmn, ck
+
+
+    rm=REAL(2*MendCut,r8)*REAL(2*MendCut+1,r8)
+    rn=REAL(MendCut-1,r8)*REAL(MendCut,r8)
+    red=(SmthPerCut)**(-(rm*rm)/(rn*rn)/Iter)
+    cx=-LOG(red)/(rm*rm)
+    DO mn=1,mymnmax
+      n = mynMap(mn)
+      rmn=REAL(n-1,r8)*REAL(n,r8)
+      ck=(EXP(cx*rmn*rmn))**Iter
+      qTopoOut(2*mn-1)=qTopoOut(2*mn-1)*ck
+      qTopoOut(2*mn)=qTopoOut(2*mn)*ck
+    ENDDO
+
+END SUBROUTINE SmoothCoef
+
+SUBROUTINE SmoothCoef2()
+
+! Smoothes Spherical Harmonics Coefficients
+!          Using Hoskin's(?) Filter
+
+  INTEGER :: mn, n
+
+  REAL (KIND=r8) :: rm, rn, cx, red, rmn, ck
+
+
+    rm=REAL(2*MendCut,r8)*REAL(2*MendCut+1,r8)
+    rn=REAL(MendCut-1,r8)*REAL(MendCut,r8)
+    red=(SmthPerCut)**(-(rm*rm)/(rn*rn)/Iter)
+    cx=-LOG(red)/(rm*rm)
+    DO mn=1,mymnmax
+      n = mynMap(mn)
+      rmn=REAL(n-1,r8)*REAL(n,r8)
+      ck=(EXP(cx*rmn*rmn))**Iter
+      qTopoInp(2*mn-1)=qTopoInp(2*mn-1)*ck
+      qTopoInp(2*mn)=qTopoInp(2*mn)*ck
+    ENDDO
+
+END SUBROUTINE SmoothCoef2
+
+
+SUBROUTINE GetGrADSInp
+
+  IMPLICIT NONE
+
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADS     = ', GrADS
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADSOnly = ', GrADSOnly
+
+  IF (myid.eq.0) THEN
+
+    INQUIRE (IOLENGTH=IOL) gWorkprOut
+    OPEN (UNIT=nfgrd, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADS', FORM='UNFORMATTED', &
+        ACCESS='DIRECT', RECL=IOL, ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADS', &
+                                      ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+
+  ENDIF
+
+  CALL Collect_Grid_Full(gTopoInp, gWorkOut(:,:,1), 1, 0)
+  IF(myid.eq.0) THEN 
+    gWorkprOut = gWorkOut(:,:,1)
+    nRec=1
+    WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+  ENDIF
+  CALL Collect_Grid_Full(gPsfcInp, gWorkOut(:,:,1), 1, 0)
+  IF(myid.eq.0) THEN 
+    gWorkprOut = gWorkOut(:,:,1)
+    nRec=2
+    WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+  ENDIF
+  CALL Collect_Grid_Full(gTvirInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gDivgInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gVortInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+2*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gSpHuInp(:,:,:,1), gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+3*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gUvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+4*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gVvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+5*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  IF (GetOzone) THEN
+    nt=2
+    CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxInp, 0)
+    IF(myid.eq.0) THEN 
+      DO k=1,KmaxInp
+        gWorkprOut = gWorkOut(:,:,k)
+        nRec=2+INT(k+6*KmaxInp)
+        WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+      END DO
+    ENDIF
+  END IF
+  IF (GetTracers) THEN
+    DO nt=3,NTracers
+      CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxInp, 0)
+      IF(myid.eq.0) THEN 
+        DO k=1,KmaxInp
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+(4+nt)*KmaxInp)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+        END DO
+      ENDIF
+    END DO
+  END IF
+  CLOSE (UNIT=nfgrd)
+
+  IF (myid.eq.0) THEN
+    OPEN (UNIT=nfctl, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADS.ctl', FORM='FORMATTED', &
+        ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADS.ctl', &
+                                      ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'dset ^'//TRIM(DataOut)//'.GrADS'
+    WRITE (UNIT=nfctl, FMT='(A)') 'options yrev big_endian'
+    WRITE (UNIT=nfctl, FMT='(A)') 'undef 1e20'
+    WRITE (UNIT=nfctl, FMT='(A,I5,A,2F12.6)') 'xdef ',ImaxOut,' linear ', &
+                                            0.0_r8, 360.0_r8/REAL(ImaxOut,r8)
+    WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'ydef ',JmaxOut,' levels '
+    WRITE (UNIT=nfctl, FMT='(6F10.3)') lati(JmaxOut:1:-1)
+    WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'zdef ',KmaxInp,' levels '
+    IF ( IDVCInp == 0_i4 .OR. IDVCInp == 1_i4 ) THEN
+        ! Sigma case, calculate pressure for each layer directly
+       WRITE (UNIT=nfctl, FMT='(6F10.3)') 1000.0_r8*SigLayerInp(1:KmaxInp)
+    ELSE IF ( IDVCInp == 2_i4 ) THEN
+          ! Sigma-p case, first calculate pressure for each interface and then
+          ! calculate pressure on each layer according to vertical structure
+      WRITE (UNIT=nfctl, FMT='(6F10.3)') SigInterInp(1:KmaxInp)+1000.0_r8*SigLayerInp(1:KmaxInp)
+    END IF
+    WRITE (UNIT=nfctl, FMT='(3A)') 'tdef 1 linear ', Tdef,' 1dy'
+    IF (NTracers == 1) THEN
+      WRITE (UNIT=nfctl, FMT='(A)') 'vars 8'
+    ELSE
+      WRITE (UNIT=nfctl, FMT='(A,I5)') 'vars ',7+NTracers
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'topo   0 99 Topography        '//TruncInp//' (m)'
+    WRITE (UNIT=nfctl, FMT='(A)') 'pslc   0 99 Surface Pressure  '//TruncInp//' (hPa)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'tvir ',KmaxInp,' 99 Virt Temperature  '// &
+                                     TruncInp//' (K)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'divg ',KmaxInp,' 99 Divergence        '// &
+                                     TruncInp//' (1/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'vort ',KmaxInp,' 99 Vorticity         '// &
+                                     TruncInp//' (1/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'umes ',KmaxInp,' 99 Specific Humidity '// &
+                                     TruncInp//' (kg/kg)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'uvel ',KmaxInp,' 99 Zonal Wind        '// &
+                                     TruncInp//' (m/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'vvel ',KmaxInp,' 99 Meridional Wind   '// &
+                                     TruncInp//' (m/s)'
+    IF (GetOzone) THEN
+      WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'ozon ',KmaxInp,' 99 Ozone             '// &
+                                       TruncInp//' (?)'
+    END IF
+    IF (GetTracers) THEN
+      DO nt=3,NTracers
+        WRITE (UNIT=nfctl, FMT='(A,I1,A,I3,A)') 'trc',nt-2,' ',KmaxInp, &
+                             ' 99 Tracer            '//TruncInp//' (?)'
+      END DO
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'endvars'
+    CLOSE (UNIT=nfctl)
+  ENDIF
+
+END SUBROUTINE GetGrADSInp
+
+
+
+  SUBROUTINE GetGrADSOut()
+
+    IMPLICIT NONE
+
+    IF(myid.EQ.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADS     = ', GrADS
+    IF(myid.EQ.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADSOnly = ', GrADSOnly
+
+    IF (myid.EQ.0) THEN
+
+       INQUIRE (IOLENGTH=IOL) gWorkprOut
+       OPEN (UNIT=nfgrd, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADSOut', FORM='UNFORMATTED', &
+            ACCESS='DIRECT', RECL=IOL, ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+       IF (ios /= 0) THEN
+          WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+               TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADS', &
+               ' returned IOStat = ', ios
+          STOP ' ** (Error) **'
+       END IF
+
+    ENDIF
+    CALL Collect_Grid_Full(gTopoOut, gWorkOut(:,:,1), 1, 0)
+    IF(myid.EQ.0) THEN 
+       gWorkprOut = gWorkOut(:,:,1)
+       nRec=1
+       WRITE (UNIT=nfgrd, REC=nRec)gWorkprOut
+    ENDIF
+    CALL Collect_Grid_Full(gPsfcOut, gWorkOut(:,:,1), 1, 0)
+    IF(myid.EQ.0) THEN 
+       gWorkprOut = gWorkOut(:,:,1)
+       nRec=2
+       WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    ENDIF
+    CALL Collect_Grid_Full(gTvirOut, gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CALL Collect_Grid_Full(gpresOut, gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+KmaxOut)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CALL Collect_Grid_Full(gUvelOut, gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+2*KmaxOut)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CALL Collect_Grid_Full(gVvelOut, gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+3*KmaxOut)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CALL Collect_Grid_Full(gSpHuOut(:,:,:,1), gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+4*KmaxOut)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CLOSE (UNIT=nfgrd)
+
+    IF (myid.EQ.0) THEN
+       OPEN (UNIT=nfctl, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADSOut.ctl', FORM='FORMATTED', &
+            ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+       IF (ios /= 0) THEN
+          WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+               TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADSOut.ctl', &
+               ' returned IOStat = ', ios
+          STOP ' ** (Error) **'
+       END IF
+       WRITE (UNIT=nfctl, FMT='(A)') 'dset ^'//TRIM(DataOut)//'.GrADSOut'
+       WRITE (UNIT=nfctl, FMT='(A)') 'options yrev big_endian'
+       WRITE (UNIT=nfctl, FMT='(A)') 'undef 1e20'
+       WRITE (UNIT=nfctl, FMT='(A,I5,A,2F12.6)') 'xdef ',ImaxOut,' linear ', &
+            0.0_r8, 360.0_r8/REAL(ImaxOut,r8)
+       WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'ydef ',JmaxOut,' levels '
+       WRITE (UNIT=nfctl, FMT='(6F10.3)') lati(JmaxOut:1:-1)
+       WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'zdef ',KmaxOut,' levels '
+       WRITE (UNIT=nfctl, FMT='(6F10.3)') SigInterOut+1000.0_r8*SigInterOut
+       WRITE (UNIT=nfctl, FMT='(3A)') 'tdef 1 linear ', Tdef,' 1dy'
+       IF (NTracers == 1) THEN
+          WRITE (UNIT=nfctl, FMT='(A)') 'vars 6'
+       ELSE
+          WRITE (UNIT=nfctl, FMT='(A,I5)') 'vars ',4+3
+       END IF
+       WRITE (UNIT=nfctl, FMT='(A)') 'topo   0 99 Topography        '//TruncInp//' (m)'
+       WRITE (UNIT=nfctl, FMT='(A)') 'pslc   0 99 Surface Pressure  '//TruncInp//' (hPa)'
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'tvir ',KmaxOut,' 99 Virt Temperature  '// &
+            TruncInp//' (K)'
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'pres ',KmaxOut,' 99 Pressure '// &
+            TruncInp//' (kg/kg)'
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'uvel ',KmaxOut,' 99 Zonal Wind        '// &
+            TruncInp//' (m/s)'
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'vvel ',KmaxOut,' 99 Meridional Wind   '// &
+            TruncInp//' (m/s)'
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'umes ',KmaxOut,' 99 Specific Humidity Wind   '// &
+            TruncInp//' (m/s)'
+       WRITE (UNIT=nfctl, FMT='(A)') 'endvars'
+       CLOSE (UNIT=nfctl)
+    ENDIF
+
+
+
+    IF (myid.EQ.0) THEN
+
+       INQUIRE (IOLENGTH=IOL) gWorkprOut
+       OPEN (UNIT=nfgrd, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.OZONEGrADSOut', FORM='UNFORMATTED', &
+            ACCESS='DIRECT', RECL=IOL, ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+       IF (ios /= 0) THEN
+          WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+               TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.OZONEGrADSOut', &
+               ' returned IOStat = ', ios
+          STOP ' ** (Error) **'
+       END IF
+
+    ENDIF
+    CALL Collect_Grid_Full(gSpHuOut(:,:,:,2), gWorkOut, KmaxOut, 0)
+    IF(myid.EQ.0) THEN 
+       DO k=1,KmaxOut
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=0+INT(k)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+       END DO
+    ENDIF
+    CLOSE (UNIT=nfgrd)
+
+    IF (myid.EQ.0) THEN
+       OPEN (UNIT=nfctl, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.OZONEGrADSOut.ctl', FORM='FORMATTED', &
+            ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+       IF (ios /= 0) THEN
+          WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+               TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.OZONEGrADSOut.ctl', &
+               ' returned IOStat = ', ios
+          STOP ' ** (Error) **'
+       END IF
+       WRITE (UNIT=nfctl, FMT='(A)') 'dset ^'//TRIM(DataOut)//'.OZONEGrADSOut'
+       WRITE (UNIT=nfctl, FMT='(A)') 'options yrev big_endian'
+       WRITE (UNIT=nfctl, FMT='(A)') 'undef 1e20'
+       WRITE (UNIT=nfctl, FMT='(A,I5,A,2F12.6)') 'xdef ',ImaxOut,' linear ', &
+            0.0_r8, 360.0_r8/REAL(ImaxOut,r8)
+       WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'ydef ',JmaxOut,' levels '
+       WRITE (UNIT=nfctl, FMT='(6F10.3)') lati(JmaxOut:1:-1)
+       WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'zdef ',KmaxOut,' levels '
+       WRITE (UNIT=nfctl, FMT='(6F10.3)') SigInterOut+1000.0_r8*SigInterOut
+       WRITE (UNIT=nfctl, FMT='(3A)') 'tdef 1 linear ', Tdef,' 1dy'
+       IF (NTracers == 1) THEN
+          WRITE (UNIT=nfctl, FMT='(A)') 'vars 1'
+       ELSE
+          WRITE (UNIT=nfctl, FMT='(A,I5)') 'vars ',0+1
+       END IF
+       WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'ozon ',KmaxOut,' 99 OZONE   '// &
+            TruncInp//' (kg/kg)'
+       WRITE (UNIT=nfctl, FMT='(A)') 'endvars'
+       CLOSE (UNIT=nfctl)
+    ENDIF
+  END SUBROUTINE GetGrADSOut
+
+
+SUBROUTINE GetGrADSInp_GDAS
+
+  IMPLICIT NONE
+
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADS     = ', GrADS
+  if(myid.eq.0) WRITE (UNIT=nfprt, FMT='(/,A,L6,/)') ' GrADSOnly = ', GrADSOnly
+
+  IF (myid.eq.0) THEN
+
+    INQUIRE (IOLENGTH=IOL) gWorkprOut
+    OPEN (UNIT=nfgrd, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADS_PK', FORM='UNFORMATTED', &
+        ACCESS='DIRECT', RECL=IOL, ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADS_PK', &
+                                      ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+
+  ENDIF
+
+  CALL Collect_Grid_Full(gTopoInp, gWorkOut(:,:,1), 1, 0)
+  IF(myid.eq.0) THEN 
+    gWorkprOut = gWorkOut(:,:,1)
+    nRec=1
+    WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+  ENDIF
+  CALL Collect_Grid_Full(gPsfcInp, gWorkOut(:,:,1), 1, 0)
+  IF(myid.eq.0) THEN 
+    gWorkprOut = gWorkOut(:,:,1)
+    nRec=2
+    WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+  ENDIF
+  CALL Collect_Grid_Full(gTvirInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gUvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gVvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+2*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gSpHuInp(:,:,:,1), gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+3*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gUvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+4*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  CALL Collect_Grid_Full(gVvelInp, gWorkOut, KmaxInp, 0)
+  IF(myid.eq.0) THEN 
+    DO k=1,KmaxInp
+      gWorkprOut = gWorkOut(:,:,k)
+      nRec=2+INT(k+5*KmaxInp)
+      WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+    END DO
+  ENDIF
+  IF (GetOzone) THEN
+    nt=2
+    CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxInp, 0)
+    IF(myid.eq.0) THEN 
+      DO k=1,KmaxInp
+        gWorkprOut = gWorkOut(:,:,k)
+        nRec=2+INT(k+6*KmaxInp)
+        WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+      END DO
+    ENDIF
+  END IF
+  IF (GetTracers) THEN
+    DO nt=3,NTracers
+      CALL Collect_Grid_Full(gSpHuInp(:,:,:,nt), gWorkOut, KmaxInp, 0)
+      IF(myid.eq.0) THEN 
+        DO k=1,KmaxInp
+          gWorkprOut = gWorkOut(:,:,k)
+          nRec=2+INT(k+(4+nt)*KmaxInp)
+          WRITE (UNIT=nfgrd, REC=nRec) gWorkprOut
+        END DO
+      ENDIF
+    END DO
+  END IF
+  CLOSE (UNIT=nfgrd)
+
+  IF (myid.eq.0) THEN
+    OPEN (UNIT=nfctl, FILE=TRIM(DirGrd)//TRIM(DataOut)//'.GrADS_PK.ctl', FORM='FORMATTED', &
+        ACCESS='SEQUENTIAL', ACTION='WRITE', STATUS='REPLACE', IOSTAT=ios)
+    IF (ios /= 0) THEN
+      WRITE (UNIT=nferr, FMT='(3A,I4)') ' ** (Error) ** Open file ', &
+                                      TRIM(TRIM(DirGrd)//TRIM(DataOut))//'.GrADS_PK.ctl', &
+                                      ' returned IOStat = ', ios
+      STOP ' ** (Error) **'
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'dset ^'//TRIM(DataOut)//'.GrADS_PK'
+    WRITE (UNIT=nfctl, FMT='(A)') 'options yrev big_endian'
+    WRITE (UNIT=nfctl, FMT='(A)') 'undef 1e20'
+    WRITE (UNIT=nfctl, FMT='(A,I5,A,2F12.6)') 'xdef ',ImaxOut,' linear ', &
+                                            0.0_r8, 360.0_r8/REAL(ImaxOut,r8)
+    WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'ydef ',JmaxOut,' levels '
+    WRITE (UNIT=nfctl, FMT='(6F10.3)') lati(JmaxOut:1:-1)
+    WRITE (UNIT=nfctl, FMT='(A,I5,A)') 'zdef ',KmaxInp,' levels '
+    WRITE (UNIT=nfctl, FMT='(6F15.3)') SigIInp + 100000.0_r8*SigLInp
+    WRITE (UNIT=nfctl, FMT='(3A)') 'tdef 1 linear ', Tdef,' 1dy'
+    IF (NTracers == 1) THEN
+      WRITE (UNIT=nfctl, FMT='(A)') 'vars 9'
+    ELSE
+      WRITE (UNIT=nfctl, FMT='(A,I5)') 'vars ',7+NTracers
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'topo   0 99 Topography        '//TruncInp//' (m)'
+    WRITE (UNIT=nfctl, FMT='(A)') 'pslc   0 99 Surface Pressure  '//TruncInp//' (hPa)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'tvir ',KmaxInp,' 99 Virt Temperature  '// &
+                                     TruncInp//' (K)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'divg ',KmaxInp,' 99 Divergence        '// &
+                                     TruncInp//' (1/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'vort ',KmaxInp,' 99 Vorticity         '// &
+                                     TruncInp//' (1/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'umes ',KmaxInp,' 99 Specific Humidity '// &
+                                     TruncInp//' (kg/kg)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'uvel ',KmaxInp,' 99 Zonal Wind        '// &
+                                     TruncInp//' (m/s)'
+    WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'vvel ',KmaxInp,' 99 Meridional Wind   '// &
+                                     TruncInp//' (m/s)'
+    IF (GetOzone) THEN
+      WRITE (UNIT=nfctl, FMT='(A,I3,A)') 'ozon ',KmaxInp,' 99 Ozone             '// &
+                                       TruncInp//' (?)'
+    END IF
+    IF (GetTracers) THEN
+      DO nt=3,NTracers
+        WRITE (UNIT=nfctl, FMT='(A,I1,A,I3,A)') 'trc',nt-2,' ',KmaxInp, &
+                             ' 99 Tracer            '//TruncInp//' (?)'
+      END DO
+    END IF
+    WRITE (UNIT=nfctl, FMT='(A)') 'endvars'
+    CLOSE (UNIT=nfctl)
+  ENDIF
+
+END SUBROUTINE GetGrADSInp_GDAS
+END PROGRAM Chopping

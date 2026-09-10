@@ -1,0 +1,375 @@
+#!/bin/ksh
+#help#
+#************************************************************************************#
+#                                                                                    #
+# script to run CPTEC OPERATION                                                      #
+# EnvironmentalVariablesMCGA.ksh    TQZZZZLXXX                                       #
+#                                                                                    #
+#                    ZZZZ   => 4 digits spectral resolution                          #
+#                     XXX   => 3 digits vertical resolution                          #
+#                                                                                    #
+#************************************************************************************#
+#help#
+if [ "${1}" = "help" -o -z "${1}" ]
+then
+  cat < ${0} | sed -n '/^#help#/,/^#help#/p'
+  exit 1
+else
+export TRCLV=$1
+fi
+
+if [ -z "${2}" ]
+then
+  echo "PREFIX is not set"  
+  echo "PREFIX set by users" 
+else
+export PREFIX=$2
+fi
+
+LENGTH=`echo ${TRCLV} | awk '{print length($1)}'`
+if [[ ${LENGTH} -eq 10 ]] ; then 
+export TRC=`echo ${TRCLV} | awk '{print substr($1,3,4)/1}'`
+export GRID=`echo ${TRCLV} | awk '{print substr($1,2,1)}'`
+export LV=`echo ${TRCLV} | awk '{print substr($1,8,3)/1}'`
+else
+echo "ERROR AT RESOLUTION" ${TRCLV} 
+fi
+echo ${PATHBASE}; export PATHBASE=${PATHBASE}
+if [ -z "${PATHBASE}" ] ;then
+export PATHBASE=`cd ..;pwd`       # Default, if no filename specified.
+fi 
+echo ${DK}; export DK=/scratchin/grupos/pad/home/paulo.kubota/agcmibis
+if [ -z "${DK}" ] ;then
+export DK=`cd ..;pwd`       # Default, if no filename specified.
+fi
+echo ${DK2}; export DK2=/scratchout/grupos/pad/home/paulo.kubota/agcmibis
+if [ -z "${DK2}" ] ;then
+export DK2=`cd ..;pwd`       # Default, if no filename specified.
+fi 
+
+echo ${PATHBASE}     ${DK}
+export QUOTA=CPTEC
+export pbs_server2=aux20-eth4
+export pbs_server1=eslogin13
+export HOME_suite=${PATHBASE} ; mkdir -p ${HOME_suite}
+export DK_suite=${DK} ; mkdir -p ${DK_suite}
+export DK_suite2=${DK2} ; mkdir -p ${DK_suite2}
+export QSUB=/opt/pbs/default/bin/qsub
+export QUEUE=pesq
+export AUX_QUEUE=pesq.q
+export WALLTIME="10:00:00"
+export AUX_WALLTIME="0:30:00"
+export DK_NAS=/scratchout/grupos/pad/home/paulo.kubota/backup/nas/tempo/global/mcga; mkdir -p ${DK_NAS}
+export DK_HSM=/scratchout/grupos/pad/home/paulo.kubota/backup/rede/hsm/prototipo/mcga; mkdir -p ${DK_HSM}
+export DK_SAN=${DK_NAS}
+export DK_SAN=${DK_NAS}
+
+export PREFXI="${PREFIX}"     #preffix for name of input files
+export PREFXO="${PREFIX}"     #preffix for name of output files
+
+export AnlPref="gdas1"     #preffix for name of input files
+export tmstp=`date +'%s'`
+
+export caldate=${HOME_suite}/utils/bin/caldate.3.0.1
+export GRHDATAOUT=${DK_suite}/grh/dataout ; mkdir -p ${GRHDATAOUT}
+export GSSTEP=0
+export MAQUI=`uname -s`
+export NDFCT0012=180h # Tempo de integracao para as rodadas das 00 e 12 (usa o script caldate)
+export NDFCT0618=12h  # Tempo de integracao para as rodadas das 06 e 18 (usa o script caldate)
+export DIRGRADS=/opt/grads/2.0.a9/bin
+
+
+
+cat<<EOF>especificacoes_do_recorte.${TRCLV}.txt
+AMRAMS:SOUTH AMERICA :TROPOS/STRATOSPHERE :-120.000 : 80.000 :-89.570 :40.156 :1000 925 850 700 500 400 300 250 200 150 100 70 50 30 :uvel vvel zgeo psnm temp umrl:
+AMEUAF:EUROPE/AFRICA :TROPOS/STRATOSPHERE : -55.000 : 80.000 :-60.31100 :70.59700 :1000 925 850 700 500 400 300 250 200 150 100  70 50 30 :uvel vvel zgeo psnm temp umrl:
+AMSTRP:SOUTH AMERICA :TROPOSPHERE(SMALL) :-101.250 :-11.250 :-60.62040 :13.98945 :1000 850 500 200 :uvel vvel zgeo psnm umes tsfc prec cbnv:
+AMSSTS:SOUTH AMERICA :STRATOSPHERE :-101.250 :-11.250 :-60.62040 :13.98945 :100 70 50 30 :uvel vvel zgeo temp umes:
+PSATRS:PAC/SA/ATLAN  :TROPOSPHERE :-150.000 : 0.0000 :-60.62040 :28.91149 :1000 925 850 700 500 300 200 :mask uvel vvel omeg fcor potv zgeo psnm temp umrl umes tsfc prec cbnv role:
+PSASTS:PAC/SA/ATLAN  :STRATOSPHERE :-150.000 : 0.0000 :-60.62040 :28.91149 :100 70 50 30 :uvel vvel zgeo temp umes:
+AMSTRS:SOUTH AMERICA :TROPOSPHERE(BIG) :-101.250 :-11.250 :-60.62040 :13.98945 :1000 850 700 500 300 200 :mask uvel vvel omeg fcor potv zgeo psnm temp umrl umes tsfc prec cbnv role:
+AMTOVS:SOUTH AMERICA :TOVS TEMP AND TDEW :-101.250 :-11.250 :-60.62040 :13.98945 :1000 925 850 700 500 400 300 250 200 150 100 70 50 30 20 10:temp umrl:
+AGLOBO:SOUTH AMERICA PACIFIC:REDE GLOBO : -130.000 : -30.00 :-60.0000 :20.0000 :1000 925 850 700 500 300 200:pslc psnm tems tsfc prec prcv cbnv role uvel vvel omeg zgeo temp umrl umes vdcc:
+AINMET:SOUTH AMERICA PACIFIC:TROPOSPHERE BIG :-101.250 : -11.250: -60.62040: 43.83346:1000 850 700 500 300 200:mask uvel vvel omeg zgeo psnm temp umrl umes agpl tsfc prec cbnv role:
+DSAGLB:GLOBAL :TROPOS/STRATOSPHERE :0.000 : 359.0625 :-89.570 :89.570 :1000 925 850 700 500 400 300 250 200 150 100 70 50 30 20 10 3: topo lsmk pslc psnm tems umrs agpl tsfc uvel vvel zgeo temp umrl umes:
+POSUSP:GLOBAL :TROPOS/STRATOSPHERE :0.000 : 359.0625 :-89.570 :89.570 :1000 925 850 700 500 400 300 250 200 150 100 70 50 30 20 10 3: tsfc uves vves prec psnm tems umrs:
+EOF
+
+return
+
+
+
+
+# DESCOMENTAR PARA COPIA APENAS PARA O NAS export T213HSM=${T213nas}
+#export DIRSMS=
+export DIRWEB=/mpp/io_pad/backup/web1/produtos2/modpar/tempo/global/MCGA${TRCLV}; mkdir -p ${T213HSM}
+export SSTWKL1x1=/mpp/io_pad/backup/tempo/global/glbT126/model/datain; mkdir -p ${SSTWKL1x1}
+export RESOL=T${TRC}
+export NIVEL=L${LV}
+
+
+export MODCLNSTEP=0
+export CHOPSTEP=1
+export SNOWSTEP=1
+export SSTSTEP=1
+export MODELSTEP=1
+export POSTSTEP=1
+export GRIBSTEP=1
+export PRODSTEP=1
+export HSTMAQ=`hostname`
+export NDAYSBACK=1
+export REC_USP=1
+export DIRGRADS=/usr/local/grads/bin
+export T213f90=sxf90
+export NPROC=8
+export NDFCTDSA=72h
+export PREFX='AVN'
+export DHFCT=06
+export ADMLOGS=/adm/log
+export TOOLS=${HOME}/tools 
+export tmstp=`date +'%s'`
+export DIRGRB=${DK_suite}/pos/dataout/${TRCLV}
+
+############################################################################################
+#
+# Criando Links e diretorios (00-12/06-18)
+#
+#pk mkdir -p ${HOME_suite}/12/pre
+#pk
+#pk if [ ! -s ${HOME_suite}/12/pre/dataftp.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pre/dataftp.sms ${HOME_suite}/12/pre/dataftp.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/pre/chopping.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pre/chopping.sms ${HOME_suite}/12/pre/chopping.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/pre/snow.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pre/snow.sms ${HOME_suite}/12/pre/snow.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/pre/sstw.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pre/sstw.sms ${HOME_suite}/12/pre/sstw.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/12/pos
+#pk 
+#pk if [ ! -s ${HOME_suite}/12/pos/pos.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pos/pos.sms ${HOME_suite}/12/pos/pos.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/pos/UpdateGol.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/pos/UpdateGol.sms ${HOME_suite}/12/pos/UpdateGol.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/12/modelo
+#pk 
+#pk if [ ! -s ${HOME_suite}/12/modelo/modelo.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/modelo/modelo.sms ${HOME_suite}/12/modelo/modelo.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/12/produtos
+#pk 
+#pk if [ ! -s ${HOME_suite}/12/produtos/map.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/produtos/map.sms ${HOME_suite}/12/produtos/map.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/produtos/grh.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/produtos/grh.sms ${HOME_suite}/12/produtos/grh.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/produtos/skill.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/produtos/skill.sms ${HOME_suite}/12/produtos/skill.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/12/produtos/recortes.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/produtos/recortes.sms ${HOME_suite}/12/produtos/recortes.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/12/manutencao
+#pk 
+#pk if [ ! -s ${HOME_suite}/12/manutencao/manutencao.sms ]; then
+#pk  ln -sf ${HOME_suite}/00/manutencao/manutencao.sms ${HOME_suite}/12/manutencao/manutencao.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/18/pre
+#pk 
+#pk if [ ! -s ${HOME_suite}/18/pre/dataftp.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pre/dataftp.sms ${HOME_suite}/18/pre/dataftp.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/18/pre/chopping.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pre/chopping.sms ${HOME_suite}/18/pre/chopping.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/18/pre/snow.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pre/snow.sms ${HOME_suite}/18/pre/snow.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/18/pre/sstw.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pre/sstw.sms ${HOME_suite}/18/pre/sstw.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/18/pos
+#pk 
+#pk if [ ! -s ${HOME_suite}/18/pos/pos.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pos/pos.sms ${HOME_suite}/18/pos/pos.sms
+#pk fi
+#pk if [ ! -s ${HOME_suite}/18/pos/UpdateGol.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/pos/UpdateGol.sms ${HOME_suite}/18/pos/UpdateGol.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/18/modelo
+#pk
+#pk if [ ! -s ${HOME_suite}/12/modelo/modelo.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/modelo/modelo.sms ${HOME_suite}/18/modelo/modelo.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/18/produtos
+#pk 
+#pk if [ ! -s ${HOME_suite}/18/produtos/recortes.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/produtos/recortes.sms ${HOME_suite}/18/produtos/recortes.sms
+#pk fi
+#pk 
+#pk mkdir -p ${HOME_suite}/18/manutencao
+#pk 
+#pk if [ ! -s ${HOME_suite}/18/manutencao/manutencao.sms ]; then
+#pk  ln -sf ${HOME_suite}/06/manutencao/manutencao.sms ${HOME_suite}/18/manutencao/manutencao.sms
+#pk fi
+
+
+############################################################################################
+#
+# GETFILE
+#
+export GETQUEUE=oper
+#AAF export GETQUEUE=pesq
+
+############################################################################################
+#
+# CHOPPING
+#
+#export CHOPQUEUE=PNT-GL
+#export CHOPDATAOUT=${DK_suite}/Chopping/dataout; mkdir -p ${CHOPDATAOUT}
+#export CHOPDATAIN=${DK_suite}/Chopping/datain; mkdir -p ${CHOPDATAIN}
+#export CHOPOUTPUT=${DK_suite}/Chopping/output; mkdir -p ${CHOPOUTPUT}
+#export CHOPBIN=${DK_suite}/Chopping/bin; mkdir -p ${CHOPBIN}
+#export ANLAVNNAS=${T213nas}/ANLAVN; #mkdir -p ${ANLAVNNAS}
+#
+############################################################################################
+#
+# SNOW
+#
+#export SNOWQUEUE=PNT-GL
+#
+############################################################################################
+#
+# SSTWKL
+#
+#export SSTQUEUE=PNT-GL
+#
+############################################################################################
+#
+# MCGA T213L42
+#
+export MODELQUEUE=PNT-GL
+export PREFX='AVN'
+export NAMEF=GFCT${PREFX}
+export MODATAOUT=${DK_suite}/model/dataout ; mkdir -p ${MODATAOUT}
+export MODATAIN=${DK_suite}/model/datain ; mkdir -p ${MODATAIN}
+export GFCTNAS=${T213nas}/GFCT; #mkdir -p ${GFCTNAS}
+export MODELCLEAN=0
+ 
+############################################################################################
+#
+# POS - GRIB
+#
+export GRIBQUEUE=PNT-GL
+export POSDATAOUT=${DK_suite}/pos/dataout ; mkdir -p ${POSDATAOUT}
+export POSDATAIN=${DK_suite}/pos/datain ; mkdir -p ${POSDATAIN}
+export OPERM=${HOME_suite} ; mkdir -p $OPERM
+export GRIBDATAOUT=${DK_suite}/grib ; mkdir -p $GRIBDATAOUT
+export GRIBNAS=${T213nas}/grib; #mkdir -p ${GRIBNAS}
+#PK if [ ! -s ${HOME_suite}/pos/dataout ]; then
+#PK   ln -sf ${DK_suite}/pos/dataout ${HOME_suite}/pos/dataout
+#PK fi
+#PK if [ ! -s ${HOME_suite}/pos/output ]; then
+#PK   ln -sf ${DK_suite}/pos/dataout ${HOME_suite}/pos/output
+#PK fi
+
+############################################################################################
+#
+# MAPAS  
+#
+export MAPQUEUE=oper
+export MAPCLNSTEP=1
+#PK if [ ! -s ${HOME_suite}/mapas/scripts ]; then
+#PK   ln -sf ${DK_suite}/pos/dataout ${HOME_suite}/mapas/scripts/dataout
+#PK fi
+#PK if [ ! -s ${HOME_suite}/mapas/scripts ]; then
+#PK   ln -sf ${DK_suite}/pos/dataout ${HOME_suite}/mapas/scripts/output
+#PK fi
+
+############################################################################################
+#
+# GRID HISTORY
+#
+#PK mkdir -p ${HOME_suite}/grh/scripts
+#PK export GRHQUEUE=PNT-GL
+export CLEANSTEP=1
+export GRHCLNSTEP=1
+export GFGHNAS=${T213nas}/GFGH; #mkdir -p ${GFGHNAS}
+export GFGNNAS=${T213nas}/GFGN; #mkdir -p ${GFGNNAS}
+export DIRGRH=`echo ${HOME_suite}`/grh ; mkdir -p ${DIRGRH}
+export GRHDATAOUTNAS=${DK_suite}/grh/dataout ; #mkdir -p ${GRHDATAOUTNAS}
+export GRHDATAIN=${DK_suite}/grh/datain ; mkdir -p ${GRHDATAIN}
+export GFGNHSMOUT=${T213HSM}/GFGN ; #mkdir -p ${GFGNHSMOUT}
+export GRHDATAIN=${DK_suite}/grh/dataout ; mkdir -p ${GRHDATAIN}
+export GRHOUTPUT=${HOME_suite}/grh/output ; mkdir -p ${GRHOUTPUT}
+#mkdir -p ${GRHDATAOUT}/AC/;mkdir -p ${GRHDATAOUT}/AL/;mkdir -p ${GRHDATAOUT}/AM/;
+#mkdir -p ${GRHDATAOUT}/AP/;mkdir -p ${GRHDATAOUT}/BA/;mkdir -p ${GRHDATAOUT}/CE/;
+#mkdir -p ${GRHDATAOUT}/DF/;mkdir -p ${GRHDATAOUT}/ES/;mkdir -p ${GRHDATAOUT}/GO/;
+#mkdir -p ${GRHDATAOUT}/MA/;mkdir -p ${GRHDATAOUT}/MG/;mkdir -p ${GRHDATAOUT}/MS/;
+#mkdir -p ${GRHDATAOUT}/MT/;mkdir -p ${GRHDATAOUT}/PA/;mkdir -p ${GRHDATAOUT}/PB/;
+#mkdir -p ${GRHDATAOUT}/PE/;mkdir -p ${GRHDATAOUT}/PI/;mkdir -p ${GRHDATAOUT}/PR/;
+#mkdir -p ${GRHDATAOUT}/RJ/;mkdir -p ${GRHDATAOUT}/RN/;mkdir -p ${GRHDATAOUT}/RO/;
+#mkdir -p ${GRHDATAOUT}/RR/;mkdir -p ${GRHDATAOUT}/RS/;mkdir -p ${GRHDATAOUT}/SC/;
+#mkdir -p ${GRHDATAOUT}/SE/;mkdir -p ${GRHDATAOUT}/SP/;mkdir -p ${GRHDATAOUT}/TO/;
+#mkdir -p ${GRHDATAOUT}/WW/;mkdir -p ${GRHDATAOUT}/ZZ/;
+
+############################################################################################
+#
+# SKILL
+#
+export SKILLQUEUE=oper
+export DIRSKILL=${DK_suite}/skill ; mkdir -p ${DIRSKILL}
+export h_int=168    #horas de integracao
+
+############################################################################################
+#
+# RECORTES
+#
+export GPOS=GPOSNMC
+export RECDATAOUT=${DK_suite}/recortes
+export RECNAS=${T213nas}/recortes; #mkdir -p ${RECNAS}
+
+############################################################################################
+#
+# MANUTENCAO
+#
+export manftp=1   # envia arquivos para maquina web (0 desligado, 1 ligado)
+export mannas=1   # envia arquivos para o NAS (0 desligado, 1 ligado)
+export manhsm=1   # envia arquivos para o HSM (0 desligado, 1 ligado)
+
+#export LOGIN=iodopweb
+#export SENHA=a\$ami\$t
+#export MAQFTP=www6.cptec.inpe.br
+export EMAIL=rsantos@cptec.inpe.br     #endereco de mail para envio notificacoes, separar enderecos por virgulas
+export LOGIN=rio
+export SENHA=Pzn+^b
+export MAQFTP=img0.cptec.inpe.br
+############################################################################################
+#
+# VERIFICACAO
+#
+export VERIFNAS=${T213nas}/ver; #mkdir -p ${VERIFNAS}
+
+
+############################################################################################
+#
+# ENVIRONMENT 
+#
+export GADDIR=/usr/local/grads/dat
+export GRADSB=/usr/local/grads/bin
+export GASCRP=/usr/local/grads/lib
+export GAUDFT=/usr/local/grads/udf/udft

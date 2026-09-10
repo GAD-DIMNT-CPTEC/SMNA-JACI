@@ -1,0 +1,13 @@
+&InputDim
+  Mend    ='TQ0042',  !TRC   : three-digit triangular truncation
+  Kmax     ='L028',       ! vertical layers = LXXX
+ mUTC=0,              ! Diference in Hour to Greenwhich (if desired, if no set 0_i4)
+ DelT=1200.0,         ! Model Time Step in Seconds
+ TMean=1200.0,        ! Time Interval in Seconds To Average Output (1 Hour)
+  LabelI='2003010100' , ! initial forecasting label (yyyymmddhh)
+  LabelF='2003010200', ! final forecasting label (yyyymmddhh)
+ Preffix='NMC',       ! Preffix of File Names
+ GrdBox='    ',       ! Preffix Name To Skip Points (Use = 'Prox' to skip "Proxes" Points)
+ Linear=.FALSE.,       ! Preffix Name To Skip Points (Use = 'Prox' to skip "Proxes" Points) 
+
+/

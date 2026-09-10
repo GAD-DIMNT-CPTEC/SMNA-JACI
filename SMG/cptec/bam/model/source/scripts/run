@@ -1,0 +1,25 @@
+#!/bin/bash -x
+iproc=0
+fproc=8
+#            0          1          2         3           4          5          6          7           8     
+idatei=( 1979120112 1979120112 1979120112 1979120112 1979120112 1979120112 1979120112 1979120112 1979120112  )
+idatec=( 1980030112 1980030112 1985010112 1990010112 1995010112 2000010112 2005010112 2010010112 2011010112  )
+idatef=( 1980030112 1985010112 1990010112 1995010112 2000010112 2005010112 2010010112 2011010112 2011120112  )
+start=(     "COLD"     "WARM"     "WARM"       "WARM"     "WARM"     "WARM"     "WARM"     "WARM"     "WARM" )
+idef=(        2           0          0            0          0          0          0          0         0    )
+#1981120112 1981120112
+it=${iproc}
+itr=0
+export FIRST='     '
+while [ ${itr} -le ${fproc} ];do
+
+nProc=`printf "PK_OPER%4.4d  \n" ${itr}`
+export it
+export itr
+./runModel_clima   120 4  6 ${nProc} 62 28 ${idatei[$itr]} ${idatec[${itr}]}  ${idatef[$itr]} NMC sstmtd ${idef[$itr]}
+sleep 5
+export FIRST=`qstat @eslogin13  | grep -i ${nProc} | awk '{print $1}'`
+./runPos_parallel 120 24 1 ${nProc} 62 28 ${idatei[$itr]} ${idatef[$itr]} NMC ${start[${itr}]}
+let itr=${itr}+1
+done
+

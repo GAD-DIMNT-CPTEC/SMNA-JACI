@@ -1,0 +1,97 @@
+$INPUTDATA
+
+#======================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+#                  spc2grd - DMD/CPTEC/INPE - 2017                    !
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+#======================================================================
+
+#
+#   Runtime options (nao colocar linha sem espaco ou informacao depois dessa linha)
+spcFILEname= BAM.anl.gsi         #BAM.fct.06          #Format  :: '(A13,A15)'nome do arquivo de entrada espectral previsao ou analise
+dirFILEname= BAM.dir.anl.gsi     #BAM.dir.06          #Format  :: '(A13,A15)'nome do arquivo de directivas do arquivo espectral previsao ou analise
+NVars: 6                         #Format  :: '(A6,I2)'     numero de varaiveis
+topo 'TOPOGRAPHY                '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+pres 'LN SURFACE PRESSURE       '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+tmpv 'VIRTUAL TEMPERATURE       '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+dive 'DIVERGENCE                '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+vort 'VORTICITY                 '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+umes 'SPECIFIC HUMIDITY         '#Format  :: '(A4,2x,A26)' sigla no ctl e lable no arquivo espectral (ver exato lable no arquivo BAM.dir.06)
+#
+$EndINPUTDATA
+#####
+
+Variaveis disponivel nos arquivos de analise 
+
+TOPOGRAPHY                                FIXD      4032      1     10
+LN SURFACE PRESSURE                       PROG      4032      1    142
+DIVERGENCE                                PROG      4032     28     50
+VORTICITY                                 PROG      4032     28     50
+SPECIFIC HUMIDITY                         PROG      4032     28      0
+VIRTUAL TEMPERATURE                       PROG      4032     28     40
+
+Outras varaiveis disponiveis no arquivo de previsão do modelo BAM,
+
+TOPOGRAPHY                                FIXD      4032      1     10
+LAND SEA ICE MASK                         FIXD     18432      1     10
+LN SURFACE PRESSURE                       PROG      4032      1    142
+DIVERGENCE                                PROG      4032     28     50
+VORTICITY                                 PROG      4032     28     50
+SPECIFIC HUMIDITY                         PROG      4032     28      0
+VIRTUAL TEMPERATURE                       PROG      4032     28     40
+ROUGHNESS LENGTH                          PROG     18432      1     10
+SURFACE TEMPERATURE                       PROG     18432      1     40
+DEEP SOIL TEMPERATURE                     PROG     18432      1     40
+STORAGE ON CANOPY                         PROG     18432      1     10
+STORAGE ON GROUND                         PROG     18432      1     10
+SOIL WETNESS OF SURFACE                   PROG     18432      1      0
+SOIL WETNESS OF ROOT ZONE                 PROG     18432      1      0
+SOIL WETNESS OF DRAINAGE ZONE             PROG     18432      1      0
+TEMPERATURE AT 2-M FROM SURFACE           PROG     18432      1     40
+SPECIFIC HUMIDITY AT 2-M FROM SURFACE     PROG     18432      1      0
+ZONAL WIND AT 10-M FROM SURFACE           PROG     18432      1     60
+MERID WIND AT 10-M FROM SURFACE           PROG     18432      1     60
+MASK VEGETATION                           PROG     18432      1      0
+PARTIAL OXYGEN DENSITY                    PROG     18432      1    201
+CLOUD LIQUID WATER CONTENT                PROG     18432     28      0
+CLOUD ICE WATER CONTENT                   PROG     18432     28      0
+SURFACE SOIL TEMPERATURE                  PROG     18432      1      0
+VEGETATION COVER                          PROG     18432      1      0
+SNOW DEPTH                                PROG     18432      1      0
+TIME MEAN SURFACE TEMPERATURE             DIAG     18432      1     40
+TOTAL PRECIPITATION                       DIAG     18432      1    121
+CONVECTIVE PRECIPITATION                  DIAG     18432      1    121
+LARGE SCALE PRECIPITATION                 DIAG     18432      1    121
+SNOWFALL                                  DIAG     18432      1    121
+RUNOFF                                    DIAG     18432      1    121
+INTERCEPTION LOSS                         DIAG     18432      1    170
+SENSIBLE HEAT FLUX FROM SURFACE           DIAG     18432      1    170
+LATENT HEAT FLUX FROM SURFACE             DIAG     18432      1    170
+SURFACE ZONAL WIND STRESS                 DIAG     18432      1    130
+SURFACE MERIDIONAL WIND STRESS            DIAG     18432      1    130
+CLOUD COVER                               DIAG     18432      1      0
+DOWNWARD LONG WAVE AT BOTTOM              DIAG     18432      1    170
+UPWARD LONG WAVE AT BOTTOM                DIAG     18432      1    170
+OUTGOING LONG WAVE AT TOP                 DIAG     18432      1    170
+DOWNWARD SHORT WAVE AT GROUND             DIAG     18432      1    170
+UPWARD SHORT WAVE AT GROUND               DIAG     18432      1    170
+UPWARD SHORT WAVE AT TOP                  DIAG     18432      1    170
+SHORT WAVE ABSORBED AT GROUND             DIAG     18432      1    170
+NET LONG WAVE AT BOTTOM                   DIAG     18432      1    170
+GROUND/SURFACE COVER TEMPERATURE          DIAG     18432      1     40
+OZONE MIXING RATIO                        DIAG     18432     28      0
+TIME MEAN TEMP AT 2-M FROM SFC            DIAG     18432      1     40
+TIME MEAN SPEC HUMIDITY AT 2-M FROM SFC   DIAG     18432      1      0
+SPEED WIND AT 10-M FROM SURFACE           DIAG     18432      1     60
+VERTICALLY INTEGRATED OZONE CONTENT       DIAG     18432      1      0
+DEW POINT TEMPERATURE                     DIAG     18432     28     40
+TIME MEAN AT 10 METRE U-WIND COMPONENT    DIAG     18432      1     60
+TIME MEAN AT 10 METRE V-WIND COMPONENT    DIAG     18432      1     60
+CONVECTIVE AVAIL. POT.ENERGY              DIAG     18432      1    180
+CONVECTIVE INHIB. ENERGY                  DIAG     18432      1    180
+SEVERE WEATHER THREAT                     DIAG     18432      1      0
+SPEED WIND AT 50-M FROM SURFACE LAYER     DIAG     18432      1     60
+SPEED WIND AT 100-M FROM SURFACE LAYER    DIAG     18432      1     60
+DIR WIND AT 10-M FROM SURFACE LAYER       DIAG     18432      1    300
+DIR WIND AT 50-M FROM SURFACE LAYER       DIAG     18432      1    300
+DIR WIND AT 100-M FROM SURFACE LAYER      DIAG     18432      1    300

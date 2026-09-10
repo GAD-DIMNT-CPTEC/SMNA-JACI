@@ -1,0 +1,22 @@
+Os arquivos:
+
+* ocnalbtab24bnd.bin
+* ClimAodRRTM.G00096
+* F2000AodVrt.G00096
+* qr_acr_qg.dat
+* CCN_ACTIVATE.BIN
+* ClimSsaRRTM.G00096
+* F_nwvl200_mu20_lam50_res64_t298_c080428.bin
+* F2000AodRRTM.G00096
+* F2000SsaRRTM.G00096
+* ETAMPNEW_DATA
+* freezeH2O.dat
+* AlbedoSSiB
+* ClimAsyRRTM.G00096
+* iceoptics_c080917.bin
+* AeroVar.Tab
+* qr_acr_qs.dat
+* F2000AsyRRTM.G00096
+* ClimAodVrt.G00096
+
+Estão alocados em /dados/das/poper/pre_global/testcase_2.2.0/model/datain pois são binários e não devem fazer parte do controle de versões. Eles deverão ser copiados para o diretório em que o modelo for executado.

@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Usage &mdash; Inctime V0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'V0.01',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="m_stdio" href="m_stdio.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Inctime
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                V0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">Main</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#download">Download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compile">Compile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use">Use</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Inctime</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Usage</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>In this page is given an overview on how to use inctime.</p>
+<div class="section" id="download">
+<h2>Download<a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h2>
+<p>The code is hosted in the Redmine portal at CPTEC. To checkout the code, use the following command:</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>$ svn checkout https://svn.cptec.inpe.br/gdad/jgerd/tags/inctime
+</pre></div>
+</div>
+</div>
+<div class="section" id="compile">
+<h2>Compile<a class="headerlink" href="#compile" title="Permalink to this headline">¶</a></h2>
+<p>All is needed is a fortran compiler. To compile the code, enter into the <code class="code docutils literal"><span class="pre">src</span></code> directory and type <code class="code docutils literal"><span class="pre">make</span></code>. The <code class="code docutils literal"><span class="pre">Makefile</span></code> will also compile the associated modules.</p>
+<p>Once the compilation is done, an executable called <code class="code docutils literal"><span class="pre">inctime</span></code> is created.</p>
+</div>
+<div class="section" id="use">
+<h2>Use<a class="headerlink" href="#use" title="Permalink to this headline">¶</a></h2>
+<p>The way to use this program is through the command line as follows:</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>$ ./inctime <span class="o">[</span>yyyymmddhh, yyyymmdd<span class="o">]</span> <span class="o">[</span>&lt;+,-&gt;nynmndnhnnns<span class="o">]</span> <span class="o">[</span>Form. output<span class="o">]</span>
+</pre></div>
+</div>
+<p>The inctime parameters are as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li>[yyyymmddhh, yyyymmdd]<ul>
+<li>Initial Time</li>
+</ul>
+</li>
+<li>[&lt;+,-&gt;nynmndnhnnns]<ul>
+<li>( -) calculate the passed date</li>
+<li>( +) calculate the future date (default)</li>
+<li>(ny) Number of year (default is 0)</li>
+<li>(nm) Number of months (default is 0)</li>
+<li>(nd) Number of days (default is 0)</li>
+<li>(nh) Number of hours (default is 0)</li>
+<li>(nn) Number of minutes (default is 0)</li>
+<li>(ns) Number of seconds (default is 0)</li>
+</ul>
+</li>
+<li>[ Form. Output ]<ul>
+<li>Format to output date. is a template Format
+The format descriptors are similar to those
+used in the GrADS:<ul>
+<li>“%y4”  substitute with a 4 digit year</li>
+<li>“%y2”  a 2 digit year</li>
+<li>“%m1”  a 1 or 2 digit month</li>
+<li>“%m2”  a 2 digit month</li>
+<li>“%mc”  a 3 letter month in lower cases</li>
+<li>“%Mc”  a 3 letter month with a leading letter in upper case</li>
+<li>“%MC”  a 3 letter month in upper cases</li>
+<li>“%d1”  a 1 or 2 digit day</li>
+<li>“%d2”  a 2 digit day</li>
+<li>“%h1”  a 1 or 2 digit hour</li>
+<li>“%h2”  a 2 digit hour</li>
+<li>“%h3”  a 3 digit hour (?)</li>
+<li>“%n2”  a 2 digit minute</li>
+<li>“%e”   a string ensemble identify</li>
+<li>“%jd”  a julian day without hours decimals</li>
+<li>“%jdh” a julian day with hour decimals</li>
+<li>“%jy”  a day of current year without hours decimals</li>
+<li>“%jyh” a day of current year with hours decimals</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">It is possible to use words to compose the output format.</p>
+</div>
+<p>More examples:</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>$ ./inctime <span class="m">2001091000</span> +1d %d2/%m2/%y4
+$ ./inctime <span class="m">2001091000</span> +48h30n %h2Z%d2%MC%y4
+$ ./inctime <span class="m">2001091000</span> -1h30n 3B42RT.%y4%m2%d2%h2.bin
+$ ./inctime <span class="m">2001091000</span> -2h45n 3B42RT.%y4%m2%d2%h2.bin
+$ ./inctime <span class="m">2001091000</span> -1y3m2d1h45n ANYTHING.%y4%m2%d2%h2.ANYTHING
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="m_stdio.html" class="btn btn-neutral float-left" title="m_stdio" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, João Gerd Zell de Mattos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

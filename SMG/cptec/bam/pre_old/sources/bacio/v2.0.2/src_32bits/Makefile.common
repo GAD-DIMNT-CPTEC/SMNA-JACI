@@ -1,0 +1,39 @@
+LIB	= libbacio_4.a
+
+
+#
+# *****************************************************************
+#
+
+$(LIB):	$(LIB)(bacio.o baciof.o bafrio.o byteswap.o chk_endianc.o)
+
+$(LIB)(bacio.o):       bacio.c clib.h
+	${CC} -c $(CFLAGS) bacio.c
+	ar -rv $(AFLAGS) $(LIB) bacio.o
+
+$(LIB)(baciof.o):   baciof.f
+	${F77} -c $(FFLAGS) baciof.f
+	ar -rv $(AFLAGS) $(LIB) baciof.o 
+
+$(LIB)(bafrio.o):   bafrio.f
+	${F77} -c $(FFLAGS) bafrio.f
+	ar -rv $(AFLAGS) $(LIB) bafrio.o 
+
+$(LIB)(byteswap.o):       byteswap.c 
+	${CC} -c $(CFLAGS) byteswap.c
+	ar -rv $(AFLAGS) $(LIB) byteswap.o
+
+$(LIB)(chk_endianc.o):       chk_endianc.f 
+	${F77} -c $(FFLAGS) chk_endianc.f
+	ar -rv $(AFLAGS) $(LIB) chk_endianc.o
+	rm -f baciof.o bafrio.o bacio.o *.mod byteswap.o chk_endianc.o
+clean:
+	rm -f $(OBJ_MOD) $(OBJS) $(OBJS_CC) *.mod *.a
+
+.F.o:
+	$(F77) $(FFLAGS) -c -d $< 
+.f.o:
+	$(F77) $(FFLAGS) -c $< 
+.c.o:
+	$(CC) $(CFLAGS) $(DEFS) -c $< 
+

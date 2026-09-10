@@ -1,0 +1,42 @@
+icc -c  -O3 -DUNDERSCORE -DLINUX bacio.c
+ar -rv   ../lib/libbacio_4.a bacio.o
+ar: creating ../lib/libbacio_4.a
+a - bacio.o
+ifort -c  -O3 -xHOST -traceback baciof.f
+ar -rv   ../lib/libbacio_4.a baciof.o 
+a - baciof.o
+ifort -c  -O3 -xHOST -traceback bafrio.f
+ar -rv   ../lib/libbacio_4.a bafrio.o 
+a - bafrio.o
+icc -c  -O3 -DUNDERSCORE -DLINUX byteswap.c
+byteswap.c(9): warning #47: incompatible redefinition of macro "LINUX"
+  #define LINUX
+          ^
+
+ar -rv   ../lib/libbacio_4.a byteswap.o
+a - byteswap.o
+ifort -c  -O3 -xHOST -traceback chk_endianc.f
+ar -rv   ../lib/libbacio_4.a chk_endianc.o
+a - chk_endianc.o
+rm -f baciof.o bafrio.o bacio.o *.mod byteswap.o chk_endianc.o
+icc -c  -O3 -DUNDERSCORE -DLINUX bacio.c
+ar -rv   ../lib/libbacio_8.a bacio.o
+ar: creating ../lib/libbacio_8.a
+a - bacio.o
+ifort -c  -O3 -i8 -r8 -xHOST -traceback baciof.f
+ar -rv   ../lib/libbacio_8.a baciof.o 
+a - baciof.o
+ifort -c  -O3 -i8 -r8 -xHOST -traceback bafrio.f
+ar -rv   ../lib/libbacio_8.a bafrio.o 
+a - bafrio.o
+icc -c  -O3 -DUNDERSCORE -DLINUX byteswap.c
+byteswap.c(9): warning #47: incompatible redefinition of macro "LINUX"
+  #define LINUX
+          ^
+
+ar -rv   ../lib/libbacio_8.a byteswap.o
+a - byteswap.o
+ifort -c  -O3 -i8 -r8 -xHOST -traceback chk_endianc.f
+ar -rv   ../lib/libbacio_8.a chk_endianc.o
+a - chk_endianc.o
+rm -f baciof.o bafrio.o bacio.o *.mod byteswap.o chk_endianc.o

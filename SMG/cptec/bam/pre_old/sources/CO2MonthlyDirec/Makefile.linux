@@ -1,0 +1,28 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/03/06 14:43:32 $
+#  $Revision: 1.3 $
+#
+# $Id: Makefile.tupay,v 1.3 2007/03/06 14:43:32 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+
+F90=ifort -g -O
+AR=ar
+FTRACE= 
+OPENMP=
+F90_32FLAGS = 
+F90_32BITS = $(FTRACE) $(OPENMP) 
+LOADFLAG= -static
+
+# OPTIONS FOR POS
+
+F77	= ifort  -g -O 
+FFLAGS	= 
+CFLAGS	= -DINTEL
+ARFLAGS	= 
+CC	= icc
+
+include Makefile.common

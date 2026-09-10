@@ -1,0 +1,345 @@
+EXE_NAME    = ParPre_MPI
+EXEC_DIR    = ../exec
+SOURCES_DIR = ../sources
+LIB_DIR     = $(SOURCES_DIR)/lib
+LIB_BACIO32 = $(LIB_DIR)/bacio/v2.0.2/src_32bits/libbacio_4.a
+LIB_BACIO64 = $(LIB_DIR)/bacio/v2.0.2/src_64bits/libbacio_8.a
+LIB_W3LIB   = $(LIB_DIR)/w3lib-1.4/libw3.a
+NEMSIO_DIR  = $(LIB_DIR)/nemsio/v2.2.2/src
+LIB_NEMSIO  = $(NEMSIO_DIR)/libnemsio.a
+NEMSIO_INC  = $(NEMSIO_DIR)/incmod
+OUTPUTINC   = -I$(NETCDF_FORTRAN_DIR)/include -I$(NETCDF_DIR)/include  -I$(HDF5_DIR)/include
+OUTPUTLIB   = -L$(NETCDF_FORTRAN_DIR)/lib -lnetcdff  -L$(NETCDF_DIR)/lib -lnetcdf -L$(HDF5_DIR)/lib -lhdf5_hl -lhdf5
+LINKOPTS    =  -lnetcdff -lnetcdf  -lhdf5_hl -lhdf5
+LIB_NETCDF  = $(OUTPUTLIB)  $(OUTPUTINC)
+
+LIBPRE=./libpre.a
+ARCHIVE=ar rs
+
+# PRE objects
+OBJ = Mod_String_Functions.o \
+      Mod_FileManager.o \
+      Mod_Messages.o \
+      Mod_Messages_Parallel.o \
+      Mod_Parallelism.o \
+      Mod_LinearInterpolation.o \
+      Mod_AreaInterpolation.o \
+      Mod_AreaIntegerInterp.o \
+      Mod_Vfm.o \
+      Mod_Parallelism_Group.o \
+      Mod_Namelist.o \
+      Mod_AlbedoClima.o \
+      Mod_Albedo.o \
+      Mod_DeepSoilTemperature.o \
+      Mod_DeepSoilTemperatureClima.o \
+      Mod_DeltaTempColdestClima.o \
+      Mod_DeltaTempColdest.o \
+      Mod_RoughnessLength.o \
+      Mod_RoughnessLengthClima.o \
+      Mod_SoilMoisture.o \
+      Mod_SoilMoistureClima.o \
+      Mod_SoilMoistureWeekly.o \
+      Mod_SnowClima.o \
+      Mod_SnowWeeklyNCEP.o \
+      Mod_FastFourierTransform.o \
+      Mod_LegendreTransform.o \
+      Mod_PorceClayMaskIBISClima.o \
+      Mod_PorceClayMaskIBIS.o \
+      Mod_PorceSandMaskIBISClima.o \
+      Mod_PorceSandMaskIBIS.o \
+      Mod_SpectralGrid.o \
+      Mod_Get_xMax_yMax.o \
+      Mod_SSTWeeklyNCEP.o \
+      Mod_SSTWeekly.o \
+      Mod_SSTMonthlyDirec.o \
+      Mod_TopographyGradient.o \
+      $(CHOPPING_OBJ) \
+      Mod_Chopping.o \
+      Mod_FLUXCO2Clima.o \
+      Mod_SSTClima.o \
+      Mod_LandSeaMask.o \
+      Mod_Temperature.o \
+      Mod_TemperatureClima.o \
+      Mod_TopoSpectral.o \
+      Mod_TopoWaterPercGT30.o \
+      Mod_TopoWaterPercNavy.o \
+      Mod_VarTopo.o \
+      Mod_VegetationAlbedoSSiB.o \
+      Mod_VegetationMask.o \
+      Mod_VegetationMaskIBIS.o \
+      Mod_VegetationMaskIBISClima.o \
+      Mod_VegetationMaskSSiB.o \
+      Mod_OCMClima.o \
+      Mod_SSTDailyDirec.o \
+      Mod_SSTSeasonDirec.o \
+      Mod_CO2MonthlyDirec.o \
+      Mod_ModulesToRun.o \
+      Mod_AbstractModulesFacade.o \
+      Mod_ModulesFacade.o \
+      Mod_Pre.o
+
+# ===== PRE Main Program
+# $(MPIF90) Pre_Program.f90 -o $(EXE_NAME) -I$(NEMSIO_INC) $(OBJ) $(LIB_NEMSIO) $(LIB_BACIO64) $(LIB_W3LIB) $(OUTPUTLIB) $(LINKOPTS)
+# $(EXE_NAME): copy_sources_to_build $(LIB_NEMSIO) $(LIB_BACIO64) $(LIB_W3LIB) $(OBJ)
+$(EXE_NAME): copy_sources_to_build $(LIBPRE)
+	@echo ""
+	@echo ""
+	@echo " =====> Making pre program ..."
+	$(MPIF90) Pre_Program.f90 -o $(EXE_NAME) -I$(NEMSIO_INC) $(LIBPRE) $(LIB_NEMSIO) $(LIB_BACIO64) $(LIB_W3LIB) $(OUTPUTLIB)
+	-chmod +x ./$(EXE_NAME)
+
+$(LIBPRE): $(OBJ)
+	@echo ""
+	@echo ""
+	@echo " =====> Making pre LIB ..."
+	$(ARCHIVE) $(LIBPRE) $(LIB_NEMSIO) $(LIB_BACIO64) $(LIB_W3LIB) $(OBJ)
+
+# ===== Common modules for all PRE Modules
+Mod_String_Functions.o:	Mod_String_Functions.f90
+	$(MPIF90_C) Mod_String_Functions.f90
+
+Mod_Messages.o:	Mod_String_Functions.o Mod_Messages.f90 
+	$(MPIF90_C) Mod_Messages.f90
+
+Mod_Messages_Parallel.o: Mod_Messages.o Mod_Parallelism.o Mod_Messages_Parallel.f90
+	$(MPIF90_C) Mod_Messages_Parallel.f90
+
+Mod_FileManager.o:	Mod_FileManager.f90 Mod_Messages.o
+	$(MPIF90_C) Mod_FileManager.f90
+
+Mod_LinearInterpolation.o:	Mod_LinearInterpolation.f90
+	$(MPIF90_C) Mod_LinearInterpolation.f90
+
+Mod_AreaInterpolation.o: Mod_AreaInterpolation.f90
+	$(MPIF90_C) Mod_AreaInterpolation.f90
+
+Mod_AreaIntegerInterp.o: Mod_AreaIntegerInterp.f90
+	$(MPIF90_C) Mod_AreaIntegerInterp.f90
+
+Mod_Get_xMax_yMax.o: Mod_Get_xMax_yMax.f90
+	$(MPIF90_C) Mod_Get_xMax_yMax.f90
+
+Mod_FastFourierTransform.o: Mod_FastFourierTransform.f90
+	$(MPIF90_C) Mod_FastFourierTransform.f90
+
+Mod_LegendreTransform.o: Mod_LegendreTransform.f90
+	$(MPIF90_C) Mod_LegendreTransform.f90
+
+Mod_SpectralGrid.o: Mod_SpectralGrid.f90 \
+                        Mod_FastFourierTransform.o Mod_LegendreTransform.o
+	$(MPIF90_C) Mod_SpectralGrid.f90
+
+Mod_Vfm.o: Mod_Vfm.f90
+	$(MPIF90_C) Mod_Vfm.f90
+
+Mod_Parallelism.o: Mod_String_Functions.o Mod_FileManager.o Mod_Messages.o Mod_Parallelism.f90
+	$(MPIF90_C) Mod_Parallelism.f90
+
+Mod_Parallelism_Group.o: Mod_Parallelism.o Mod_Messages.o Mod_String_Functions.o Mod_Parallelism_Group.f90
+	$(MPIF90_C) Mod_Parallelism_Group.f90
+
+Mod_Namelist.o:	Mod_Namelist.f90
+	$(MPIF90_C) Mod_Namelist.f90
+
+Mod_ModulesToRun.o:	Mod_ModulesToRun.f90 Mod_AbstractModulesFacade.o Mod_Namelist.o
+	$(MPIF90_C)  Mod_ModulesToRun.f90
+
+Mod_AbstractModulesFacade.o: Mod_AbstractModulesFacade.f90
+	$(MPIF90_C)  Mod_AbstractModulesFacade.f90
+
+Mod_ModulesFacade.o: Mod_ModulesFacade.f90 Mod_AbstractModulesFacade.o Mod_Namelist.o
+	$(MPIF90_C)  Mod_ModulesFacade.f90
+
+
+
+# ===== Pre Modules =====
+Mod_Albedo.o: Mod_Albedo.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_Albedo.f90
+
+Mod_AlbedoClima.o: Mod_AlbedoClima.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_AlbedoClima.f90
+
+Mod_DeepSoilTemperature.o: Mod_DeepSoilTemperature.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_DeepSoilTemperature.f90
+
+Mod_DeepSoilTemperatureClima.o: Mod_DeepSoilTemperatureClima.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_DeepSoilTemperatureClima.f90
+
+Mod_DeltaTempColdest.o: Mod_DeltaTempColdest.f90 Mod_Namelist.o Mod_FileManager.o Mod_AreaInterpolation.o \
+						Mod_LinearInterpolation.o
+	$(MPIF90_C) Mod_DeltaTempColdest.f90
+
+Mod_DeltaTempColdestClima.o: Mod_DeltaTempColdestClima.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_DeltaTempColdestClima.f90
+
+Mod_OCMClima.o: Mod_OCMClima.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o Mod_Messages.o
+	$(MPIF90_C) Mod_OCMClima.f90
+
+Mod_SSTDailyDirec.o: Mod_SSTDailyDirec.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o Mod_Messages.o
+	$(MPIF90_C) Mod_SSTDailyDirec.f90
+
+Mod_SSTSeasonDirec.o: Mod_SSTSeasonDirec.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o Mod_Messages.o
+	$(MPIF90_C) Mod_SSTSeasonDirec.f90
+
+Mod_CO2MonthlyDirec.o: Mod_CO2MonthlyDirec.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o Mod_Messages.o
+	$(MPIF90_C) Mod_CO2MonthlyDirec.f90
+
+Mod_RoughnessLength.o: Mod_RoughnessLength.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_RoughnessLength.f90
+
+Mod_RoughnessLengthClima.o: Mod_RoughnessLengthClima.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_RoughnessLengthClima.f90
+
+Mod_SoilMoisture.o: Mod_SoilMoisture.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o Mod_AreaInterpolation.o \
+						Mod_LinearInterpolation.o
+	$(MPIF90_C) Mod_SoilMoisture.f90
+
+Mod_SoilMoistureClima.o: Mod_SoilMoistureClima.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_SoilMoistureClima.f90
+
+Mod_SoilMoistureWeekly.o: Mod_SoilMoistureWeekly.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_SoilMoistureWeekly.f90
+
+Mod_SnowClima.o: Mod_SnowClima.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_SnowClima.f90
+
+Mod_SnowWeeklyNCEP.o: Mod_SnowWeeklyNCEP.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_SnowWeeklyNCEP.f90
+
+Mod_SSTWeeklyNCEP.o: Mod_SSTWeeklyNCEP.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_SSTWeeklyNCEP.f90
+
+Mod_SSTWeekly.o: Mod_SSTWeekly.f90 Mod_FileManager.o \
+                        Mod_FastFourierTransform.o \
+                        Mod_LinearInterpolation.o Mod_AreaInterpolation.o \
+                        Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o \
+			Mod_Namelist.o
+	$(MPIF90_C) Mod_SSTWeekly.f90
+
+Mod_SSTMonthlyDirec.o: Mod_SSTMonthlyDirec.f90 Mod_FileManager.o Mod_Messages.o \
+                        Mod_FastFourierTransform.o \
+                        Mod_LinearInterpolation.o Mod_AreaInterpolation.o \
+                        Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o \
+			Mod_Namelist.o
+	$(MPIF90_C) Mod_SSTMonthlyDirec.f90
+
+Mod_Temperature.o: Mod_Temperature.f90 Mod_Namelist.o Mod_FileManager.o Mod_AreaInterpolation.o \
+						Mod_LinearInterpolation.o
+	$(MPIF90_C) Mod_Temperature.f90
+
+Mod_TemperatureClima.o: Mod_TemperatureClima.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_TemperatureClima.f90
+
+Mod_TopographyGradient.o: Mod_TopographyGradient.f90 Mod_FileManager.o \
+                        Mod_FastFourierTransform.o \
+                        Mod_LinearInterpolation.o Mod_AreaInterpolation.o \
+                        Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o \
+			Mod_Namelist.o
+	$(MPIF90_C) Mod_TopographyGradient.f90
+
+Mod_FLUXCO2Clima.o: 	Mod_FLUXCO2Clima.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o
+	$(MPIF90_C) Mod_FLUXCO2Clima.f90
+
+Mod_SSTClima.o: 	Mod_SSTClima.f90 Mod_LinearInterpolation.o Mod_FileManager.o \
+		Mod_AreaInterpolation.o Mod_FastFourierTransform.o \
+		Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_Get_xMax_yMax.o Mod_Namelist.o
+	$(MPIF90_C) Mod_SSTClima.f90
+
+Mod_LandSeaMask.o: 	Mod_LandSeaMask.f90 Mod_AreaInterpolation.o Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_LandSeaMask.f90
+
+Mod_TopoSpectral.o: 	Mod_TopoSpectral.f90 \
+			Mod_FastFourierTransform.o Mod_LegendreTransform.o Mod_SpectralGrid.o Mod_FileManager.o \
+			Mod_Get_xMax_yMax.o Mod_Namelist.o
+	$(MPIF90_C) Mod_TopoSpectral.f90
+
+Mod_TopoWaterPercGT30.o: Mod_TopoWaterPercGT30.f90
+	$(MPIF90_C) Mod_TopoWaterPercGT30.f90
+
+Mod_TopoWaterPercNavy.o: Mod_TopoWaterPercNavy.f90 Mod_FileManager.o
+	$(MPIF90_C) Mod_TopoWaterPercNavy.f90
+
+Mod_VarTopo.o: 	Mod_VarTopo.f90 Mod_AreaInterpolation.o Mod_LinearInterpolation.o Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_VarTopo.f90
+
+Mod_VegetationAlbedoSSiB.o: 	Mod_VegetationAlbedoSSiB.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_VegetationAlbedoSSiB.f90
+
+Mod_VegetationMask.o: 	Mod_VegetationMask.f90 Mod_AreaIntegerInterp.o Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_VegetationMask.f90
+
+Mod_VegetationMaskIBIS.o: 	Mod_VegetationMaskIBIS.f90 Mod_AreaIntegerInterp.o Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_VegetationMaskIBIS.f90
+
+Mod_VegetationMaskIBISClima.o: 	Mod_VegetationMaskIBISClima.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_VegetationMaskIBISClima.f90
+
+Mod_VegetationMaskSSiB.o: 	Mod_VegetationMaskSSiB.f90 Mod_Namelist.o Mod_FileManager.o Mod_Messages.o
+	$(MPIF90_C) Mod_VegetationMaskSSiB.f90
+
+Mod_PorceClayMaskIBISClima.o: 	Mod_PorceClayMaskIBISClima.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_PorceClayMaskIBISClima.f90
+
+Mod_PorceClayMaskIBIS.o: Mod_PorceClayMaskIBIS.f90 Mod_AreaIntegerInterp.o Mod_Namelist.o Mod_FileManager.o  Mod_Messages.o
+	$(MPIF90_C) Mod_PorceClayMaskIBIS.f90
+
+Mod_PorceSandMaskIBISClima.o: 	Mod_PorceSandMaskIBISClima.f90 Mod_Namelist.o Mod_FileManager.o
+	$(MPIF90_C) Mod_PorceSandMaskIBISClima.f90
+
+Mod_PorceSandMaskIBIS.o: Mod_PorceSandMaskIBIS.f90 Mod_AreaIntegerInterp.o Mod_Namelist.o Mod_FileManager.o  Mod_Messages.o
+	$(MPIF90_C) Mod_PorceSandMaskIBIS.f90
+
+
+
+# ===== PRE main module - Facade to execute all PRE Modules
+Mod_Pre.o:	Mod_Pre.f90
+	$(MPIF90_C) -I$(NEMSIO_INC)  Mod_Pre.f90
+
+
+
+copy_sources_to_build:
+	@echo ""
+	@echo ""
+	@echo " =====> copying sources to build ..."
+	-rsync -Cravzp $(SOURCES_DIR)/*.f90 $(SOURCES_DIR)/*.h $(SOURCES_DIR)/Mod_ChoppingParallel/*.f90 $(SOURCES_DIR)/Mod_ChoppingParallel/*.h .
+
+
+clean: clean_chopping
+	@echo ""
+	@echo ""
+	@echo " =====> Cleaning all sources and objects from build ..."
+	-rm -f $(OBJ)
+	-rm -f $(EXE_NAME)
+	-rm -f $(EXEC_DIR)/$(EXE_NAME)
+	-rm -f *.mod
+	-rm -f *.f90
+	-rm -f *.h
+	-rm -f Pre_Program.o
+	-rm -f $(LIBPRE)
+	@rm -f makefile.*
+
+
+install:
+	@echo ""
+	@echo ""
+	@echo " =====> Installing $(EXE_NAME) to $(EXEC_DIR)"
+	-cp -f $(EXE_NAME) $(EXEC_DIR)
+
+
+
+.PHONY: all pre
+
+
+
+include Makefile.Chopping.common
+

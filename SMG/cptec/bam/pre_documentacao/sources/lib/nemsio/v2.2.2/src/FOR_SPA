@@ -1,0 +1,13 @@
+On the Cray system:
+- create module files for the new versions in .../nwprod/lib/modulefiles/
+- cd into src folder 
+- module load PrgEnv-intel nemsio-intel craype-sandybridge
+- module list 2>compile-intel.log
+- make &>>compile-intel.log
+- make install
+- module switch PrgEnv-intel PrgEnv-cray
+- module switch nemsio-intel nemsio-cray-haswell
+- module switch craype-sandybridge craype-haswell
+- module list 2>compile-cray.log
+- make &>>compile-cray.log
+- make install

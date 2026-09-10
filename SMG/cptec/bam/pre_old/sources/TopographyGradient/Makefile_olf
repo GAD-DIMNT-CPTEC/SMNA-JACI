@@ -1,0 +1,44 @@
+#
+#  $Author: bonatti $
+#  $Date: 2011/02/17 18:00:00 $
+#  $Revision: 1.1.1.1 $
+#
+include ../make.inc
+EXEC=../../exec/TopographyGradient
+
+OBJ = 	InputParameters.o \
+	InputArrays.o \
+	FastFourierTransform.o \
+	LegendreTransform.o \
+        Spectral2Grid.o \
+	TopographyGradient.o
+
+pre: 	$(OBJ)
+	$(FTN) -o $(EXEC) $(FTNFLAG) $(LOADFLAG) $(OBJ)
+
+InputParameters.o: 	InputParameters.f90
+	$(FTN) -c $(FTNFLAG) InputParameters.f90
+
+InputArrays.o:	InputArrays.f90 InputParameters.o
+	$(FTN) -c $(FTNFLAG) InputArrays.f90
+
+FastFourierTransform.o: 	FastFourierTransform.f90 InputParameters.o
+	$(FTN) -c $(FTNFLAG) FastFourierTransform.f90
+
+LegendreTransform.o: 	LegendreTransform.f90 InputParameters.o
+	$(FTN) -c $(FTNFLAG) LegendreTransform.f90
+
+Spectral2Grid.o: 	Spectral2Grid.f90 InputParameters.o \
+			FastFourierTransform.o LegendreTransform.o
+	$(FTN) -c $(FTNFLAG) Spectral2Grid.f90
+
+TopographyGradient.o: 	TopographyGradient.f90 InputParameters.o \
+			InputArrays.o FastFourierTransform.o \
+			LegendreTransform.o Spectral2Grid.o
+	$(FTN) -c $(FTNFLAG) TopographyGradient.f90
+
+clean:
+	-rm $(OBJ)
+	-rm $(EXEC)
+	-rm *.mod
+#

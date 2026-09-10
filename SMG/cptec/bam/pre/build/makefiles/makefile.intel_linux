@@ -1,0 +1,32 @@
+#
+#  $Author: denis eiras $
+#  $Date: 2019/04/05 11:21:00 $
+#  $Revision: 2.0 $
+#
+# $Id: Makefile.tupay,v 1.3 2007/03/06 14:43:32 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for Digital Unix 4.0 and above
+#
+FTRACE=
+OPENMP= -fopenmp
+F90_FLAGS=  -g -O -convert big_endian
+F90=ifort $(F90_FLAGS)
+F90_C=$(F90) -c
+MPIF90=mpif90 $(F90_FLAGS)
+MPIF90_C=$(MPIF90) -c
+
+F77_FLAGS= -g -O -convert big_endian
+F77=ifort $(F77_FLAGS)
+
+C_FLAGS= -DINTEL
+CC=icc
+AR=ar
+
+
+# for bacio
+flagOpt="-O3 -axCore-AVX2"
+flag64bit="-i8 -r8"
+
+
+include Makefile.common

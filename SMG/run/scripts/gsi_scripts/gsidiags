@@ -1,0 +1,421 @@
+#!/usr/bin/env perl
+# 
+# GSIDiag
+#
+#  27Oct2007 Todling  Created out of analyzer
+#  06Feb2009 Todling  Update to new nomenclature of gsi output files
+#  14Feb2009 Todling  Generalized determination of last loop index using gsi.rc file
+#  22Mar2009 Todling  Add instruments handled by NCEP-Dec2008 version of GSI
+#  11Dec2009 Owens/RT Add instruments from NOAA-16/19
+#  16Jul2015 Sapucci  Addition of the metop-b satellite
+#
+#-----------------------------------------------------------------------------------------------------
+
+use Env;                 # make env vars readily available
+use File::Basename;      # for basename(), dirname()
+use File::Copy "cp";     # for cp()
+use Getopt::Long;        # load module with GetOptions function
+use Shell qw(cat rm);    # cat and rm commands
+use Time::Local;         # time functions
+use FindBin;             # so we can find where this script resides
+
+# look for perl packages in the following locations
+#--------------------------------------------------
+use lib ( "$FindBin::Bin", "$FVROOT/bin", "$ESMADIR/$ARCH/bin" );
+
+
+my $scriptname = basename($0);
+
+# Command line options
+
+  GetOptions ( "log=s",  => \$log,
+               "jiter=i" => \$jiter,
+	       "tag=s",  => \$tag,
+	       "ods",
+               "h");
+
+  usage() if $opt_h;
+
+# Parse command line, etc
+
+  init();
+
+# Rename diag files
+
+  lndiag_files($willdo);
+
+# Generate ods files if requested
+
+  d2ods() if ( $doODS );
+
+# All done
+
+# print "gsidiag: resulting files \n";
+# $rc_ignore = system('ls -lrt');
+  if ($rc==0) {
+     print "$0: sucessfully completed.\n\n";
+     exit(0);
+  } else {
+     print "$0: failed to collect diag files\n\n";
+     exit(1);
+  }
+
+
+#......................................................................
+
+sub init {
+
+   if ( $#ARGV  <  3 ) {
+     print STDERR " Missing arguments; see usage:\n";
+     usage();
+   } else {              # required command line args
+     $nymd = $ARGV[0];
+     $nhms = sprintf("%6.6d",$ARGV[1]);
+     $expid = $ARGV[2];
+     $willdo = $ARGV[3];
+     $yyyy = substr($nymd,0,4);
+     $mm   = substr($nymd,4,2);
+     $dd   = substr($nymd,6,2);
+     $hh   = substr($nhms,0,2);
+     $nymdhh  = "${nymd}${hh}";
+   }
+
+# process options
+
+   $rc    = 0;
+
+# FVROOT is where the binaries have been installed
+# ------------------------------------------------
+   $fvroot  = $ENV{FVROOT};
+   $fvwork  = $ENV{FVWORK}; if ( "$fvwork" eq "" ) { $fvwork = "./" };
+   if ( $opt_ods ) {
+        $doODS = 1;
+   } else {
+        $doODS = $ENV{D2ODS};
+   }
+   
+   $mylog = ""; if ( $log ) {$mylog = $log};
+  
+   $jiter = -1 unless ($jiter);
+
+   $do4dvar = 0;
+   $final   = 0;
+   if ( $jiter >= 0 ) { $do4dvar = 1 };
+   $tag = sprintf("%3.3d",$jiter) unless ( $tag );
+
+   if ( "$willdo" ne "set" &&  "$willdo" ne "unset" ) { 
+     print " Option not allowed; see usage:\n";
+     usage();
+   }
+
+# Welcome message
+# ---------------
+   print <<"EOF" ;
+
+   -------------------------------------------------------
+   GSIDiags -  Concatenate and rename GSI-diagnostic files
+   -------------------------------------------------------
+
+      Experiment id  : $expid
+      Work directory : $fvwork
+      Date           : $nymd
+      Time           : $nhms
+
+
+Starting...
+
+EOF
+
+}
+
+#......................................................................
+
+sub lndiag_files {
+
+  my ( $todo ) = @_;
+
+  my(@loops, @satlist, @ozlist);
+  my($var,$var1,$var2,$miter,$totiter);
+
+  print "Entering gsidiag todo = $todo \n";
+# $rc_ignore = system('ls -lrt');
+
+# Build a hash variable for the gsi loops
+# ---------------------------------------
+  %loops    = ();
+  if ($do4dvar) {
+      $myiter = sprintf("%2.2d",$jiter);
+      ($loops{$myiter}) = ($tag);
+  } else {
+      $var = `grep miter gsiparm.anl`;
+      ($var1, $var2) = split(/miter/,$var);
+      ($var1, $var2) = split(/=/,$var2);
+      ($miter,$var2) = split(/,/,$var2);
+      $totiter = sprintf("%2.2d",$miter + 1);
+      print "setup_internal: Total number of iterations: $totiter \n";
+      ($loops{"01"},$loops{"$totiter"}) = ("ges","anl");
+  }
+
+  @satlist = qw(hirs2_n14 msu_n14 goes_n08 goes_n10 goes_n12 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g10 imgr_g12 sndr_g11 sndr_g12 sndr_g13 sndr_g10_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g12 sndrd2_g12 sndrd3_g12 sndrd4_g12 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 pcp_ssmi_dmsp pcp_tmi_trmm ssmi_f08 ssmi_f10 ssmi_f11 ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_n19 amsua_n18 amsua_n19 mhs_n18 mhs_n19 amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 hirs2_n05 hirs2_n06 hirs2_n07 hirs2_n08 hirs2_n09 hirs2_n10 hirs2_n11 hirs2_n12 msu_n05 msu_n06 msu_n07 msu_n08 msu_n09 msu_n10 msu_n11 msu_n12 ssu_n05 ssu_n06 ssu_n07 ssu_n08 ssu_n09 ssu_n11 ssu_n14 metop-a hirs4_metop-a amsua_metop-a mhs_n18 mhs_metop-a iasi_metop-a metop-b hirs4_metop-b amsua_metop-b mhs_metop-b iasi_metop-b);
+  @ozlist = qw(sbuv2_n07 sbuv2_n09 sbuv2_n11 sbuv2_n14 sbuv2_n16 sbuv2_n17 sbuv2_n18 sbuv2_n19 omi_aura mlsoz_aura gome);
+
+  if ( $todo eq "set" ) {
+    print " lndiag_files: Collecting diag files ... \n";
+
+# Cat satellite diagnostic files for each processor into single file
+# NOTE: Need a dynamic way for doing this ...
+# ------------------------------------------------------------------
+  while ( ($loop,$diagtag) = each(%loops) ) {
+    print "gsidiag: inside sat loop for case: $loop $diagtag \n";
+    foreach $sat (@satlist) {
+        $files_tmp = `ls pe*.${sat}_$loop`;
+        chomp($files_tmp);
+        @files = split(/\n/,$files_tmp);
+        $files=@files;  # how many files are there
+        if ($files > 0 ) {
+           $cmd = "cat @files > diag_${sat}_$loop.${nymd}${hh}";
+           print " $cmd\n";
+           $rc_ignore = system($cmd);
+           if ( -z "diag_${sat}_$loop.${nymd}${hh}" ) {
+                rm("diag_${sat}_$loop.${nymd}${hh}");
+           } else {
+                rename("diag_${sat}_$loop.${nymd}${hh}","$fvwork/$expid.diag_${sat}_${diagtag}.${nymd}_${hh}z.bin");
+                if( "$loop" eq "01" ) {
+                   Assignfn( "$fvwork/$expid.diag_${sat}_${diagtag}.${nymd}_${hh}z.bin","diag_${sat}.${nymd}${hh}");
+                }
+           }
+        }
+    }
+  }
+
+# Cat conventional data diagnostic files for each processor into single file
+# --------------------------------------------------------------------------
+  @convlist = qw(conv);
+  while ( ($loop,$diagtag) = each(%loops) ) {
+    print "gsidiag: inside conv loop for case: $loop $diagtag \n";
+    foreach $cls (@convlist) { 
+        $filecnt = 0;
+        foreach ( <pe*.${cls}_$loop> ) { $filecnt ++ };
+        next unless ($filecnt);
+        $cmd = "cat `ls pe*.${cls}_$loop` > diag_${cls}_$loop.${nymd}${hh}";
+        print " ($filecnt files) $cmd\n";
+        $rc_ignore = system($cmd);
+        if ( -z "diag_${cls}_$loop.${nymd}${hh}" ) {
+             rm("diag_${cls}_$loop.${nymd}${hh}");
+        } else {
+             rename("diag_${cls}_$loop.${nymd}${hh}","$fvwork/$expid.diag_${cls}_${diagtag}.${nymd}_${hh}z.bin");
+        }
+    }
+  }
+
+# Cat ozone data diagnostic files for each processor into single file
+# --------------------------------------------------------------------------
+  while ( ($loop,$diagtag) = each(%loops) ) {
+    print "gsidiag: inside ozone loop for case: $loop $diagtag \n";
+    foreach $ols (@ozlist) {
+        $filecnt = 0;
+        foreach ( <pe*.${ols}_$loop> ) { $filecnt ++ };
+        next unless ($filecnt);
+        $cmd = "cat `ls pe*.${ols}_$loop` > diag_${ols}_$loop.${nymd}${hh}";
+        print " ($filecnt files) $cmd\n";
+        $rc_ignore = system($cmd);
+        if ( -z "diag_${ols}_$loop.${nymd}${hh}" ) {
+             rm("diag_${ols}_$loop.${nymd}${hh}");
+        } else {
+             rename("diag_${ols}_$loop.${nymd}${hh}","$fvwork/$expid.diag_${ols}_${diagtag}.${nymd}_${hh}z.bin");
+        }
+    }
+  }
+
+
+  } else { # clean up diag files
+    print " lndiag_files: Cleaning diag files ... \n";
+
+    my(@newlist);
+    @newlist = @satlist;
+    push(@newlist,@ozlist);
+    foreach $sat (@newlist) {
+          $files_tmp = `ls diag_${sat}.*`;
+          chomp($files_tmp);
+          @files = split(/\n/,$files_tmp);
+          $filecnt=@files;  # how many files are there
+          if ($filecnt > 0 ) {
+             if ( -e "diag_${sat}.${nymd}${hh}" ) { rm("diag_${sat}.${nymd}${hh}") };
+          }
+    }
+
+
+  }
+
+
+}
+#....................................................................................
+
+#......................................................................
+sub d2ods {
+  chdir("$fvwork");
+  $optods = " ";
+  if($opt_ods) {$optods = "-o $opt_ods"};
+  $cmd = "$fvroot/bin/diag2ods $optods $nymd $nhms $expid";
+  print " $cmd\n";
+  $rc = System($cmd, "$mylog","diag2ods");
+}
+#......................................................................
+#
+# Tick - advance date/time by nsecs seconds
+#
+#
+
+sub tick {
+    my ( $nymd, $nhms, $nsecs ) = @_;
+
+    if("$nsecs" == "0" ) {
+        return ($nymd, $nhms);
+    }
+
+    $yyyy1  = substr($nymd,0,4);
+    $mm1    = substr($nymd,4,2);
+    $dd1    = substr($nymd,6,2);
+
+    $hh1 = 0 unless ( $hh1 = substr($nhms,0,2));
+    $mn1 = 0 unless ( $mn1 = substr($nhms,2,2));
+    $ss1 = 0 unless ( $ss1 = substr($nhms,4,2));
+    $time1 = timegm($ss1,$mn1,$hh1,$dd1,$mm1-1,$yyyy1) + $nsecs;
+    ($ss1,$mn1,$hh1,$dd1,$mm1,$yyyy1,undef,undef,undef) = gmtime($time1);
+
+    $nymd = (1900+$yyyy1)*10000 + ($mm1+1)*100 + $dd1;
+    $nhms = sprintf("%6.6d",$hh1*10000 + $mn1*100 + $ss1);
+    return ($nymd, $nhms);
+
+}
+
+#....................................................................................
+sub System {
+
+    my ( $cmd, $logfile, $xname ) = @_;
+    my ( @zname );
+
+    open SAVEOUT, ">&STDOUT";  # save stdout
+    open SAVEERR, ">&STDERR";  # save stderr
+
+    open STDOUT, ">>$logfile" or die "can't redirect stdout";
+    open STDERR, ">>$logfile" or die "can't redirect stderr";
+
+    select STDERR; $| = 1;     # make it unbuffered
+    select STDOUT; $| = 1;     # make it unbuffered
+
+    @zname = split(" ", $cmd);
+    if ( "$zname[0]" eq "mpirun" || "$zname[0]" eq "prun" ) {
+      $rc1 = system( "zeit_ci.x -r $fvwork/.zeit $xname");
+    } else {
+      $rc1 = system( "zeit_ci.x -r $fvwork/.zeit $zname[0]");
+    }
+
+    $rc = system ( $cmd );     # run the shell command
+
+    if ( "$zname[0]" eq "mpirun" || "$zname[0]" eq "prun" ) {
+      $rc2 = system( "zeit_co.x -r $fvwork/.zeit $xname");
+    } else {
+      $rc2 = system( "zeit_co.x -r $fvwork/.zeit $zname[0]");
+    }
+
+    # Bitwise shift returns actual UNIX return code
+    $exit_code = $rc >> 8;
+
+    close STDOUT;
+    close STDERR;
+
+    open STDOUT, ">&SAVEOUT" ;  # restore stdout
+    open STDERR, ">&SAVEERR" ;  # restore stdout
+
+    return $exit_code;
+
+  }
+
+#......................................................................
+
+sub Assign {
+
+  my ( $fname, $lu ) = @_;
+
+  $f77name = "fort.$lu";
+  unlink($f77name) if ( -e $f77name ) ;
+  symlink("$fname","$f77name");
+
+}
+
+sub Assignfn {
+
+# Assignfn - assigns fn to given file name fname.
+# fname = old file
+# fn = new file (links to old)
+  my ( $fname, $fn ) = @_;
+  unlink($fn) if ( -e $fn ) ;
+  symlink("$fname","$fn");
+
+}
+
+sub fullpath {
+
+    my ( $fname ) = @_;
+
+    $dirn = dirname("$fname");
+    chomp($dirn = `pwd`) if ( "$dirn" eq "." ) ;
+    $name = basename("$fname");
+    $full = "$dirn/$name";
+    return ($full);
+
+  }
+
+#......................................................................
+
+sub usage {
+
+   print <<"EOF";
+
+NAME
+     gsidiags - Collect and rename all diagnostic files from GSI
+          
+SYNOPSIS
+
+     gsidiags [...options...] nymd nhms expid willdo
+          
+DESCRIPTION
+
+
+     The following parameters are required 
+
+     nymd     Year-month-day, e.g., 2002010  for 10 Jan 2002
+     nhms     Hour-month-sec, e.g., 000000   for 00Z
+     expid    Experiment id
+     willdo   choose either set or unset
+
+OPTIONS
+
+     -h            prints this usage notice
+     -jiter #      iteration number diag files were produced at
+     -tag          diag files identifier, such as, ges, anl, or ans
+     -ods          converts diag files to ODS
+     -log logfile  name of log file for this procedure 
+
+NECESSARY ENVIRONMENT
+
+OPTIONAL ENVIRONMENT
+
+  FVROOT       location of build's bin
+  ARCH         machine architecture, such as, Linux, AIX, etc
+  FVHOME       location of binaries must be defined
+  FVWORK       working env must be defined
+  D2ODS        when set, converts GSI diag output files to ods
+
+AUTHOR
+
+     Ricardo Todling (Ricardo.Todling\@nasa.gov), NASA/GSFC/GMAO
+     Last modified: 06Nov2007      by: R. Todling
+
+
+EOF
+
+  exit(1)
+
+}

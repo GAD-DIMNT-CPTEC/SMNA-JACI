@@ -1,0 +1,82 @@
+#
+#  $Author: tomita $
+#  $Date: 2007/08/01 20:09:58 $
+#  $Revision: 1.1.1.1 $
+#
+EXEC=./Chopping_parallel
+
+.SUFFIXES: .o .f90 .F90 .c
+#
+# *****************************************************************
+#
+OBJ = 	InputParameters.o \
+        InputArrays.o \
+        Parallelism.o \
+        Communications.o \
+        Transform.o \
+        VerticalInterpolation.o \
+        Utils.o \
+        Sizes.o \
+        Init.o \
+        SpecDynamics.o \
+        Chopping.o
+
+$(EXEC): $(OBJ)
+	$(MPIF90) -o $(EXEC) $(F90FLAG) $(LOADFLAG) $(OBJ)
+
+
+InputParameters.o: 	InputParameters.f90  Parallelism.o
+	$(MPIF90) -c $(F90FLAG) InputParameters.f90
+
+Init.o: 	Init.f90 Sizes.o Parallelism.o \
+		Transform.o SpecDynamics.o Utils.o Communications.o
+	$(MPIF90) -c $(F90FLAG) Init.f90
+
+InputArrays.o: 	InputArrays.f90 InputParameters.o Sizes.o
+	$(MPIF90) -c $(F90FLAG) InputArrays.f90
+
+Parallelism.o: 	Parallelism.f90
+	$(MPIF90) -c $(F90FLAG) Parallelism.f90
+
+SpecDynamics.o: SpecDynamics.f90 InputParameters.o Parallelism.o \
+		Sizes.o Utils.o
+	$(MPIF90) -c $(F90FLAG) SpecDynamics.f90
+
+Sizes.o: 	Sizes.f90 InputParameters.o Parallelism.o
+	$(MPIF90) -c $(F90FLAG) Sizes.f90
+
+Communications.o: 	Communications.f90 InputParameters.o Sizes.o \
+		Parallelism.o Utils.o
+	$(MPIF90) -c $(F90FLAG) Communications.f90
+
+VerticalInterpolation.o: 	VerticalInterpolation.f90 InputParameters.o
+	$(MPIF90) -c $(F90FLAG) VerticalInterpolation.f90
+
+Utils.o: 	Utils.f90 InputParameters.o InputArrays.o Parallelism.o \
+		Sizes.o
+	$(MPIF90) -c $(F90FLAG) Utils.f90
+
+Transform.o: 	Transform.f90 InputParameters.o Utils.f90 Parallelism.o \
+		Sizes.o Communications.o
+	$(MPIF90) -c $(F90FLAG) Transform.f90
+
+Chopping.o: 	Chopping.f90 InputParameters.o InputArrays.o Sizes.o \
+		Transform.o SpecDynamics.o Parallelism.o Communications.o \
+		VerticalInterpolation.o Utils.o
+	$(MPIF90) -c $(F90FLAG) Chopping.f90
+
+
+clean:
+	-rm -f $(OBJ)
+	-rm -f $(EXEC)
+	-rm -f *.mod
+	-rm -f Makefile.$@
+
+#
+.F90.o :
+	$(MPIF90) $(F90FLAG) -c  $<
+
+.f90.o:
+	$(MPIF90) $(F90FLAG) -c $< 
+.c.o:
+	$(CC) $(CFLAGS) $(DEFS) -c $< 

@@ -1,0 +1,49 @@
+#!/bin/bash
+# 
+# script to run CPTEC Post-processing on PC Clusters under MPI Scali
+# and Sun Grid Engine without OpenMP
+#
+# assumptions: assume present but NOT at the same directory:
+#              $FEXE/PostGrib (Post-processing Executable file)
+#              $FSCR/POSTIN-GRIB (Post-processing input Namelist file)
+#
+# usage: run_post_UNA.sh cpu_mpi cpu_node 
+# where:
+# cpu_mpi: integer, the desired number of mpi processes
+# cpu_node: integer, the desired number of mpi processes per shared memory node
+
+# script arguments and directory
+
+FSCR="/gfs/home0/hbarbosa/MPIGlobal/run"
+FEXE="/gfs/dk13/hbarbosa/MPIGlobal/pos/exec"
+
+cpu_mpi=${1};  if [[ -z "${1}"  ]]; then cpu_mpi=1 ; fi
+cpu_node=${2}; if [[ -z "${2}"  ]]; then cpu_node=1; fi
+export cpu_mpi cpu_node
+
+# total cpus and nodes
+
+num=$(($cpu_mpi+$cpu_node-1))
+fra=$(($num/$cpu_node))
+cpu_tot=$(($fra*$cpu_node))
+
+# script invoked by mpirun
+cat <<EOF1>${FSCR}/setrunpost.tx7
+#!/bin/bash
+export F_UFMTENDIAN=10,11
+export GFORTRAN_CONVERT_UNIT=big_endian:10,11
+export KMP_STACKSIZE=128m
+ulimit -s unlimited
+export MPID_RSH
+cd ${FEXE}
+time ./PostGrib  ${FSCR}/POSTIN-GRIB
+EOF1
+chmod +x setrunpost.tx7
+
+export F_UFMTENDIAN=10,11
+export KMP_STACKSIZE=128m
+ulimit -s unlimited
+export MPID_RSH
+cd ${FEXE}
+mpirun -np ${cpu_mpi} ${FSCR}/setrunpost.tx7
+

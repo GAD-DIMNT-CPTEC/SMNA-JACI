@@ -1,0 +1,190 @@
+#!/bin/ksh
+#help#
+#************************************************************************************#
+#                                                                                    #
+# script to run CPTEC OPERATION                                                      #
+# EnvironmentalVariablesMCGA.ksh    TQZZZZLXXX                                       #
+#                                                                                    #
+#                    ZZZZ   => 4 digits spectral resolution                          #
+#                     XXX   => 3 digits vertical resolution                          #
+#                                                                                    #
+#************************************************************************************#
+#help#
+
+detect_hpc_system() {
+    local sys_info=$(uname -a)
+    local short_hostname=$(hostname -s)  # Get the short hostname (without domain)
+
+    # Check for Cray XC50 system
+    if echo "$sys_info" | grep -q "cray_ari_s"; then
+        export hpc_name="xc50"
+        echo "[INFO] Detected: Cray XC50"
+    
+    # Check for EGEON Cluster system
+    elif echo "$sys_info" | grep -q "egeon"; then
+        export hpc_name="egeon"
+        export LC_ALL="en_US.UTF-8"
+        echo "[INFO] Detected: EGEON Cluster"
+
+    # Check for HEADNODE EGEON Cluster
+    elif echo "$short_hostname" | grep -q "headnode"; then
+        export hpc_name="egeon"
+        export LC_ALL="en_US.UTF-8"
+        echo "[WARNING] Detected: HEADNODE EGEON Cluster [used for compilation only]"
+
+    elif echo "$sys_info" | grep -q "Linux ian"; then
+        export hpc_system="linux"
+        export hpc_name="jaci"
+        export WRAPPER="ftn"
+        export LC_ALL="en_US.UTF-8"
+        echo "[INFO] Detected: JACI Cluster"
+
+    # Handle unknown machine
+    else
+        echo "[ERROR] Unknown machine: $short_hostname"
+        echo "[ACTION] 1) Add the machine to the defined systems in etc/mach/"
+        echo "[ACTION] 2) Define an option for it in the function copy_fixed_files inside etc/smg_setup.sh"
+        return 1
+    fi
+}
+
+#-----------------------------------------------------------------------------#
+# Get BAM trunc
+#-----------------------------------------------------------------------------#
+getBAMSize(){
+
+   trunc=${1}
+
+   case ${trunc} in
+      21)   IM=64;    JM=32;    timestep=3600;;
+      31)   IM=96;    JM=48;    timestep=1800;;
+      42)   IM=128;   JM=64;    timestep=1200;;
+      62)   IM=192;   JM=96;    timestep=900;;
+      106)  IM=320;   JM=160;   timestep=600;;
+      126)  IM=384;   JM=192;   timestep=450;;
+      133)  IM=400;   JM=200;   timestep=450;;
+      159)  IM=480;   JM=240;   timestep=360;;
+      170)  IM=512;   JM=256;   timestep=360;;
+      213)  IM=640;   JM=320;   timestep=300;;
+      254)  IM=768;   JM=384;   timestep=240;;
+      299)  IM=900;   JM=450;   timestep=200;;
+      319)  IM=960;   JM=480;   timestep=180;;
+      341)  IM=1024;  JM=512;   timestep=180;;
+      382)  IM=1152;  JM=576;   timestep=150;;
+      511)  IM=1536;  JM=768;   timestep=120;;
+      533)  IM=1600;  JM=800;   timestep=120;;
+      666)  IM=2000;  JM=1000;  timestep=90;;
+      863)  IM=2592;  JM=1296;  timestep=60;;
+      1279) IM=3840;  JM=1920;  timestep=20;;
+      1332) IM=4000;  JM=2000;  timestep=20;;
+      *)echo "Truncamento desconhecido ${trunc}"
+        return 1
+   esac
+}
+
+detect_hpc_system
+exit_code=$?
+if [[ $exit_code -ne 0 ]]; then
+    echo "[ERROR] detect_hpc_system failed. Aborting."
+    exit $exit_code
+fi
+
+#
+# Caminhos
+#
+
+case ${hpc_name} in
+   egeon)
+	# Caminho do BAM no HOME  
+      export HOMEBASE="/home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+	# Caminho do BAM no scratchin (SUBMIT_HOME)
+      export SUBTBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+	# Caminho do BAM no scratchout (SUBMIT_WORK)
+      export WORKBASE="/mnt/beegfs/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+      ;;
+   jaci)
+	# Caminho do BAM no HOME  
+      export HOMEBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam"
+	# Caminho do BAM no scratchin (SUBMIT_HOME)
+      export SUBTBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+	# Caminho do BAM no scratchout (SUBMIT_WORK)
+      export WORKBASE="/p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/datainout/bam"
+      ;;
+esac
+
+
+# Dados Externos
+case ${hpc_name} in
+   xc50)
+      dadosExternos=/lustre_xc50/ioper/data/external
+      ;;
+   eslogin*)
+      dadosExternos=/stornext/oper/tempo/externos/Download
+      ;;
+   egeon)                       # Egeon Cluster
+      export dadosExternos=/oper/dados/ioper/tempo/NCEP/input      
+      export dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos 
+      ;;
+   jaci)                       # Jaci Cluster
+      export dadosExternos=/oper/dados/ioper/tempo/NCEP/input      
+      export dadosUmidSolo=/oper/dados/modelo/umid_solo/brutos 
+      ;;
+esac
+
+#
+# Executáveis do BAM
+#
+
+export preEXEC=ParPre_MPI
+export bamEXEC=ParModel_MPI
+export posEXEC=ParPos_MPI
+
+#
+# Utilitarios
+#
+
+export caldate=${HOMEBASE}/utils/bin/caldate.3.0.1
+# export inctime=${HOMEBASE}/../bin/inctime
+export inctime=inctime
+source ${HOMEBASE}/../../run/smg_functions.sh  ## has inctime built with bash 
+case ${hpc_name} in
+   xc50)
+      export DIRGRADS=/opt/grads/2.0.a9/bin
+      export wgrib1=/cray_home/local/grads/grads-2.0.2.oga.2/bin/wgrib
+      export wgrib2=/cray_home/local/grib2/wgrib2/wgrib2
+      ;;
+   eslogin*)
+      export DIRGRADS=/opt/grads/2.1.a1/bin
+      export wgrib1=${DIRGRADS}/wgrib
+      export wgrib2=${DIRGRADS}/wgrib2
+      ;;
+   egeon)   
+       export DIRGRADS=/opt/ohpc/pub/apps/grads/2.2.1/bin
+       export wgrib1=/home/ioper/bin/grib2/wgrib/wgrib
+       export wgrib2=/home/ioper/bin/grib2/wgrib2/wgrib2
+      #
+      # Variveis do SBATCH
+      # 
+       export FILA=batch 
+      ;;
+   jaci)
+	echo -e "[INFO] hpc JACI: define caminhos do DIRGRADS e wgrib 1 e 2."
+        DIRGRADS=/p/app/opengrads/2.2.1.oga.1 
+        wgrib1=/lustre/app/wgrib2/deps/install/bin/wgrib 
+        wgrib2=/lustre/app/wgrib2/deps/install/bin/wgrib2 
+      ;;
+esac
+
+
+#
+# Variáveis do PBS
+#
+
+export QUOTA=CPTEC
+export PBS_TUPA=eslogin13
+export PBS_AUX=pesq
+export HSTMAQ=$(uname -n)
+export MAQUI=$(uname -s)
+
+export tmstp=$(date +'%s')
+

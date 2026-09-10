@@ -1,0 +1,653 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------------------------#
+#                         Brazilian global Atmospheric Model - BAM_V2.2.1                         #
+#-------------------------------------------------------------------------------------------------#
+#BOP                                                                                              #
+# Descrição:                                                                                      #
+#     Script com funções utilizadas pelos scripts do modelo BAM                                   #
+#                                                                                                 #
+# Uso:                                                                                            #
+#                                                                                                 #
+#                                                                                                 #
+# Notas:                                                                                          #
+#                                                                                                 #
+# Revisões:                                                                                       #
+#    * 19-05-2021: de Mattos, J. G. Z.  - Código Inicial                                          #
+#    * 22-11-2023: Aravequia, J. A.     - Adicionada opção headnode (EGEON)                       #
+#                                                                                                 #
+# TODO:                                                                                           #
+#                                                                                                 #
+# DIMNT/CGCT/INPE, 2021                                                                           #
+#EOP                                                                                              #
+#-------------------------------------------------------------------------------------------------#
+# Set script's real directory (follows symlinks; works when sourced or executed)
+LOCALDIR="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]:-$0}")")"
+
+#
+# Include paths
+# shellcheck disable=SC1091
+. ${LOCALDIR}/EnvironmentalVariables
+
+whereami(){
+    for i in $(seq 0 $((${#FUNCNAME[@]}-1)) );do
+       if [ ${FUNCNAME[$i]} == 'main' ];then
+          echo $(dirname $(readlink -e ${BASH_SOURCE[$i]}))
+          break
+       fi
+    done
+}
+
+assign(){
+eval export $1=$2
+}
+#--------------------------------------------------------#
+# list_nml_blocks <arquivo_nml>
+#   → ecoa os cabeçalhos encontrados (geral:, opt:, …)
+#--------------------------------------------------------#
+list_nml_blocks() {
+    awk '/^[[:alnum:]_]+:/ {sub(/:.*/,""); print $0}' "$1" | sort -u
+}
+
+###############################################################################
+# parse_namelist()
+# --------------------------------------------------------------------------- #
+# Lê um namelist, popula a variável global `modulesToRun` e, se verbose=true,
+# exibe a lista de módulos marcados como RUN/NOT.
+#
+# Variável global de controle:
+#   verbose = true  → imprime mensagens coloridas (padrão)
+#   verbose = false → modo silencioso
+#
+# Uso:
+#   parse_namelist <NMLOPT> [<namelist_file>]
+###############################################################################
+parse_namelist() {
+
+    local _nmLOPT="${1:-geral}"
+    local _nmlFile="${2:-}"
+    local _nmlBlock
+    local _searchCmd
+    local _line opt name
+
+    # ------------------------------ verbose -------------------------------- #
+    # Converte para minúsculo para aceitar true, True, etc.
+    local _verbose="${verbose,,}"
+    local _print=1        # imprime por padrão
+    [[ "${_verbose}" == "false" ]] && _print=0
+
+    # ----------------------- Opção -> bloco namelist ----------------------- #
+    case "${_nmLOPT}" in
+        0|geral) _nmlBlock="geral" ;;
+        1|opt)   _nmlBlock="opt"   ;;
+        2|debug) _nmlBlock="debug" ;;
+        3|das)   _nmlBlock="das"   ;;
+        4|chp)   _nmlBlock="chp"   ;;
+        *) [[ ${_print} -eq 1 ]] && \
+           printf '\033[31;1mLista de processos desconhecida:\033[m -n %s\n' \
+                  "${_nmLOPT}"
+           return 1 ;;
+    esac
+
+    # ---------------- Seleção do arquivo / comando sed --------------------- #
+    if [[ -z "${_nmlFile}" ]]; then
+        _nmlFile="${LOCALDIR}/runPre.nml"
+        _searchCmd="sed -n '/^${_nmlBlock}:/,/^::/{/^${_nmlBlock}:/d;/^::/d;p}'"
+    else
+        _searchCmd="sed -n '/^:/,/^::/{/^:/d;/^::/d;p}'"
+    fi
+
+    [[ -r "${_nmlFile}" ]] || { [[ ${_print} -eq 1 ]] &&                       \
+                                 echo "Arquivo '${_nmlFile}' não encontrado."; \
+                                 return 1; }
+
+    [[ ${_print} -eq 1 ]] && {
+        echo
+        printf '\033[33;1mlist of processes that will be executed\033[m\n'
+    }
+
+    modulesToRun=''
+
+    # ------------------------------ Loop ----------------------------------- #
+    while IFS= read -r _line; do
+        [[ -z "${_line//[[:space:]]/}" ]] && continue
+        read -r opt name <<<"${_line}"
+
+        assign "${name}" "${opt}"
+
+        if [[ "${opt}" -eq 0 ]]; then
+            [[ ${_print} -eq 1 ]] && printf '[\033[31;1mNOT\033[m] %s\n' "${name}"
+        elif [[ "${opt}" -eq 1 ]]; then
+            [[ ${_print} -eq 1 ]] && printf '[\033[32;1mRUN\033[m] %s\n' "${name}"
+            modulesToRun+="'${name}',"
+        fi
+    done < <(eval "${_searchCmd} \"${_nmlFile}\"")
+
+    modulesToRun="${modulesToRun%,}"   # remove vírgula à direita
+    return 0
+}
+
+#-----------------------------------------------------------------------------#
+# return a subword of a string
+#-----------------------------------------------------------------------------#
+
+subwrd(){
+   local str=$(printf "%s " "${@}" | awk '{ for (i=1; i<=NF-1; i++) printf("%s ",$i)}')
+   local n=$(printf "%s " "${@}" | awk '{ print $NF }')
+   printf "%s " "${str}" | awk -v var=${n} '{print $var}'
+}
+
+#-----------------------------------------------------------------------------#
+# return usage from main program
+#-----------------------------------------------------------------------------#
+usage(){
+   echo
+   echo "Usage:"
+   echo " "
+   sed -n '/^#BOP/,/^#EOP/{/^#BOP/d;/^#EOP/d;p}' ${1} 
+}
+#-----------------------------------------------------------------------------#
+# Return the maximum value from an Array of arguments
+#-----------------------------------------------------------------------------#
+max ( ){
+   if [ $# -eq 1 ];then
+      echo $1
+      return 0
+   fi
+   local max=${1}
+   for n in ${@} ; do
+       ((n > max)) && max=$n
+   done
+   echo $max
+}
+
+submitPre() {
+
+   #
+   # Run GetSST.ksh
+   # To deGRIB NCEP SST file with the script GetSST.ksh
+   # and to format properly the file for SSTWeekly
+   #
+
+   local dirEXEC=${SUBTBASE}/pre/exec
+
+   # Get MPI requested
+   local MPITasks=${1}
+   local TasksPerNode=${2}
+   local ThreadsPerMPITask=${3}
+   local labelOut=${4}
+
+   detect_hpc_system
+
+   # Adjust MPI info from the MPI resource requested
+   getMPIinfo -np ${MPITasks} -N ${TasksPerNode} -d ${ThreadsPerMPITask}
+
+   case ${hpc_name} in
+      egeon)
+         cat <<-EOT1 | sed 's/^[ \t]*//' > ${dirEXEC}/pre.qsb
+             #!/bin/bash
+             #SBATCH --output=/${dirEXEC}/Out.MPI${MPITasks}
+             #SBATCH --error=${dirEXEC}/Err.MPI${MPITasks}
+             #SBATCH --time=00:45:00
+             #SBATCH --ntasks=${MPITasks}
+             #SBATCH --ntasks-per-node=${TasksPerNode}    # Specify number of (MPI) tasks on each node
+             #SBATCH --cpus-per-task=1 # How many cores should get assigned to each (MPI) task
+             #SBATCH --job-name=Pp${labelOut:4:6}
+             #SBATCH --partition=${FILA}
+             
+             # Bind your OpenMP threads
+             export OMP_NUM_THREADS=1
+             export KMP_AFFINITY=verbose,granularity=thread,compact,1
+             
+             export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+             export I_MPI_COMPATIBILITY=4
+             export MP_EUIDEVELOP=min
+             
+             ulimit -s unlimited
+             ulimit -v unlimited
+             
+             module purge
+             module load intel/2021.4.0
+             module load mpi/2021.4.0 impi/2021.4.0
+             module load netcdf/4.7.4 pnetcdf/1.12.2 netcdf-fortran/4.5.3
+             
+             module list
+             
+             export KMP_STACKSIZE=128m
+             
+             mpirun -np \${SLURM_NTASKS} ${dirEXEC}/${preEXEC} > saida_${labelOut}.txt
+             
+             rm -f ${dirExec}/Dump.* > /dev/null 2>&1
+EOT1
+
+         # Submit job to the scheduler (SLURM)
+         cd ${dirEXEC}
+         PID=$(sbatch --wait pre.qsb; exit ${PIPESTATUS[0]})
+         status=$?
+         ;;
+      XC50)
+         cat <<-EOT1 | sed 's/^[ \t]*//' > ${dirEXEC}/pre.qsb
+             #!/bin/bash
+             #PBS -o ${dirEXEC}/Out.MPI${MPITasks}
+             #PBS -j oe
+             #PBS -l walltime=00:15:00
+             #PBS -A CPTEC
+             #PBS -l nodes=${Nodes}:ppn=${TasksPerNode}
+             #PBS -V
+             #PBS -S /bin/bash
+             #PBS -N ${preEXEC}
+             #PBS -q pesq
+             
+             . /opt/modules/default/etc/modules.sh
+             module load craype-x86-skylake
+             #module list
+             export OMP_WAIT_POLICY=PASSIVE
+             
+             cd ${dirEXEC}
+             
+             time aprun -n ${PEs} -N ${TasksPerNode} -d ${ThreadsPerMPITask} ${dirEXEC}/${preEXEC} > saida_${labelOut}.txt
+             rm -f ${dirExec}/Dump.* > /dev/null 2>&1 
+EOT1
+
+         # Submit job to the scheduler (PBS)
+         cd ${dirEXEC}
+         PID=$(qsub -W block=true pre.qsb; exit ${PIPESTATUS[0]})
+         status=$?
+         ;;
+      *)
+         echo "Unknown HPC system: ${hpc_name}. Job submission aborted."
+         return 1
+         ;;
+   esac
+
+   # Make output files readable
+   chmod 644 ${dirEXEC}/saida_${labelOut}.txt
+
+   # Return the status of the job submission
+   return $status
+}
+
+function getSST() {
+  local PREIN="${SUBTBASE}/pre/datain"
+  local runDate="$1"
+  local runHour="${runDate:8:2}"
+  local fileNameOut="gdas1.T%h2Z.sstgrd.%y4%m2%d2%h2"
+  check_cmd $wgrib1
+  check_cmd $wgrib2
+
+  detect_hpc_system
+  
+  case "${hpc_name}" in
+    egeon)
+      local preDataIn=( \
+        "${SUBTBASE}/pre/datain" \
+        "${dadosExternos}/%y4/%m2/%d2/%h2" \
+      )
+      ;;
+    jaci)
+      local preDataIn=( \
+        "${SUBTBASE}/pre/datain" \
+        "${dadosExternos}/%y4/%m2/%d2/%h2" \
+      )
+      ;;
+    XC50)
+      local preDataIn=( \
+        "${SUBTBASE}/pre/datain" \
+        "${dadosExternos}/%y4%m2%d2%h2/dataout/NCEP" \
+      )
+      ;;
+  esac
+
+  local files=(
+    rtgssthr_grb_0.083.grib2.%y4%m2%d2
+    rtgssthr_grb_0.5.grib2.%y4%m2%d2
+    gdas1.T%h2Z.sstgrb2.%y4%m2%d2%h2
+    gdas1.T%h2Z.sstgrb.%y4%m2%d2%h2
+  )
+
+  echo "[INFO] Searching SST on ${hpc_name}"
+  echo -e "\033[34;1m[INFO] Target SST date:\033[m \033[32;1m${runDate}\033[m"
+
+  local LABEL="${runDate}"
+  local fileOut="$(${inctime} "${runDate}" +0h "${PREIN}/${fileNameOut}")"
+
+  local attempt=0
+  while [[ ${attempt} -le 4 ]]; do
+    echo -e "\033[34;1m[INFO] Attempting SST retrieval (try ${attempt})\033[m"
+
+    for path in "${preDataIn[@]}"; do
+      for f in "${files[@]}"; do
+        local sstFile="$(${inctime} "${LABEL}" +0h "${path}/${f}")"
+
+        if [[ -e "${sstFile}" ]]; then
+          echo "[INFO] Found file: ${sstFile}"
+
+          local g1 g2
+
+          g1=$(${wgrib1} "${sstFile}" 2> /dev/null | wc -l)
+          if [[ $? -ne 0 ]]; then
+            echo -e "[\033[31;1mERROR:\033[m wgrib1 failed to process ${sstFile}]"
+            continue
+          fi
+
+          g2=$(${wgrib2} "${sstFile}" 2> /dev/null | wc -l)
+          if [[ $? -ne 0 ]]; then
+            echo -e "[\033[31;1mERROR:\033[m wgrib2 failed to process ${sstFile}]"
+            continue
+          fi
+
+          if [[ ${g1} -gt 0 ]]; then
+            echo "[INFO] Detected GRIB1 format (${g1} records)"
+            ${wgrib1} -s -4yr -d 1 -ieee "${sstFile}" -o "${fileOut}" > /dev/null 2>&1
+            if [[ $? -eq 0 ]]; then
+              echo -e "\033[33;1m[GRIB1 CONVERSION:]\033[m \033[32;1mSUCCESS\033[m"
+              return 0
+            else
+              echo -e "\033[31;1m[GRIB1 CONVERSION FAILED for ${sstFile}]\033[m"
+              return 1
+            fi
+          elif [[ ${g2} -gt 0 ]]; then
+            echo "[INFO] Detected GRIB2 format (${g2} records)"
+            ${wgrib2} -s -YY -d 1 -order we:ns "${sstFile}" -ieee "${fileOut}" > /dev/null 2>&1
+            if [[ $? -eq 0 ]]; then
+              echo -e "\033[33;1m[GRIB2 CONVERSION:]\033[m \033[32;1mSUCCESS\033[m"
+              return 0
+            else
+              echo -e "\033[31;1m[GRIB2 CONVERSION FAILED for ${sstFile}]\033[m"
+              return 1
+            fi
+          else
+            echo -e "\033[33;1m[INFO]\033[m File found but no valid GRIB records (GRIB1: ${g1}, GRIB2: ${g2})"
+          fi
+        fi
+      done
+    done
+
+    echo -e "[\033[31;1mFAIL:\033[m No valid SST file found for ${LABEL}]"
+
+    LABEL="$(${inctime} "${LABEL}" -6h "%y4%m2%d2%h2")"
+    (( attempt++ ))
+
+    if [[ ${attempt} -le 4 ]]; then
+      echo -e "\033[35;1m[INFO] Trying earlier time step: \033[m\033[33;1m${LABEL}\033[m"
+    fi
+
+    echo -e "\033[34;1m[INFO] Checking if SST was previously converted...\033[m"
+    local prevFile="$(${inctime} "${LABEL}" +0h "${PREIN}/${fileNameOut}")"
+    if [[ -e "${prevFile}" ]]; then
+      echo "[INFO] Reusing previous SST file: ${prevFile}"
+      cp -pv "${prevFile}" "${fileOut}" > /dev/null 2>&1
+      return 0
+    else
+      echo "[INFO] No previously converted SST file found for ${LABEL}"
+    fi
+  done
+
+  echo -e "\033[31;1m[ERROR] No SST file found or conversion failed. Aborting...\033[m"
+  return 2
+}
+
+getSoilFiles(){
+
+  local PREIN=${SUBTBASE}/pre/datain
+
+  #
+  # get date from command line
+  #
+
+  local runDate=${1}
+
+  #
+  # soil moisture File
+  #
+
+  local smcFile=GL_SM.GPNR.%Y%m%d%H.vfm
+
+  #
+  # paths to search (one by line)
+  #
+
+  detect_hpc_system
+  case ${hpc_name} in
+
+    egeon) local preDataIn=( \
+                   ${SUBTBASE}/pre/datain \
+                   ${dadosUmidSolo}/%Y/%m/%d/%H \
+                  )
+    ;;
+    jaci) local preDataIn=( \
+                   ${SUBTBASE}/pre/datain \
+                   ${dadosUmidSolo}/%Y/%m/%d/%H \
+                  )
+    ;;
+    XC50) local preDataIn=( \
+                   ${SUBTBASE}/pre/datain \
+                   ${dadosExternos}/%Y%m%d%H/dataout/Umid_Solo \
+                  )
+    ;;
+   esac
+
+  echo -e "\033[34;1m Getting Soil Moisture file for:\033[m \033[32;1m${runDate}\033[m"
+
+  DATA=${runDate}
+  local YY=${runDate:0:4}
+  local MM=${runDate:4:2}
+  local DD=${runDate:6:2}
+  local HH=${runDate:8:2}
+  ## file="${dadosExternos}/${DATA}/dataout/Umid_Solo/GL_SM.GPNR.${DATA}.vfm"
+
+  local LABEL=${runDate}
+  local fileOut=${PREIN}/`date -u +${smcFile} -d "${LABEL:0:8} ${HH} +0 hours"` 
+  ### $( ${inctime} ${runDate} +0h ${PREIN}/${smcFile} )
+  case ${hpc_name} in
+
+    egeon) local count=0
+           while [ ${count} -le 3 ];do
+             for path in ${preDataIn[@]};do
+                local file=`date -u +${path}/${smcFile} -d "${LABEL:0:8} ${HH} +0 hours"`
+                echo "Search "$count"   " $file
+                      ###     $( ${inctime} ${LABEL} +0h ${path}/${smcFile} )
+                if [ -e ${file} ];then
+                   ln -s ${file} ${fileOut} > /dev/null 2>&1
+                   return 0
+                fi
+             done
+             LABEL=`date -u +%Y%m%d%H -d "${LABEL:0:8} ${HH} -6 hours"`  
+             local HH=${LABEL:8:2}
+             echo $LABEL
+             #LABEL=$( ${inctime} ${LABEL} -6h %y4%m2%d2%h2) 
+            count=$((count+1))
+          done 
+      ;;
+    jaci) local count=0
+           while [ ${count} -le 3 ];do
+             for path in ${preDataIn[@]};do
+                local file=`date -u +${path}/${smcFile} -d "${LABEL:0:8} ${HH} +0 hours"`
+                echo "Search "$count"   " $file
+                      ###     $( ${inctime} ${LABEL} +0h ${path}/${smcFile} )
+                if [ -e ${file} ];then
+                   ln -s ${file} ${fileOut} > /dev/null 2>&1
+                   return 0
+                fi
+             done
+             LABEL=`date -u +%Y%m%d%H -d "${LABEL:0:8} ${HH} -6 hours"`  
+             local HH=${LABEL:8:2}
+             echo $LABEL
+             #LABEL=$( ${inctime} ${LABEL} -6h %y4%m2%d2%h2) 
+            count=$((count+1))
+          done 
+      ;;
+    XC50) local count=0
+          while [ ${count} -le 3 ];do
+            for path in ${preDataIn[@]};do
+               local file=$( ${inctime} ${LABEL} +0h ${path}/${smcFile} )
+               if [ -e ${file} ];then
+                  ln -s ${file} ${fileOut} > /dev/null 2>&1
+                  return 0
+               fi
+            done
+            LABEL=$( ${inctime} ${LABEL} -6h %y4%m2%d2%h2) 
+            count=$((count+1))
+          done
+      ;;
+  esac 
+
+   echo -e "\033[32;1m Soil moisture file for\033[m: \033[34;1m${runDate}\033[m \033[32;1m Not Found\033[m"
+   return -1
+
+}
+
+getAnlNCEP() {
+  local runDate="$1"
+  local prefix="$2"
+
+  if [[ -z "$runDate" ]]; then
+    echo "[ERROR] Data (runDate) n?o fornecida." >&2
+    return 1
+  fi
+
+  echo -e "\033[34;1m[INFO] Procurando an?lise NCEP para:\033[m \033[32;1m${runDate}\033[m"
+
+  local preDataIn="${SUBTBASE}/pre/datain"
+  local preInDir="${preDataIn}"
+
+  detect_hpc_system
+  case "${hpc_name}" in
+    egeon)
+      local YY="${runDate:0:4}"
+      local MM="${runDate:4:2}"
+      local DD="${runDate:6:2}"
+      local HH="${runDate:8:2}"
+      preInDir="${preInDir}:${dadosExternos}/${YY}/${MM}/${DD}/${HH}"
+      ;;
+    jaci)
+      local YY="${runDate:0:4}"
+      local MM="${runDate:4:2}"
+      local DD="${runDate:6:2}"
+      local HH="${runDate:8:2}"
+      preInDir="${preInDir}:${dadosExternos}/${YY}/${MM}/${DD}/${HH}"
+      ;;
+    XC50)
+      preInDir="${preInDir}:${dadosExternos}/${runDate}/dataout/NCEP"
+      ;;
+  esac
+
+  local IFS=":"
+  read -r -a preInPath <<< "${preInDir}"
+  local IFS=" "
+
+  echo "[INFO] Caminhos de busca: ${preInDir}"
+
+  local hour="${runDate:8:2}"
+  local pfx=(gdas gdas1 gblav)
+  local sfx=(SAnl atmanl.nemsio atmanl.netcdf)
+
+  local files=()
+  if [[ -n "${prefix:-}" ]]; then
+    echo "[INFO] Usando prefixo fornecido manualmente: ${prefix}"
+    for s in "${sfx[@]}"; do
+      files+=( "${prefix}.T${hour}Z.${s}.${runDate}" )
+    done
+  else
+    for p in "${pfx[@]}"; do
+      for s in "${sfx[@]}"; do
+        files+=( "${p}.T${hour}Z.${s}.${runDate}" )
+      done
+    done
+  fi
+
+  for path in "${preInPath[@]}"; do
+    echo "[INFO] Verificando diret?rio: ${path}"
+
+    if [[ ! -d "$path" ]]; then
+      echo "[WARN] Diret?rio n?o encontrado: ${path}"
+      continue
+    fi
+
+    for file in "${files[@]}"; do
+      local fullpath="${path}/${file}"
+      if [[ -f "$fullpath" ]]; then
+        echo "[INFO] Arquivo encontrado: ${fullpath}"
+        [[ "$path" != "$preDataIn" ]] && cp -p "$fullpath" "$preDataIn/" > /dev/null 2>&1
+        export GDASPrefix="${file%%.*}"
+        return 0
+      fi
+    done
+
+    # Seguran?a extra: verificar se algum dos arquivos v?lidos est? presente no diret?rio
+    for candidate in "$path"/*"${runDate}"*; do
+      [[ ! -f "$candidate" ]] && continue
+      local base="$(basename "$candidate")"
+      for valid in "${files[@]}"; do
+        if [[ "$base" == "$valid" ]]; then
+          echo "[INFO] Arquivo encontrado via compara??o de nome: ${base}"
+          cp -p "$candidate" "$preDataIn/" > /dev/null 2>&1
+          export GDASPrefix="${valid%%.*}"
+          return 0
+        fi
+      done
+    done
+  done
+
+  echo -e "\033[31;1m[ERROR] Nenhum arquivo de an?lise NCEP v?lido encontrado para ${runDate}\033[m"
+  return 1
+}
+
+getAnlNCEPsvn(){
+  #
+  # get date from command line
+  #
+
+  runDate=${1}
+  prefix=${2}
+
+  #
+  # search for ncep atmospheric anl file
+  #
+
+  preDataIn=${SUBTBASE}/pre/datain
+
+  #
+  # path to search
+  # 
+
+  preInDir=${preDataIn}
+  preInDir=${preInDir}:${dadosExternos}/${LABELI}/dataout/NCEP
+
+  local IFS=":"; read -a preInPath < <(echo "${preInDir}")
+  npaths=${#preInPath[@]}; local IFS=" "
+  #
+  #--------------------------------------------------------------
+  #
+
+  echo -e "\033[34;1m Getting NCEP analysis file for:\033[m \033[32;1m${runDate}\033[m"
+
+  hour=${runDate:8:2}
+  if [ -z ${2} ];then
+     local files=(gdas.T${hour}Z.atmanl.nemsio.${runDate} \
+                  gdas1.T${hour}Z.atmanl.nemsio.${runDate} \
+                  gblav.T${hour}Z.atmanl.nemsio.${runDate})
+  else
+     local files=${prefix}.T${hour}Z.atmanl.nemsio.${runDate}
+  fi
+  
+  i=0
+  while [ ${i} -le $((npaths-1)) ];do
+     for file in ${files[@]};do
+        local fileAnl=${preInPath[$[i]]}/${file}
+        if [ -e ${fileAnl} ];then
+           if [ ${preInPath[$i]} != ${preDataIn} ];then
+              ln -s ${fileAnl} ${preDataIn}/${file} > /dev/null 2>&1
+           fi
+           export GDASPrefix=${file%%.*}
+           return 0
+        fi
+     done
+     i=$((i+1))
+  done
+
+  #
+  # If no file are found, return -1
+  #
+  return -1
+
+}

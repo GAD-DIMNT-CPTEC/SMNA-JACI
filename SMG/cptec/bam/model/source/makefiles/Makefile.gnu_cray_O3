@@ -1,0 +1,28 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux64,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+#
+#  PC Cluster, mpi scali
+#
+FTRACE= 
+OPENMP= -fopenmp
+#F90=ftn -g -fbounds-check -fcheck=all -Wall -fbacktrace -ffpe-trap=invalid,overflow,underflow,zero  -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none ${OPENMP} -O0 -Warray-bounds 
+#F90=ftn -g -fcheck=all -Wall -fbacktrace   -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none  ${OPENMP} -O0 
+#F90=ftn -g -fbounds-check -fcheck=all -Wall -fbacktrace -ffpe-trap=invalid,overflow,underflow,zero  -finit-real=nan -finit-integer=nan -fconvert=big-endian   -finit-local-zero -ffree-line-length-none ${OPENMP} -O0 
+F90=ftn -O3 -Waliasing -Wall -fconvert=big-endian   -ffree-line-length-none ${OPENMP}  -funroll-loops -ftree-vectorizer-verbose=2      
+
+
+
+NOASSUME=
+HVECTOR=
+INLINE_CU_GRELL=
+INLINE_CU_KUO=
+INLINE_CU_RAS=
+INLINE_SOUZA=
+LOADFLAG=-static
+include Makefile.common
+ 

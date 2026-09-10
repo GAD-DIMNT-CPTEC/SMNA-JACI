@@ -1,0 +1,19 @@
+# Automatically generated dependencies. Dom Out  2 12:15:24 BRT 2011
+# fgen v0.3 (C) 1997,98 Beroud Jean-Marc
+
+
+$(srcdir)/inctime.o inctime.o: \
+	$(srcdir)/inctime.f90 \
+	$(srcdir)/m_stdio.o \
+	$(srcdir)/m_string.o \
+	$(srcdir)/m_time.o
+
+$(srcdir)/m_stdio.o m_stdio.o: \
+	$(srcdir)/m_stdio.F90
+
+$(srcdir)/m_string.o m_string.o: \
+	$(srcdir)/m_string.f90
+
+$(srcdir)/m_time.o m_time.o: \
+	$(srcdir)/m_time.f90
+

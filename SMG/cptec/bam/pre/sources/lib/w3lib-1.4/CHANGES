@@ -1,0 +1,11 @@
+
+w3lib-1.0.1  - August   2003 - Original version
+
+w3lib-1.0.2  - July     2004 - Added new grids
+
+w3lib-1.0.3  - December 2006 - Added new grids and corrected the LAT/LON increment
+
+w3lib-1.0.4  - May      2007 - Update routines (w3fi71.f and w3fi63.f) to added
+                               new data represent type 204 (CURVILINEAR ORTHOGONAL GRID)
+                               and corrected the LAT/LON increment and Added new
+                               grids

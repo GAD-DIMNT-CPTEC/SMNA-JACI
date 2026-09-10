@@ -1,0 +1,9 @@
+&TopoGradNML
+  Mend=382,  ! Spectral Horizontal Resolution of Output Data
+  Kmax=96,  ! Number of Layers of Output Data
+  IDATE='$DATA',
+  Preffix='NMC',
+  Grid='Q',
+  DirInp='/gfs/dk17/bonatti/AGCM/model/datain/ ',
+  DirOut='/gfs/dk17/bonatti/AGCM/pre/dataout/ '
+ /

@@ -1,0 +1,63 @@
+# This is a GitHub actions workflow for the NCEPLIBS-bacio project.
+#
+# This workflow dows a developer build, with address santizer, test
+# coverage, and documentation build.
+#
+# Ed Hartnett 1/19/23
+name: developer
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  developer:
+    runs-on: ubuntu-latest
+    env:
+      FC: gfortran-10
+      CC: gcc-10
+
+    steps:
+
+    - name: install-dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install doxygen
+        python3 -m pip install gcovr
+
+    - name: checkout
+      uses: actions/checkout@v2
+      with: 
+        path: bacio
+
+    - name: build
+      run: |
+        cd bacio
+        mkdir build 
+        cd build
+        cmake -DENABLE_DOCS=ON -DCMAKE_Fortran_FLAGS="-g -fprofile-abs-path -fprofile-arcs -ftest-coverage -O0 -fsanitize=address -Wall -Werror" -DCMAKE_C_FLAGS="-g -fprofile-abs-path -fprofile-arcs -ftest-coverage -O0 -fsanitize=address -Wall -Werror" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON ..
+        make -j2 VERBOSE=1
+
+    - name: test
+      run: |
+        set -e
+        cd $GITHUB_WORKSPACE/bacio/build
+        ctest --output-on-failure --rerun-failed --verbose
+        gcovr --root .. -v  --html-details --exclude ../tests --exclude CMakeFiles --print-summary -o test-coverage.html &> /dev/null
+
+    - name: upload-test-coverage
+      uses: actions/upload-artifact@v2
+      with:
+        name: bacio-test-coverage
+        path: |
+          bacio/build/*.html
+          bacio/build/*.css
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: docs
+        path: |
+          bacio/build/docs/html

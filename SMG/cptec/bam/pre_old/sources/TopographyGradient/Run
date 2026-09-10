@@ -1,0 +1,27 @@
+#!/bin/ksh
+#
+dirhome=/gfs/home0/bonatti
+dirdata=/gfs/dk15/bonatti
+#
+dirsrc=${dirhome}/PsiChi
+direxe=${dirdata}/PsiChi/exec
+dirout=${dirdata}/PsiChi/output
+#
+DATE=`date +'%Y%m%d'`
+HOUR=`date +'%T'`
+echo 'Date: '${DATE}
+echo 'Hour: '${HOUR}
+#
+bin=${direxe}/PsiChi.bin
+out=${dirout}/PsiChi_${DATE}_${HOUR}.out
+nml=${dirsrc}/PsiChi.nml
+#
+rm -f ${out}
+echo " "
+echo " ${bin} < ${nml} > ${out}"
+echo " "
+time ${bin} < ${nml} > ${out} 2>&1
+#
+cat ${out}
+echo " "
+#

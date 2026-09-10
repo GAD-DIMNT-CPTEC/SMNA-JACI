@@ -1,0 +1,79 @@
+#
+#  $Author: pkubota $
+#  $Date: 2007/10/10 20:24:23 $
+#  $Revision: 1.1 $
+#
+# $Id: Makefile.linux,v 1.1 2007/10/10 20:24:23 pkubota Exp $
+#
+
+#
+# INTEL COMPILER - WORKING
+#
+# Sometimes ifort fails to statically link the executable with
+# optmization giving and error message like:
+#   ifort: error: problem during multi-file optimization compilation (code 1)
+# Here we adopt the safe procedure of passing -O0 to LOADFLAG
+# 
+AR=ar
+ARFLAGS = 
+F90=ftn  -hbyteswapio -Rb -O nomodinline -emcd 
+F90_32FLAGS = 
+F90_32BITS = 
+F77 =ftn  -hbyteswapio -Rb -O nomodinline -emacdE -rd
+FFLAGS = 
+CC =cc  -hbyteswapio 
+# If there is a version difference between your gcc and the gcc
+# used to compile the ifort binary, you may have to add a flag
+# like -gcc-version=400 do CFLAG
+CFLAGS =  -DLINUX 
+LOADFLAG=
+
+#
+# PORTLAND COMPILER - WORKING
+#
+# pgf90 does not accept the environmental variable F_UFMTENDIAN
+# to set which unformatted files should be read as big or little
+# endian. Therefore, we have to force byteswap for the all the
+# files with the compilation flag -byteswapio.
+# 
+#AR=ar
+#ARFLAGS = 
+#F90=pgf90
+#F90_32FLAGS = 
+#F90_32BITS = -O3 -byteswapio
+#F77 = pgf90
+#FFLAGS = -O3
+#CC = pgcc
+#CFLAGS = -O3 -DLINUX 
+#LOADFLAG=-Bstatic
+
+#
+# GFORTRAN+GCC - NOT WORKING
+# 
+#AR=ar
+#ARFLAGS = 
+#F90=ftn
+#F90_32FLAGS = 
+#F90_32BITS =  -fconvert=big-endian
+#F77 = ftn
+#FFLAGS = 
+#CC = cc
+#CFLAGS = -DLINUX
+#LOADFLAG=-static
+
+#
+# G95+GCC - NOT WORKING
+#
+#AR=ar
+#ARFLAGS = 
+#F90=g95-i686
+#F90_32FLAGS = 
+#F90_32BITS = -O0 -fendian=big
+#F77 = g95-i686
+#FFLAGS = -O0
+#CC = gcc
+#CFLAGS = -DLINUX 
+#LOADFLAG=
+
+
+include Makefile.common

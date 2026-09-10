@@ -1,0 +1,68 @@
+\begin{sphinxtheindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter C
+  \item cal2jul (fortran variable in module time\_module), \hyperindexformat{\textbf}{6}
+  \item cal2jul\_() (fortran function in module time\_module), \hyperindexformat{\textbf}{8}
+  \item cal2jul\_\_() (fortran function in module time\_module), \hyperindexformat{\textbf}{8}
+
+  \indexspace
+  \bigletter D
+  \item doy() (fortran function in module time\_module), \hyperindexformat{\textbf}{7}
+
+  \indexspace
+  \bigletter E
+  \item eom() (fortran function in module time\_module), \hyperindexformat{\textbf}{6}
+
+  \indexspace
+  \bigletter F
+  \item float2str() (fortran function in module m\_string), \hyperindexformat{\textbf}{12}
+
+  \indexspace
+  \bigletter G
+  \item gettokens (fortran variable in module m\_string), \hyperindexformat{\textbf}{9}
+  \item gettokens\_() (fortran subroutine in module m\_string), \hyperindexformat{\textbf}{12}
+
+  \indexspace
+  \bigletter I
+  \item inctime (fortran program), \hyperindexformat{\textbf}{3}
+  \item int2str() (fortran function in module m\_string), \hyperindexformat{\textbf}{12}
+
+  \indexspace
+  \bigletter J
+  \item jul2cal() (fortran subroutine in module time\_module), \hyperindexformat{\textbf}{8}
+
+  \indexspace
+  \bigletter M
+  \item m\_string (module), \hyperindexformat{\textbf}{9}
+  \item mon\_lc (fortran variable in module m\_string), \hyperindexformat{\textbf}{10}
+  \item mon\_uc (fortran variable in module m\_string), \hyperindexformat{\textbf}{9}
+  \item mon\_wd (fortran variable in module m\_string), \hyperindexformat{\textbf}{9}
+
+  \indexspace
+  \bigletter N
+  \item nod() (fortran function in module time\_module), \hyperindexformat{\textbf}{6}
+  \item noh() (fortran function in module time\_module), \hyperindexformat{\textbf}{6}
+  \item nom() (fortran function in module time\_module), \hyperindexformat{\textbf}{7}
+  \item noy() (fortran function in module time\_module), \hyperindexformat{\textbf}{7}
+  \item num2str (fortran variable in module m\_string), \hyperindexformat{\textbf}{10}
+
+  \indexspace
+  \bigletter R
+  \item replace (fortran variable in module m\_string), \hyperindexformat{\textbf}{9}
+  \item replace\_() (fortran subroutine in module m\_string), \hyperindexformat{\textbf}{12}
+
+  \indexspace
+  \bigletter S
+  \item str\_template (fortran variable in module m\_string), \hyperindexformat{\textbf}{9}
+  \item str\_template\_() (fortran subroutine in module m\_string), \hyperindexformat{\textbf}{10}
+
+  \indexspace
+  \bigletter T
+  \item time\_module (module), \hyperindexformat{\textbf}{5}
+
+  \indexspace
+  \bigletter U
+  \item usage() (fortran subroutine), \hyperindexformat{\textbf}{5}
+
+\end{sphinxtheindex}

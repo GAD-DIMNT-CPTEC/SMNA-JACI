@@ -1,0 +1,55 @@
+#
+# datas
+#
+
+Analysis Date (YYYYMMDDHH): #LABELI#
+Forecast Time Step (HH): #DHFCT#
+
+#
+# Arquivos de Entrada
+#
+
+Atm First Guess File: #AtmFG#
+Sfc First Guess File: naf #ainda eh proveniente do arquivo de restart
+Observational File: #ObsFile#
+
+#
+# Arquivos de Saida
+#
+
+Atm Analysis File: #AtmANL#
+Sfc Analysis File: #SfcANL#
+Statistic File: #Stats#
+
+
+#
+# Parametros 
+#
+
+Undefined Value: 9.999E+20
+Cross-Validation: 1 # 0-No; 1-yes
+e-folding parameter (meters): 300000.0 1000000.0
+radius of influence for search (meters):  1000000.0 450000.0
+max number of obs per grid point: 50
+Standard Deviation [ Model and Obs ]::
+TP2M 1.5  2.0
+RH2M 0.05 0.10
+::
+
+#
+# Informacoes para Assimilacao de Umidade do Solo
+#
+
+Land Surface Data Assimilation: 1 # 0-No; 1-yes
+
+#
+# Informacoes do AGCM
+#
+
+Number of Processors of AGCM: #MPITasks#
+Land Surface Model: 1 # 1-SSiB; 2-Ibis
+Number of Surface Model layers: 3
+Model Parameter File: #MParRst#
+Surface Restart File Input: #SfcRstI# 
+Surface Restart File Output: #SfcRstO#
+

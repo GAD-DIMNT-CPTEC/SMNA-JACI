@@ -1,0 +1,26 @@
+#
+#  $Author: pkubota $
+#  $Date: 2006/10/30 18:42:06 $
+#  $Revision: 1.2 $
+#
+# $Id: Makefile.sx6,v 1.2 2006/10/30 18:42:06 pkubota Exp $
+#
+# Makefile for old versions of OSF.
+# Use Makefile.sx6 for SX6 Unix 4.0 and above
+#
+
+#
+#  SX6
+#
+#FTRACE=
+#OPENMP=-P openmp
+F90=sxmpif90 $(FTRACE) $(OPENMP) 
+NOASSUME=-Wf"-pvctl noassume vwork=stack"
+HVECTOR=-C vsafe
+INLINE_CU_GRELL=-pi exp=es5 
+INLINE_CU_KUO=-pi exp=es 
+INLINE_CU_RAS=-pi exp=es3 
+INLINE_SOUZA=-pi exp=es2 
+LOADFLAG= -Wl"-Z 4G"
+
+include Makefile.common

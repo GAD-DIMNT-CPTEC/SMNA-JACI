@@ -1,0 +1,931 @@
+                 +=======================================+
+                 || PRE-PROCESSING V1.2.0 FOR BAM MODEL ||
+                 +=======================================+
+
+
+=======================================================================
+
+                               AUTHORS
+
+ Bárbara Yamada,  Denis Eiras,  Eduardo Khamis,  Luiz Flávio Rodrigues
+
+                           13 - 02 - 2020
+
+=======================================================================
+
+
+=======================================================================
+
+                   PROCESSES COVERED BY THIS VERSION:
+
+=======================================================================
+
+   LandSeaMask
+   VarTopo
+   TopoSpectral
+   Chopping
+   VegetationMaskIBISClima
+   VegetationMaskIBIS
+   VegetationMaskSSiB
+   VegetationMask
+   VegetationAlbedoSSiB
+   DeepSoilTemperatureClima
+   DeepSoilTemperature
+   RoughnessLengthClima
+   RoughnessLength
+   AlbedoClima
+   Albedo
+   SnowClima
+   FLUXCO2Clima
+   SnowWeeklyNCEP
+   SSTWeeklyNCEP
+   SSTWeekly
+   SoilMoistureWeekly (SoilMoistureWeeklyCPTEC inside)
+   TemperatureClima (ClmtClima)
+   Temperature (Clmt)
+   DeltaTempColdestClima
+   DeltaTempColdest
+   PorceClayMaskIBISClima
+   PorceClayMaskIBIS
+   PorceSandMaskIBISClima
+   PorceSandMaskIBIS
+   TopographyGradient
+
+   Optional:
+
+   SSTClima
+   SSTMonthlyDirec
+   TopoWaterPercGT30
+   TopoWaterPercNavy
+
+
+=======================================================================
+
+                         COMPILING
+
+=======================================================================
+
+
+Compiling in Tupa (CPTEC - INPE)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get the code:
+
+$ ssh -XC $USER@tupa.cptec.inpe.br 
+$ cd $SUBMIT_HOME
+$ svn export https://svn.cptec.inpe.br/novo-preprocessamento-do-modelo-bam/branches/pre_x.y.z
+
+Compile the code:
+
+$ ssh eslogin01
+$ cd $SUBMIT_HOME/pre_x.y.z/build
+$ module load PrgEnv-pgi
+$ make pgi_cray
+$ make install
+
+
+Compiling on personal machines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get the code and compile using "make":
+
+$ make [option]
+
+where option in:
+
+cray_cray32 - cray compiler for cray machines
+gnu_cray    - gfortran compiler for cray machines
+pgi         - pgi compiler for common linux machines
+gnu_linux   - gfortran compiler for common linux machines
+intel_linux - intel compiler for common linux machines
+
+
+=======================================================================
+
+                 RUNNING
+
+=======================================================================
+
+
+Default TestCase in Tupa
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check if the file ParPre_MPI is placed at running directory (exec) and 
+place all the data needed to run and submit the job:
+
+$ cd $SUBMIT_HOME/pre_x.y.z/exec
+$ ./runPre testcase
+
+Run the code:
+
+$ ./runPre 24 24
+
+where first parameter is the number of MPI processors, and the second 
+is the number of processors per node.
+
+Note: The script runPre will create and submit setParPre_MPI.bash job.
+      This file can be edited and submitted again using qsub command.
+
+
+Runnning on personal machines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run Command
+
+$ mpirun -n <processors> ./ParPre_MPI [-f <run namelist file> ] [ -c <configutarion namelist file> ] 
+
+<processors> - MPI processors to run all modules. Must be at least 2.
+
+optional parameters
+
+-f Run namelist filename. Default: PRE_run.nml
+-c Configuration namelist filename. Default: PRE_cfg.nml
+
+=======================================================================
+
+                 RUNNING DIFFERENT CONFIGURATIONS
+
+=======================================================================
+
+
+There are 2 files used for configuration, located in exec directory:
+
+- PRE_cfg.nml
+- PRE_run.nml
+
+WARNINGS:
+
+- BE CAREFUL WHEN MODIFYING THESE FILES. THE SYSTEM COULD NOT MANAGE 
+  ALL SYNTAX ERRORS. A NOT USER FRIENDLY MESSAGE COULD BE DISPLAYED;
+- DO NOT CHANGE THE MODULES NAME LIST ORDER OF MODULES NAME LISTS AT 
+  PRE_cfg.nml or at PRE_run.nml, THEY ARE ALPHABETICALLY ORDERED 
+  (MANDATORY). THE SYSTEM WILL HALT IF NOT ORDERED.
+
+
+In order to run PRE and select the modules will run, you need change 
+PRE_run.nml. PRE_cfg.nml needs changing only in special cases for 
+advanced configuration.
+
+These files are composed by sections, started by a "$" character
+followed by the section name. The section ends with a "/" character. 
+
+Each section is composed by variables, which could have and extra 
+character before its name, detailed below for each section. 
+For example, all the modules sections must have the character "var%" 
+before the variable name. All variables must finish with a comma.
+
+Each variable must have one of the following types:
+
+- real. A number followed by an period and number
+  For example: var%number = 100.00
+- integer. Just a number
+  For example: var%number = 100
+- Boolean: May contains the values ".false." or ".true." (without 
+  quotation marks
+- String: A String between single quotes.
+  For example: var%date = '20200131'
+  
+Comments may be inserted throughout inserting a "!" character.
+
+
+PRE_run.nml
+~~~~~~~~~~~
+
+Used to configure the run. The file contains the sections:
+  
+- RunNameList. Defines the modules will run. The modules names are 
+  filled in a comma separated list of strings in the variable 
+  "modulesToRun". A list with all modules names could be found in 
+  PRE_cfg.nml file.
+  
+- ModulesCommonNameList. Defines the common variables configuration
+  used in all modules. The variable names must be preceeded by the 
+  word "varCommon%". They are:
+  
+  xMax          - Default Number of Longitudes at Output Gaussian Grid
+  yMax          - Default Number of Latitudes at Output Gaussian Grid
+  mEnd          - Spectral resolution, horizontal truncation 
+  dirPreIn      - Input Directory for input data files
+  dirPreOut     - Output directory for output data files
+  dirBCs        - BCs directory. Some modules looks for input files in 
+                  this directory.
+  dirClmFluxCO2 - Climate CO2 Flux directory requirde by some modules.
+  dirClmSST     - Climate SST directory requirde by some modules.
+  dirModelIn    - Input Directory for Model. Some modules writes files
+                  in this directory and some modules uses it as input.
+  date          - String containing the date of input/output files. 
+                  Most of the modules uses this variable to construct 
+                  strings that compound the input/output file name.
+  grads         - Logical value that indicates the output grads files
+                  will be generated. 
+
+- Modules name lists. Defines a namelist for each module. Each module
+  name, example "Albedo" contains a name list, which name starts with
+  the module name + "NameList", i.e., "AlbedoNameList". Each module
+  variable must have the character "var%" before the variable name.
+
+- The values of "mEnd" , "xMax" and "yMax can be found according to 
+  the table below:
+        __________________________________________________
+       |            |            |            |           |
+       | Spec Resol | num of lon | num of lat | time step |
+       |   "mEnd"   |   "xMax"   |   "yMax"   | for model |
+       |____________|____________|____________|___________|
+       |            |            |            |           | 
+       |    21      |    64      |    32      |    3600   |
+       |    31      |    96      |    48      |    1800   |
+       |    42      |    128     |    64      |    1200   |
+       |    62      |    192     |    96      |    900    | 
+       |    106     |    320     |    160     |    600    |
+       |    126     |    384     |    192     |    450    |
+       |    133     |    400     |    200     |    450    |
+       |    159     |    480     |    240     |    360    |
+       |    170     |    512     |    256     |    360    |
+       |    213     |    640     |    320     |    300    |
+       |    213     |    640     |    320     |    300    |
+       |    254     |    768     |    384     |    240    |
+       |    299     |    900     |    450     |    200    |
+       |    319     |    960     |    480     |    180    |
+       |    341     |    1024    |    512     |    180    |
+       |    382     |    1152    |    576     |    150    |
+       |    511     |    1536    |    768     |    120    |
+       |    533     |    1600    |    800     |    120    |
+       |    666     |    2000    |    1000    |    90     | 
+       |    863     |    2592    |    1296    |    60     |
+       |    1279    |    3840    |    1920    |    20     |
+       |    1332    |    4000    |    2000    |    20     |
+       |____________|____________|____________|___________|
+
+      
+PRE_cfg.nml
+~~~~~~~~~~~
+
+Used to configure the modules dependencies and the processors used.
+Only Chopping uses more than one processor until this version.
+
+This file configures all modules available, (alphabetic order is 
+mandatory). 
+
+Each module configuration is grouped in a variable named "modCfg".
+This variable must have a number in parentheses, where the number
+identifies one module. 
+
+Each module variable element may have the fields:
+
+- moduleName (mandatory, string): name of the module;
+
+- dependencies (optional. List of strings. Default: no dependencies 
+  configured): Each module configures the modules it depends. The 
+  dependencies configured for each module, as a comma separated list,
+  will run automatically before the module, in cases:
+  
+    a) The dependency is configured to run in namelist "RunNameList" 
+    (PRE_run.nml). In this case, the dependency allways will run
+    b) The output files of the dependency does not exists. In this case 
+    the dependency will run no matter if its configured or not to run 
+    in "RunNameList". For example: Only Albedo is configured to run in 
+    "RunNameList". No output files of the dependency AlbedoClima 
+    exists, which Albedo depends, so AlbedoClima will automatically run
+    before Albedo.
+
+- processors (optional. Integer. Default: 1): number of processors that
+  module runs. Normally equals 1. Only Chopping accepts more than 1, 
+  until now.
+
+- runsAlone (optional. Boolean. Default: .false.). Configures Pre 
+  program to run only the module at once if this variable is configured
+  with ".true". For now, only Chopping could uses this feature.
+
+
+=======================================================================
+
+                         DIRECTORIES STRUCTURE
+
+=======================================================================
+
+pre_x.y.z/
+|
+|--> build/
+|    |
+|    |--> makefiles/
+|
+|--> datainout/
+|    |
+|    |--> pre/
+|    |    |
+|    |    |--> datain/
+|    |    |
+|    |    |--> dataout/
+|    |    |
+|    |    |--> databcs/
+|    |  
+|    |--> model/
+|    |    |
+|    |    |--> datain/
+|
+|--> exec/
+|
+|--> sources/
+|    |
+|    |--> Mod_ChoppingParallel/
+|    |
+|    |--> lib/
+|    |    |
+|    |    |--> bacio/
+|    |    |    |
+|    |    |    |--> v2.0.2
+|    |    |    |    |
+|    |    |    |    |--> cray/
+|    |    |    |    |
+|    |    |    |    |--> gnu/
+|    |    |    |    |
+|    |    |    |    |--> src_32bits/
+|    |    |    |    |
+|    |    |    |    |--> src_64bits/
+|    |    |    
+|    |    |--> nemsio/
+|    |    |    |
+|    |    |    |--> v2.2.2/
+|    |    |    |    |
+|    |    |    |    |--> src/
+|    |    |    |    |    |
+|    |    |    |    |    |--> conf/
+|    |    |    |    |    |
+|    |    |    |    |    |--> incmod/
+|    |    |
+|    |    |--> w3lib-1.4/
+|
+
+
+=======================================================================
+
+                     LISTING FILES IN AND OUT
+
+=======================================================================
+
+LandSeaMask
+~~~~~~~~~~~
+
+files in:
+
+pre/dataout/WaterNavy.dat
+
+files out:
+
+pre/dataout/LandSeaMask.G00450.dat
+pre/dataout/LandSeaMask.G00450.ctl
+pre/dataout/LandSeaMask.G00450
+
+
+VarTopo
+~~~~~~~
+
+files in:
+
+pre/dataout/TopoNavy.dat
+
+files out:
+
+pre/dataout/VarTopoNavy.G00450.ctl
+pre/dataout/VarTopoNavy.G00450
+model/datain/TopoVariance.G00450
+pre/dataout/Topography.G00450
+
+
+TopoSpectral
+~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/Topography.G00450
+
+files out:
+
+pre/dataout/Topography.TQ0299
+pre/dataout/TopographyRec.G00450.ctl
+pre/dataout/TopographyRec.G00450
+model/datain/TopographyRec.G00450
+
+TopographyRec.G00450 from pre/dataout and model/datain are different
+
+
+Chopping
+~~~~~~~~~~~~~~~~
+
+files in:
+pre/datain/gdas1.T00Z.SAnl.2015043000
+pre/dataout/Topography.TQ0299
+pre/datain/DeltaSigma.L064
+
+files out:
+model/datain/GANLSMT2015043000S.unf.TQ1534L064
+model/datain/OZONSMT2015043000S.unf.TQ1534L064
+model/datain/TRACSMT2015043000S.unf.TQ1534L064
+model/datain/TRACSMT2015043000S.grd.G00450L064
+model/datain/OZONSMT2015043000S.grd.G00450L064
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADS.ctl
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADS
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADSOut.ctl
+pre/dataout/GANLSMT2015043000S.unf.TQ0299L064.GrADSOut
+
+
+AlbedoClima
+~~~~~~~~~~~
+
+files in:
+
+pre/databcs/albedo.form
+
+files out:
+
+pre/dataout/AlbedoClima.ctl
+pre/dataout/AlbedoClima.dat
+
+
+Albedo
+~~~~~~
+
+files in:
+
+pre/dataout/AlbedoClima.dat
+
+files out:
+
+pre/dataout/Albedo.G00450.ctl
+pre/dataout/Albedo.G00450
+
+
+SnowClima
+~~~~~~~~~
+
+files in:
+
+pre/dataout/ModelLandSeaMask.G00450
+pre/dataout/Albedo.G00450
+
+files out:
+
+pre/dataout/SnowClima2015043000S.unf.G00450.ctl
+model/datain/Snow2015043000S.unf.G00450
+
+
+FLUXCO2Clima
+~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/ModelLandSeaMask.G00450 
+pre/databcs/FluxCO2.bin
+pre/databcs/ersst.form
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+
+files out:
+
+pre/dataout/FLUXCO2Clima20150430.G00450.ctl
+pre/dataout/FLUXCO2Clima20150430.G00450
+model/datain/FLUXCO2Clima20150430.G00450
+
+
+SnowWeeklyNCEP
+~~~~~~~~~~~~~
+
+filesin:
+
+pre/datain/gdas1.T00Z.snogrd.2012123100
+
+filesout:
+
+pre/dataout/SNOWWeekly.2012123100
+pre/dataout/SNOWWeekly.2012123100.ctl
+
+
+SSTClima
+~~~~~~~~
+
+files in:
+
+pre/dataout/ModelLandSeaMask.G00450
+pre/databcs/ersst.form
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+
+files out:
+
+pre/dataout/SSTClima20150430.G00450.ctl
+pre/dataout/SSTClima20150430.G00450
+model/datain/SSTClima20150430.G00450
+
+
+SSTWeeklyNCEP
+~~~~~~~~~~~~~
+
+file in:
+
+pre/datain/gdas1.T00Z.sstgrd.2015043000
+
+file out:
+
+pre/dataout/SSTWeekly.20150430.ctl
+pre/dataout/SSTWeekly.20150430
+
+
+SSTWeekly
+~~~~~~~~~
+
+files in:
+
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+pre/dataout/ModelLandSeaMask.G00450
+pre/dataout/SSTWeekly.20150430
+pre/databcs/sstaoi.form (if climWindow=.true.) 
+
+files out:
+
+pre/dataout/SSTWeekly20150430.G00450.ctl (if grads=.true.)
+pre/dataout/SSTWeekly20150430.G00450
+model/datain/SSTWeekly20150430.G00450
+
+SSTWeekly20150430.G00450 from pre/dataout and model/datain are different
+
+
+SoilMoisture
+~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/SoilMoistureClima.dat
+pre/dataout/ModelLandSeaMask.G00450
+
+files out:
+
+model/datain/SoilMoisture.G00450
+pre/dataout/SoilMoisture.G00450.ctl
+
+
+SoilMoistureClima
+~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/soilms.form
+
+files out:
+
+pre/dataout/SoilMoistureClima.dat
+pre/dataout/SoilMoistureClima.ctl
+
+
+SoilMoistureWeekly  (SoilMoistureWeeklyCPTEC inside)
+~~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/datain/GL_SM.GPNR.2015043000.vfm  
+
+files out:
+
+pre/dataout/SoilMoistureWeekly.20150430.G00450
+pre/dataout/SoilMoistureWeekly.20150430.G00450.ctl
+model/datain/SoilMoistureWeekly.20150430.G00450
+
+
+TemperatureClima (ClmtClima)
+~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/clmt.form
+
+files out:
+
+pre/dataout/TemperatureClima.dat
+pre/dataout/TemperatureClima.ctl
+
+
+Temperature (Clmt)
+~~~~~~~~~~~
+
+files in:
+
+pre/dataout/TemperatureClima.dat
+
+files out:
+
+mode/datain/
+pre/dataout/Temperature.G????
+pre/dataout/Temperature.G????.ctl
+
+
+DeltaTempColdestClima
+~~~~~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/deltat.form
+
+files out:
+
+pre/dataout/DeltaTempColdestClima.dat
+pre/dataout/DeltaTempColdestClima.ctl
+
+
+DeltaTempColdest
+~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/DeltaTempColdestClima.dat
+
+files out:
+
+model/datain/DeltaTempColdest.G????
+pre/dataout/DeltaTempColdest.G????
+pre/dataout/DeltaTempColdest.G????.ctl
+
+
+PorceClayMaskIBISClima
+~~~~~~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/claymsk.form
+
+files out:
+
+pre/dataout/LandSeaMask.G????
+pre/dataout/PorceClayMaskIBISClima.dat
+pre/dataout/PorceClayMaskIBISClimaG.dat
+pre/dataout/PorceClayMaskIBISClimaG.ctl
+
+
+PorceClayMaskIBIS
+~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/LandSeaMask.G00450
+pre/dataout/PorceClayMaskIBISClima.dat
+
+files out:
+
+model/datain/PorceClayMaskIBIS.G00450
+pre/dataout/ModelLandSeaMask.G00450
+pre/dataout/PorceClayMaskIBIS.G00450
+pre/dataout/PorceClayMaskIBIS.G00450.ctl
+
+
+PorceSandMaskIBISClima
+~~~~~~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/sandmsk.form
+
+files out:
+
+pre/dataout/PorceSandMaskIBISClima.dat
+pre/dataout/PorceSandMaskIBISClimaG.dat
+pre/dataout/PorceSandMaskIBISClimaG.ctl
+
+
+PorceSandMaskIBIS
+~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/LandSeaMask.G00450
+pre/dataout/PorceSandMaskIBISClima.dat
+
+files out:
+
+model/datain/PorceSandMaskIBIS.G00450
+pre/dataout/ModelLandSeaMask.G00450
+pre/dataout/PorceSandMaskIBIS.G00450
+pre/dataout/PorceSandMaskIBIS.G00450.ctl
+
+
+TopographyGradient
+~~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/HPRIME.dat
+model/datain/GANLSMT2015043000S.unf.TQ0299L064
+
+files out:
+
+model/datain/HPRIME.G00450
+pre/dataout/HPRIME.G00450.ctl
+model/datain/TopographyGradient2015043000.G00450
+pre/dataout/TopographyGradient2015043000.G00450.ctl
+
+
+VegetationMaskIBISClima
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/databcs/ibismsk.form
+
+Files out:
+
+pre/dataout/VegetationMaskIBISClima.dat
+pre/dataout/VegetationMaskIBISClimaG.dat
+pre/dataout/VegetationMaskIBISClimaG.ctl
+
+
+VegetationMaskIBIS
+~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/dataout/LandSeaMask.G00450
+pre/dataout/VegetationMaskIBISClima.dat
+
+Files out:
+
+model/datain/VegetationMaskIBIS.G00450
+pre/dataout/ModelLandSeaMask.G00450       (same file name from VegetationMask output)
+pre/dataout/VegetationMaskIBIS.G00450
+pre/dataout/VegetationMaskIBIS.G00450.ctl
+
+
+VegetationMaskSSiB
+~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/databcs/sibmsk.form
+
+Files out:
+
+pre/dataout/VegetationMaskClima.dat
+pre/dataout/VegetationMaskClimaG.dat
+pre/dataout/VegetationMaskClimaG.ctl
+
+
+VegetationMask
+~~~~~~~~~~~~~~
+
+Files in:
+
+pre/dataout/LandSeaMask.G00450
+pre/dataout/VegetationMaskClima.dat
+
+Files out:
+
+model/datain/VegetationMask.G00450
+pre/dataout/ModelLandSeaMask.G00450   (same file name from VegetationMaskIBIS output)
+pre/dataout/VegetationMask.G00450
+pre/dataout/VegetationMask.G00450.ctl
+
+
+VegetationAlbedoSSiB
+~~~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/databcs/sibalb.form
+pre/databcs/sibveg.form
+
+Files out:
+
+model/datain/VegetationSSiB
+model/datain/AlbedoSSiB
+
+
+DeepSoilTemperatureClima
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/databcs/tgdeep.form
+
+Files out:
+
+pre/dataout/DeepSoilTemperatureClima.dat
+pre/dataout/DeepSoilTemperatureClima.ctl
+
+
+DeepSoilTemperature
+~~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/dataout/DeepSoilTemperatureClima.dat
+
+Files out:
+
+model/datain/DeepSoilTemperature.G00450
+pre/dataout/DeepSoilTemperature.G00450.ctl
+
+
+RoughnessLengthClima
+~~~~~~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/databcs/zorlng.form
+
+Files out:
+
+pre/dataout/RoughnessLengthClima.dat
+pre/dataout/RoughnessLengthClima.ctl
+
+
+RoughnessLength
+~~~~~~~~~~~~~~~
+
+Files in:
+
+pre/dataout/RoughnessLengthClima.dat
+
+Files out:
+
+model/datain/RoughnessLength.G00450
+pre/dataout/RoughnessLength.G00450.ctl
+
+
+TopoWaterPercNavy
+~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/navytm.form 
+
+files out:
+
+pre/dataout/WaterNavy.dat
+pre/dataout/TopoWaterNavy.dat
+pre/dataout/TopoWaterNavy.ctl
+pre/dataout/TopoNavy.dat
+
+
+TopoWaterPercGT30
+~~~~~~~~~~~~~~~~~
+
+files in:
+
+pre/databcs/GTOP30/W180N90.dat
+pre/databcs/GTOP30/W140N90.dat
+pre/databcs/GTOP30/W100N90.dat
+pre/databcs/GTOP30/W060N90.dat
+pre/databcs/GTOP30/W020N90.dat
+pre/databcs/GTOP30/E020N90.dat
+pre/databcs/GTOP30/E060N90.dat
+pre/databcs/GTOP30/E100N90.dat
+pre/databcs/GTOP30/E140N90.dat
+pre/databcs/GTOP30/W180N40.dat
+pre/databcs/GTOP30/W140N40.dat
+pre/databcs/GTOP30/W100N40.dat
+pre/databcs/GTOP30/W060N40.dat
+pre/databcs/GTOP30/W020N40.dat
+pre/databcs/GTOP30/E020N40.dat
+pre/databcs/GTOP30/E060N40.dat
+pre/databcs/GTOP30/E100N40.dat
+pre/databcs/GTOP30/E140N40.dat
+pre/databcs/GTOP30/W180S10.dat
+pre/databcs/GTOP30/W140S10.dat
+pre/databcs/GTOP30/W100S10.dat
+pre/databcs/GTOP30/W060S10.dat
+pre/databcs/GTOP30/W020S10.dat
+pre/databcs/GTOP30/E020S10.dat
+pre/databcs/GTOP30/E060S10.dat
+pre/databcs/GTOP30/E100S10.dat
+pre/databcs/GTOP30/E140S10.dat
+pre/databcs/GTOP30/W180S60.dat
+pre/databcs/GTOP30/W120S60.dat
+pre/databcs/GTOP30/W060S60.dat
+pre/databcs/GTOP30/W000S60.dat
+pre/databcs/GTOP30/E060S60.dat
+pre/databcs/GTOP30/E120S60.dat
+
+files out:
+
+pre/dataout/TopoGT30.dat
+pre/dataout/WaterGT30.dat
+
+or
+
+pre/dataout/TopoWaterGT30”gd”.dat
+pre/dataout/TopoWaterGT30”gd”.ctl
+
+
+SSTMonthlyDirec
+~~~~~~~~~~~~~~~
+
+files in:
+
+pre/dataout/ModelLandSeaMask.G00450
+model/datain/GANLNMC2015043000S.unf.TQ0299L064 ! first time chopping creates GANLSMT...
+pre/databcs/sstaoi.form
+pre/datasst/oiv2monthly
+
+files out:
+
+model/datain/SSTMonthlyDirec20150430.G00450
+pre/dataout/SSTMonthlyDirec20150430.G00450.bin
+pre/dataout/SSTMonthlyDirec20150430.G00450.ctl
+
+
+

@@ -1,0 +1,37 @@
+#!/bin/ksh
+rm -f xmit_pos.*.POS
+FSCR="/gfs/home0/pkubota/MPIGlobal/run"
+FEXE="/gfs/dk12/pkubota/MPIGlobal/pos/exec"
+cpu=1
+node=1
+MEM=10gb
+itime=`echo "3600" | bc -l`
+BUFFER=20480
+data=`date +'%Y%m%d%H%M'`
+cat <<EOT1 > ${FSCR}/setrunpost.sx6
+#!/usr/bin/ksh -x
+#PBS -q multi                    # queue: dq for <=8 CPUs
+#PBS -T mpisx                    # Job type: mpisx for MPI
+#PBS -l cpunum_prc=${cpu}
+#PBS -l tasknum_prc=${cpu}
+#PBS -b ${node}                  # number of nodes
+#PBS -l cputim_job=${itime}
+#PBS -l memsz_job=${MEM}
+#PBS -o turi:${FSCR}/setout/setpost.${data}.out
+#PBS -e turi:${FSCR}/setout/setpost.${data}.out
+#PBS -j o
+#PBS -N post
+#
+export OMP_NUM_THREADS=$cpu
+export F_RSVTASK=${cpu}
+export MPIPROGINF=DETAIL
+export F_FILEINF=DETAIL
+export F_PROGINF=DETAIL
+export F_ERRCNT=1
+export F_SETBUF=20480
+
+cd ${FEXE}
+PostGrib < ${FSCR}/POSTIN-GRIB
+EOT1
+qsub -q Midi -N post ${FSCR}/setrunpost.sx6
+

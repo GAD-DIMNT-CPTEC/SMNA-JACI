@@ -1,0 +1,12 @@
+MODULE abortutils
+ IMPLICIT NONE
+ PRIVATE
+ PUBLIC :: endrun
+CONTAINS
+ SUBROUTINE endrun(str)
+  IMPLICIT NONE
+  CHARACTER(LEN=*), INTENT(IN   ) :: str
+  WRITE(0,'(A)')TRIM(str)
+  STOP
+ END SUBROUTINE endrun
+END MODULE abortutils

@@ -1,0 +1,23 @@
+TOTAL PRECIPITATION                         1  121    0
+CONVECTIVE PRECIPITATION                    1  121    0
+LARGE SCALE PRECIPITATION                   1  121    0
+SNOWFALL                                    1  121    0
+RUNOFF                                      1  121    0
+INTERCEPTION LOSS                           1  170    0
+SENSIBLE HEAT FLUX FROM SURFACE             1  170    0
+LATENT HEAT FLUX FROM SURFACE               1  170    0
+SURFACE ZONAL WIND STRESS                   1  130    0
+SURFACE MERIDIONAL WIND STRESS              1  130    0
+CLOUD COVER                                 1    0    0
+DOWNWARD LONG WAVE AT BOTTOM                1  170    0
+UPWARD LONG WAVE AT BOTTOM                  1  170    0
+OUTGOING LONG WAVE AT TOP                   1  170    0
+DOWNWARD SHORT WAVE AT GROUND               1  170    0
+UPWARD SHORT WAVE AT GROUND                 1  170    0
+UPWARD SHORT WAVE AT TOP                    1  170    0
+SHORT WAVE ABSORBED AT GROUND               1  170    0
+NET LONG WAVE AT BOTTOM                     1  170    0
+GROUND/SURFACE COVER TEMPERATURE            1   40    0
+CONVECTIVE AVAIL. POT.ENERGY                1  180    0
+CONVECTIVE INHIB. ENERGY                    1  180    0
+SEVERE WEATHER THREAT                       1    0    0

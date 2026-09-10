@@ -1,0 +1,75 @@
+# This is a GitHub CI workflow for the NCEPLIBS-bufr project.
+#
+# This workflow runs the developer build, with test code coverage,
+# address sanitizer, and documentation build.
+#
+# Ed Hartnett, 1/10/23
+name: developer
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+
+jobs:
+  developer:
+    runs-on: ubuntu-latest
+    env:
+      FC: gfortran-11
+      CC: gcc-11
+
+    steps:
+    - name: install-deps
+      run: |
+          sudo apt-get update
+          sudo apt-get install doxygen
+          sudo python3 -m pip install -U gcovr
+
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        path: bufr
+        submodules: true
+
+    - name: cache-data
+      id: cache-data
+      uses: actions/cache@v2
+      with:
+        path: ~/data
+        key: data-9
+
+    - name: build
+      run: |
+        cd bufr
+        mkdir build
+        cd build
+        cmake -DTEST_FILE_DIR=/home/runner/data -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_Fortran_FLAGS="-Werror -g -fprofile-arcs -ftest-coverage -fprofile-abs-path -O0 -fsanitize=address -fno-omit-frame-pointer" -DCMAKE_C_FLAGS="-Werror -g -fprofile-arcs -ftest-coverage -fprofile-abs-path -O0 -fsanitize=address -fno-omit-frame-pointer" -DCMAKE_BUILD_TYPE=Debug -DENABLE_DOCS=On ..
+        make -j2 VERBOSE=1
+        make install
+
+    - name: test
+      run: |
+        cd bufr/build
+        ctest --verbose --output-on-failure --rerun-failed
+        gcovr --root .. -v  --html-details --exclude ../test --exclude CMakeFiles --print-summary --exclude-unreachable-branches --exclude-throw-branches --decisions -o test-coverage.html
+
+    - name: cache-data
+      if: steps.cache-data.outputs.cache-hit != 'true'
+      run: |
+        mkdir ~/data
+        cp $GITHUB_WORKSPACE/bufr/build/test/bufr-11.6.0.tgz ~/data
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: test-coverage
+        path: |
+          bufr/build/*.html
+          bufr/build/*.css
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: docs
+        path: |
+          bufr/build/docs/html

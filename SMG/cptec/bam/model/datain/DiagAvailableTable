@@ -1,0 +1,88 @@
+TIME MEAN SURFACE PRESSURE                  1  132    1    0
+TIME MEAN DIVERGENCE                        2   50    2    0                    
+TIME MEAN VORTICITY                         2   50    2    0                    
+TIME MEAN SPECIFIC HUMIDITY                 2    0    2    0                    
+TIME MEAN VIRTUAL TEMPERATURE               2   40    2    0                    
+TIME MEAN SURFACE TEMPERATURE               1   40    1    1                    
+TIME MEAN OMEGA                             2  153    1    1                    
+TIME MEAN SIGMADOT                          2   50    1    1                    
+TOTAL PRECIPITATION                         1  120    1    2                    
+CONVECTIVE PRECIPITATION                    1  120    1    2                    
+LARGE SCALE PRECIPITATION                   1  120    1    2                    
+SNOWFALL                                    1  120    1    2                    
+RUNOFF                                      1  120    1    1                    
+PRECIPITABLE WATER                          1  110    1    1                    
+INTERCEPTION LOSS                           1  170    1    1                    
+SENSIBLE HEAT FLUX FROM SURFACE             1  170    1    1                    
+LATENT HEAT FLUX FROM SURFACE               1  170    1    1                    
+SURFACE ZONAL WIND STRESS                   1  130    1    1                    
+SURFACE MERIDIONAL WIND STRESS              1  130    1    1                    
+CLOUD COVER                                 1    0    1    1                    
+DOWNWARD LONG WAVE AT BOTTOM                1  170    1    1                    
+UPWARD LONG WAVE AT BOTTOM                  1  170    1    1                    
+OUTGOING LONG WAVE AT TOP                   1  170    1    1                    
+INCIDENT SHORT WAVE FLUX                    1  170    1    1                    
+DOWNWARD SHORT WAVE AT GROUND               1  170    1    1                    
+UPWARD SHORT WAVE AT GROUND                 1  170    1    1                    
+UPWARD SHORT WAVE AT TOP                    1  170    1    1                    
+SHORT WAVE ABSORBED BY EARTH/ATMOSPHERE     1  170    1    1                    
+SHORT WAVE ABSORBED AT GROUND               1  170    1    1                    
+NET LONG WAVE AT BOTTOM                     1  170    1    1                    
+LONG WAVE RADIATIVE HEATING                 2   70    1    1                    
+SHORT WAVE RADIATIVE HEATING                2   70    1    1                    
+CONVECTIVE LATENT HEATING                   2   70    1    2                    
+CONVECTIVE MOISTURE SOURCE                  2   50    1    2                    
+LARGE SCALE LATENT HEATING                  2   70    1    2                    
+LARGE SCALE MOISTURE SOURCE                 2   50    1    2                    
+SHALLOW CONVECTIVE HEATING                  2   70    1    2                    
+SHALLOW CONV. MOISTURE SOURCE               2   50    1    2                    
+VERTICAL DIFFUSION HEATING                  2   70    1    1                    
+VERTICAL DIFF. MOISTURE SOURCE              2   50    1    1                    
+VERTICAL DIFFUSION DU/DT                    2  100    1    1                    
+VERTICAL DIFFUSION DV/DT                    2  100    1    1                    
+GRAVITY WAVE DRAG SFC ZONAL STRESS          1  130    1    1                    
+GRAVITY WAVE DRAG SFC MERIDIONAL STRESS     1  130    1    1                    
+GRAVITY WAVE DRAG DU/DT                     2  100    1    1                    
+GRAVITY WAVE DRAG DV/DT                     2  100    1    1                    
+HORIZONTAL HEATING DIFFUSION                2   70    2    0
+HORIZONTAL MOISTURE DIFFUSION               2   50    2    0
+HORIZONTAL DIVERGENCE DIFFUSION             2   80    2    0
+HORIZONTAL VORTICITY DIFFUSION              2   80    2    0
+DIVERGENCE * SPECIFIC HUMIDITY              2   50    1    1
+VERTICAL MOISTURE ADVECTION                 2   50    1    1
+HORIZ. MOISTURE FLUX CONV.                  2   50    2    0
+VERT. INTEGRATED MOISTURE FLUX CONV.        1  120    2    0
+TIME MEAN LOG SURFACE PRESSURE              1  142    2    0
+DOWNWARD LONG WAVE AT BOTTOM (CLEAR)        1  170    1    1    
+OUTGOING LONG WAVE AT TOP (CLEAR)           1  170    1    1              
+DOWNWARD SHORT WAVE AT GROUND (CLEAR)       1  170    1    1              
+UPWARD SHORT WAVE AT GROUND (CLEAR)         1  170    1    1              
+UPWARD SHORT WAVE AT TOP (CLEAR)            1  170    1    1              
+SHORT WV ABSRBD BY EARTH/ATMOS (CLEAR)      1  170    1    1              
+SHORT WAVE ABSORBED AT GROUND (CLEAR)       1  170    1    1
+NET LONG WAVE AT BOTTOM (CLEAR)             1  170    1    1              
+TIME MEAN DEEP SOIL TEMPERATURE             1   40    1    1 
+GROUND/SURFACE COVER TEMPERATURE            1   40    1    1
+CANOPY TEMPERATURE                          1   40    1    1
+TEMPERATURE OF CANOPY AIR SPACE             1   40    1    1
+VAPOR PRESSURE OF CANOPY AIR SPACE          1  131    1    1
+BARE SOIL LATENT HEAT                       1  170    1    1
+NEG. HUM. CORR. MOISTURE SOURCE             2   50    1    2
+OZONE MIXING RATIO                          2    0    1    1
+VERTICAL DIST TOTAL CLOUD COVER             2    0    1    1
+INVERSION CLOUD                             2    0    1    1
+SUPERSATURATION CLOUD                       2    0    1    1
+CONVECTIVE CLOUD                            2    0    1    1
+SHALLOW CONVECTIVE CLOUD                    2    0    1    1
+CLOUD LIQUID WATER PATH                     2    0    1    1
+LONGWAVE CLOUD EMISSIVITY                   2    0    1    1
+SHORTWAVE CLOUD OPTICAL DEPTH               2    0    1    1
+CANOPY AIR SPC TO REF. LVL RESISTANCE       1  190    1    1
+CANOPY AIR SPC TO CANOPY RESISTANCE         1  190    1    1
+CANOPY AIR SPC TO GROUND RESISTANCE         1  190    1    1
+CANOPY RESISTANCE                           1  190    1    1
+GROUND COVER RESISTANCE                     1  190    1    1
+BARE SOIL SURFACE RESISTANCE                1  190    1    1
+CONVECTIVE AVAIL. POT.ENERGY                1  180    0
+CONVECTIVE INHIB. ENERGY                    1  180    0
+SEVERE WEATHER THREAT                       1    0    0

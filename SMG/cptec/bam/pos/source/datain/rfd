@@ -1,0 +1,24 @@
+SURFACE PRESSURE                          131 PSLC  
+DIVERGENCE                                 50 DIVG
+VORTICITY                                  50 VORT
+SPECIFIC HUMIDITY                           0 UMES
+SURFACE TEMPERATURE                        40 TSFC
+SURFACE ZONAL WIND (U)                     60 UVES
+ZONAL WIND (U)                             60 UVEL
+SURFACE MERIDIONAL WIND (V)                60 VVES
+MERIDIONAL WIND (V)                        60 VVEL
+OMEGA                                     150 OMEG
+STREAM FUNCTION                            90 FCOR
+VELOCITY POTENTIAL                         90 POTV
+GEOPOTENTIAL HEIGHT                        10 ZGEO
+SEA LEVEL PRESSURE                        131 PSNM
+SURFACE ABSOLUTE TEMPERATURE               40 TEMS
+ABSOLUTE TEMPERATURE                       40 TEMP
+SURFACE RELATIVE HUMIDITY                   0 UMRS
+RELATIVE HUMIDITY                           0 UMRL
+INST. PRECIP. WATER                       110 AGPL
+TOTAL PRECIPITATION                       121 PREC
+CONVECTIVE PRECIPITATION                  121 PRCV
+OUTGOING LONG WAVE AT TOP                 170 ROLE
+CLOUD COVER                                 0 CBNV
+LEVEL OF TOP OF THE CLOUD                   0 KTOP

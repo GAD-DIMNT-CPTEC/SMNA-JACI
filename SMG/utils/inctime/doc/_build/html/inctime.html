@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Inctime &mdash; Inctime V0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'V0.01',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="m_time" href="m_time.html" />
+    <link rel="prev" title="Main" href="main.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Inctime
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                V0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="main.html">Main</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Inctime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_time.html">m_time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_string.html">m_string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="m_stdio.html">m_stdio</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Inctime</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="main.html">Main</a> &raquo;</li>
+        
+      <li>Inctime</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/inctime.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="inctime">
+<h1>Inctime<a class="headerlink" href="#inctime" title="Permalink to this headline">¶</a></h1>
+<p>Inctime is the main program.</p>
+<p class="rubric">Program</p>
+<dl class="program">
+<dt id="f/inctime">
+<em class="property">program  </em><code class="descname">inctime</code><a class="headerlink" href="#f/inctime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main program</p>
+<dl class="docutils">
+<dt>Package Overview</dt>
+<dd>Inctime is a set of routines in fortran 90 to perform
+calculations with dates; The main function is to calculate
+dates to past or to future from any date. Other operations can
+be performed by using the modules available in this routine.
+Among other duties, they are calculating the Julian day, number
+of years, months, days and hours between any two dates.</dd>
+<dt>Autor</dt>
+<dd>João Gerd Zell de Mattos</dd>
+<dt>Affiliation</dt>
+<dd>Group on Data Assimilation Development - CPTEC/INPE</dd>
+<dt>Date</dt>
+<dd>March 22, 2011</dd>
+<dt>Usage</dt>
+<dd><p class="first">The way to use this program is through the command line as follows:</p>
+<p class="last">inctime [yyyymmddhh, yyyymmdd] [&lt;+,-&gt;nynmndnhnnns] [Form. output]</p>
+</dd>
+</dl>
+<p>where</p>
+<blockquote>
+<div><blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>[yyyymmddhh, yyyymmdd]</dt>
+<dd><ul class="first last simple">
+<li>Initial Time</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>[&lt;+,-&gt;nynmndnhnnns]</dt>
+<dd><ul class="first last simple">
+<li>( -) calculate the passed date</li>
+<li>( +) calculate the future date (default)</li>
+<li>(ny) Number of year (default is 0)</li>
+<li>(nm) Number of months (default is 0)</li>
+<li>(nd) Number of days (default is 0)</li>
+<li>(nh) Number of hours (default is 0)</li>
+<li>(nn) Number of minutes (default is 0)</li>
+<li>(ns) Number of seconds (default is 0)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>[ Form. Output ]</dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>Format to output date. is a template Format
+The format descriptors are similar to those
+used in the GrADS.</li>
+</ul>
+</div></blockquote>
+<ul class="last simple">
+<li>“%y4”  substitute with a 4 digit year</li>
+<li>“%y2”  a 2 digit year</li>
+<li>“%m1”  a 1 or 2 digit month</li>
+<li>“%m2”  a 2 digit month</li>
+<li>“%mc”  a 3 letter month in lower cases</li>
+<li>“%Mc”  a 3 letter month with a leading letter in upper case</li>
+<li>“%MC”  a 3 letter month in upper cases</li>
+<li>“%d1”  a 1 or 2 digit day</li>
+<li>“%d2”  a 2 digit day</li>
+<li>“%h1”  a 1 or 2 digit hour</li>
+<li>“%h2”  a 2 digit hour</li>
+<li>“%h3”  a 3 digit hour (?)</li>
+<li>“%n2”  a 2 digit minute</li>
+<li>“%e”   a string ensemble identify</li>
+<li>“%jd”  a julian day without hours decimals</li>
+<li>“%jdh” a julian day with hour decimals</li>
+<li>“%jy”  a day of current year without hours decimals</li>
+<li>“%jyh” a day of current year with hours decimals</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>Can use words to compose the output format.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>Examples</dt>
+<dd><ul class="first last simple">
+<li>inctime 2001091000 +1d %d2/%m2/%y4</li>
+<li>inctime 2001091000 +48h30n %h2Z%d2%MC%y4</li>
+<li>inctime 2001091000 -1h30n 3B42RT.%y4%m2%d2%h2.bin</li>
+<li>inctime 2001091000 -2h45n 3B42RT.%y4%m2%d2%h2.bin</li>
+<li>inctime 2001091000 -1y3m2d1h45n ANYTHING.%y4%m2%d2%h2.ANYTHING</li>
+</ul>
+</dd>
+<dt>History</dt>
+<dd><ul class="first last simple">
+<li>22 Mar 2011 - Joao Gerd - Initial Code</li>
+<li>27 Jul 2011 - Joao Gerd - Bug into the end print</li>
+<li>19 Jul 2012 - Joao Gerd - Add option to month increment/decrement</li>
+<li>15 Apr 2013 - Joao Gerd - correct bug to incr/decr month</li>
+<li><dl class="first docutils">
+<dt>03 May 2013 - Joao Gerd - correct bug to incr/decr all times (ym was not</dt>
+<dd>being properly initialized)</dd>
+</dl>
+</li>
+<li>05 Feb 2014 - Joao Gerd - Add julian day</li>
+<li><dl class="first docutils">
+<dt>20 Jul 2014 - Joao Gerd - upgrade to new version of m_string.f90</dt>
+<dd><ul class="first last">
+<li>update help banner and documentation</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal"><span class="pre">m_stdio</span></code>, <a class="reference internal" href="m_time.html#f/time_module" title="f/time_module: Description This module contains routines and functions to manipulate time periods, e.g, functions to calculate total number of hours, days,"><code class="xref f f-mod docutils literal"><span class="pre">time_module</span></code></a>, <a class="reference internal" href="m_string.html#f/m_string" title="f/m_string: A module to process strings."><code class="xref f f-mod docutils literal"><span class="pre">m_string</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><a class="reference internal" href="#f/_/usage" title="f/_/usage"><code class="xref f f-func docutils literal"><span class="pre">usage()</span></code></a>, <a class="reference internal" href="m_time.html#f/time_module/jul2cal" title="f/time_module/jul2cal"><code class="xref f f-func docutils literal"><span class="pre">jul2cal()</span></code></a>, <a class="reference internal" href="m_time.html#f/time_module/doy" title="f/time_module/doy"><code class="xref f f-func docutils literal"><span class="pre">doy()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/_/usage">
+<em class="property">subroutine  </em><code class="descname">usage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#f/_/usage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal"><span class="pre">m_stdio</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><a class="reference internal" href="#f/inctime" title="f/inctime"><code class="xref f f-prog docutils literal"><span class="pre">inctime</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="m_time.html" class="btn btn-neutral float-right" title="m_time" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="main.html" class="btn btn-neutral float-left" title="Main" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, João Gerd Zell de Mattos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

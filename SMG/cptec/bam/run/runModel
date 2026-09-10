@@ -1,0 +1,660 @@
+#!/bin/bash
+#-------------------------------------------------------------------#
+# CPTEC Global Model Script
+#-------------------------------------------------------------------#
+#BOP
+# !DESCRIPTION: Script to run the CPTEC global model on different HPC systems.
+#
+# !CALLING SEQUENCE:
+#      ./runModel <options>
+#
+#         Valid options:
+#            * -t   <val> : truncation [default: 62]
+#            * -l   <val> : number of levels [default: 28]
+#            * -mts <val> : model timestep [default: 300s for TQ299L064]
+#            * -py   <val> : BAM file prefix for input files [default: SMT]
+#            * -px   <val> : BAM file prefix for output files [default: CPT]
+#            * -np  <val> : number of processors [default: 80]
+#            * -N   <val> : number of nodes [default: 40]
+#            * -d   <val> : number of Threads per MPI task [default: 1]
+#            * -I   <val> : Initial condition date (cold start)
+#            * -F   <val> : Final forecast date 
+#            * -W   <val> : Initial condition date (warm start)
+#            * -i   <val> : Initialization type [default: 2]
+#            * -s   <val> : SST file [default: sstwkl]
+#            * -sm  <val> : Soil moisture file [default: soilmwkl]
+#            * -ts  <val> : Forecast TimeStep [default: 6]
+#            * -r   <val> : Generate Restart Files [default: .FALSE.]
+#            * -tr  <val> : Restart TimeStep [default: 6]
+#            * -u         : Enable Unified Physics [default: .FALSE.]
+#            * -slagr     : Enable Semi-Lagrangian run [default: .FALSE.]
+#            * -rrst      : Remove Restart files [default: .FALSE.]
+#            * -rnm       : Remove Normal Mode file if it exists [default: .FALSE.]
+#            * -rgaus     : Remove Gaussian file if it exists [default: .FALSE.]
+#            * -rmw       : Remove Mwaves file if it exists [default: .FALSE.]
+#            * -das       : Use specific configuration for data assimilation [default: no]
+#
+#  example:
+#
+#     ./runModel -t 62 -l 28 -I 2013010100 -F 2013010118
+#
+#     ./runModel -t 299 -l 64 -np 800 -N 4 -d 10 -I 2020061900 -F 2020062100 -ts 6
+#
+# !REVISION HISTORY:
+#    22-11-2016 - de Mattos, J.G.Z - Initial code
+#    21-05-2021 - de Mattos, J.G.Z - Change parse options, use shift intrinsic
+#    22-11-2023 - Aravequia, J. A. - Changes to use it on EGEON cluster                      
+#    19-05-2025 - Bastarz, C. F.   - Fix the model timestep value
+#
+#
+# !REMARKS:
+#    Initialization types available through <-i> option:
+#
+#       *  2 diabatic normal mode initialization (Cold Start)  
+#       *  1 diabatic with no normal mode initialization (Cold Start)  
+#       *  0 adiabatic with no normal mode initialization (Warm Start)  
+#       * -1 diabatic with no normal mode initialization (Cold Start)  
+#            with Surface variables read in instead of initialized  
+#       * -2 diabatic normal mode initialization  
+#            (Atmos.,Conv.,Rad,Cloud -> Cold Start) (Surface -> Warm Start)  
+#            with Surface variables read in instead of initialized  
+#       * -3 diabatic normal mode initialization  
+#            (Atmos. -> Cold Start) (Conv.,Rad,Cloud,Surface -> Warm Start)  
+#
+#    Os arquivos para SST, passados por meio da opção <-s> são:
+#      
+#       * sstaoi - Optimum Interpolation SST  Climatology 
+#       * sstanp - Optimum Interpolation SST Climatology 
+#                  plus presisted SST anomaly
+#       * sstwkl - Weekly run mean of SST for the week 
+#                  finished at initial day minus one
+#       * sstwkd - weekly run mean of SST direct access file
+#       * sstmtd - monthly run mean of SST direct access file
+#       * sstdyd - daily run mean of SST direct access file
+#
+# !BUGS:
+#
+#
+#
+#EOP
+#-------------------------------------------------------------------#
+#BOC
+# Function to print the last argument
+subwrd() {
+   str=$(echo "${@}" | awk '{ for (i=1; i<=NF-1; i++) printf("%s ",$i)}')
+   n=$(echo "${@}" | awk '{ print $NF }')
+   echo "${str}" | awk -v var=${n} '{print $var}'
+}
+
+# Set script's local directory
+LOCALDIR=$(dirname $(readlink -e ${0})) 
+#source ${LOCALDIR}
+# Caso Egeon
+#source /home/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run/EnvironmentalVariables_Model
+# Caso Jaci
+source /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG/cptec/bam/run/EnvironmentalVariables_Model
+
+# Check for command-line arguments, if none, show help
+if [ $# -eq 0 ]; then
+   cat < ${0} | sed -n '/^#BOP/,/^#EOP/p'
+   exit 0
+fi
+
+# Parse command-line options
+verbose='.FALSE.'
+args=${@}
+while (( $# )); do
+   opt=$1
+   case ${opt} in
+       -t) TRC=$2; shift 2;; # shift twice [p.e. -t 299 ]
+       -l) LV=$2; shift 2;;
+     -mts) TimeStep=$2; shift 2;;
+       -px) PREFX=$2; shift 2;;
+       -py) PREFY=$2; shift 2;;
+       -I) LABELI=$2; shift 2;;
+       -W) LABELW=$2; shift 2;;
+       -F) LABELF=$2; shift 2;;
+       -i) INITLZ=$2; shift 2;;
+       -s) NMSST=$2; shift 2;;
+      -sm) NMSOILM=$2; shift 2;;
+      -ts) DHFCT=$2; shift 2;;
+      -tr) DHRES=$2; shift 2;;
+      -np) MPITasks=$2; shift 2 ;;
+       -N) TasksPerNode=$2; shift 2;;
+       -d) ThreadsPerMPITask=$2; shift 2;;
+       -c) CoresPerNode=$2; shift 2;;
+       -u) UNIFIED='.TRUE.';shift 1;;
+       -r) GENRST='.TRUE.'; shift 1;;
+    -rrst) RMRST='.TRUE.';shift 1;;
+     -rnm) RMNMF='.TRUE.'; shift 1;;
+   -rgaus) RMGAU='.TRUE.'; shift 1;;
+     -rmw) RMMWF='.TRUE.'; shift 1;;
+       -v) verbose='.TRUE.'; shift 1;;
+     -das) DAS='.TRUE.'; shift 1;;
+   -slagr) SLAGR='.TRUE.';shift 1;;
+       -f) FCT='.TRUE.';shift 1;;
+      -pw) walltime=$2;shift 2;;
+      -pq) queue=$2; shift 2;;
+      -pn) queue_name=$2; shift 2;;
+       -h) cat < ${0} | sed -n '/^#BOP/,/^#EOP/p' ; exit 0;;
+       *) echo -e "\033[31;1mWarning:\033[m Unknown argument:\033[33;1m $opt\033[m"; shift 1;;
+   esac
+done
+set -- $args #restore arguments
+
+# Verbose mode for debugging
+if [ ${verbose} = '.TRUE.' ]; then
+   echo
+   echo -e "running :: \033[33;1m$0\033[m \033[33;1m$@\033[m"
+   echo
+fi
+
+# Defining variables with default values if not set
+
+# TRC: Model truncation (default: 62)
+TRC=${TRC:-62}
+
+# LV: Number of vertical levels for the model (default: 28)
+LV=${LV:-28}
+
+# Prefix for BAM input and output files (default: CPT)
+PREFY=${PREFY:-NMC}
+PREFX=${PREFX:-CPT}
+
+# INITLZ: Initialization type (default: 2, indicating diabatic normal mode initialization)
+INITLZ=${INITLZ:-2}
+
+# NMSST: Sea Surface Temperature (SST) file (default: sstwkl)
+NMSST=${NMSST:-sstwkl}
+
+# TimeStep: Model TimeStep (detault: 300s for TQ0299L064 - see the MODELIN for more options)
+TimeStep=${TimeStep:-200}
+
+# DHFCT: Forecast TimeStep (default: 6 hours)
+DHFCT=${DHFCT:-6}
+
+# NMSOILM: Soil moisture file (default: soilmwkl)
+NMSOILM=${NMSOILM:-soilmwkl}
+
+# UNIFIED: Enable Unified Physics (default: .FALSE., i.e., disabled)
+UNIFIED=${UNIFIED:-.FALSE.}
+
+# GENRST: Generate restart files (default: .FALSE.)
+GENRST=${GENRST:-.FALSE.}
+
+# RMRST: Remove restart files (default: .FALSE.)
+RMRST=${RMRST:-.FALSE.}
+
+# DHRES: Restart TimeStep (default: 6 hours)
+DHRES=${DHRES:-6}
+
+# Normal Mode File Removal
+RMNMF=${RMNMF:-.FALSE.}
+
+# Gaussian File Removal
+RMGAU=${RMGAU:-.FALSE.}
+
+# Mwaves File Removal
+RMMWF=${RMMWF:-.FALSE.}
+
+# Data Assimilation (DAS) Configuration
+DAS=${DAS:-.FALSE.}
+
+# Unified Physics Configuration (FCT)
+FCT=${FCT:-.FALSE.}
+
+# Semi-Lagrangian Option (SLAGR)
+SLAGR=${SLAGR:-.FALSE.}
+# Enable Semi-Lagrangian if truncation is >= 666
+if [ ${TRC} -ge 666 ]; then
+   SLAGR='.TRUE.'
+fi
+
+# PBS Job Wall Time
+walltime=${walltime:-02:00:00}
+
+# PBS Job Queue
+# Set specific queue for each HPC system if not already defined
+case ${hpc_name} in
+#  egeon) queue=${queue:-PESQ1} ;;
+  egeon) queue=${queue:-batch} ;;
+  jaci) queue=${queue:-pesqmidi } ;;
+  XC50) queue=${queue:-pesq} ;;
+esac
+
+# PBS Job Queue Name
+queue_name=${queue_name:-"BAM${TRC}"}
+
+
+# Initial condition date (cold start)
+if [ -z ${LABELI} ]; then
+   if [ ! -z ${LABELW} ]; then
+      LABELI=${LABELW}
+      echo -e "\033[32;1m LABELI not set \033[m"
+      echo -e "\033[32;1m using LABELI=LABELW \033[m"
+   else
+      echo -e "\033[31;1m LABELI or LABELW not set \033[m"
+      exit 1
+   fi
+fi
+
+# Final forecast date
+if [ -z ${LABELF} ]; then
+   echo -e "\033[31;1m LABELF not set \033[m"
+   exit 1
+fi
+
+# Initial condition date (warm start)
+# If not defined:
+# If it's a cold start (INITLZ=2), use LABELF as LABELW
+# If it's a warm start (INITLZ=0), use LABELI as LABELW
+if [ -z ${LABELW} ]; then
+   if [ ${INITLZ} -eq 2 ]; then
+      LABELW=${LABELF}
+   else
+      LABELW=${LABELI}
+   fi
+fi
+
+
+detect_hpc_system
+exit_code=$?
+if [[ $exit_code -ne 0 ]]; then
+    echo "[ERROR] detect_hpc_system failed. Aborting."
+    exit $exit_code
+fi
+
+# Set the number of processors and nodes for each machine type
+#  - MPITasks: Set the number of MPI tasks
+#  - TasksPerNode: Set the number of MPI tasks per node
+#  - CoresPerNode: Set the total number of cores per node
+case ${hpc_name} in
+    egeon)
+        MPITasks=${MPITasks:-64}
+        TasksPerNode=${TasksPerNode:-16}
+        CoresPerNode=${CoresPerNode:-128}
+        MaxCoresPerNode=${CoresPerNode:-128}
+        ;;
+    jaci)
+        MPITasks=${MPITasks:-64}
+        TasksPerNode=${TasksPerNode:-16}
+        CoresPerNode=${CoresPerNode:-128}
+        MaxCoresPerNode=${CoresPerNode:-128}
+        ;;
+    XC50)
+        MPITasks=${MPITasks:-80}
+        TasksPerNode=${TasksPerNode:-40}
+        CoresPerNode=${CoresPerNode:-40}
+        MaxCoresPerNode=${CoresPerNode:-40}
+        ;;
+    *)
+        echo "[ERROR] Unknown HPC system: ${hpc_name}. Please define configurations."
+        exit 1
+        ;;
+esac
+
+# Set ThreadsPerMPITask to a default value if not set
+ThreadsPerMPITask=${ThreadsPerMPITask:-8}
+
+
+# Set up the environment for the model
+getBAMSize ${TRC}
+
+# Set the restart time
+LABELR=$(date -u -d "${LABELI:0:4}-${LABELI:4:2}-${LABELI:6:2} ${LABELI:8:2}:00:00 UTC +6 hour" +"%Y%m%d%H")
+
+# Set the model configuration
+MRES=$(printf "TQ%04dL%03d" ${TRC} ${LV})
+
+# SETTING MODELIN NAME
+modelIn='MODELIN.default'
+
+
+
+# Diretorios das simulações
+
+BAMEXE=${SUBTBASE}/model/exec/ParModel_MPI
+PATHIN=${SUBTBASE}/model/datain
+
+
+if [ ${DAS} = '.TRUE.' -a ${FCT} = '.FALSE.' ];then
+   BAMRUN=${SUBTBASE}/model/DAS/exec_${PREFX}${LABELI}
+   BAMSCP=${BAMRUN}/qsub_bam.qsb
+   BAMLOG=${BAMRUN}/setout/Print.model.${LABELI}.${LABELF}.${tmstp}.MPI${MPITasks}.out
+   PBSLOG=${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+   PATHOU=${WORKBASE}/model/dataout/${MRES}/DAS/${LABELI}
+   RSTIN=${WORKBASE}/model/dataout/${MRES}/DAS/${LABELI}/RST
+   RSTOU=${WORKBASE}/model/dataout/${MRES}/DAS/${LABELR}/RST
+else
+   BAMRUN=${SUBTBASE}/model/exec_${PREFX}${LABELI}
+   BAMSCP=${BAMRUN}/qsub_bam.qsb
+   BAMLOG=${BAMRUN}/setout/Print.model.${LABELI}.${LABELF}.${tmstp}.MPI${MPITasks}.out
+   PBSLOG=${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+   PATHOU=${WORKBASE}/model/dataout/${MRES}/${LABELI}
+   RSTIN=${WORKBASE}/model/dataout/${MRES}/${LABELI}/RST
+   RSTOU=${WORKBASE}/model/dataout/${MRES}/${LABELR}/RST
+fi
+
+# File for normal mode initialization (non-linear)
+file="${PATHIN}/$(printf "NMI.T%04gL%03g" ${TRC} ${LV})"
+
+# If the file should be removed, delete it
+[ ${RMNMF} = '.TRUE.' ] && rm -fr ${file}
+
+# Check if the file exists and set the EIGENINIT variable
+# If the file exists, EIGENINIT is set to '.FALSE.'; otherwise, it's set to '.TRUE.'
+EIGENINIT=$([ -e ${file} ] && echo '.FALSE.' || echo '.TRUE.')
+
+# The file mwaves.TXXXXGYYYYY (ASCII and sequential)
+# contains the number of waves per latitude
+# for integrations with truncation XXXX and
+# the number of latitudes YYYYY, but only in the case of
+# the reduced grid. It is unnecessary for the
+# regular grid as all latitudes contain
+# the same number of waves.
+
+# Define the path for the mwaves file with truncation (TRC) and latitudes (JMax)
+file="${PATHIN}/$(printf "mwaves.T%04gG%05g" ${TRC} ${JMax})"
+
+# If the file should be removed, delete it
+[ ${RMMWF} = '.TRUE.' ] && rm -fr ${file}
+
+# Check if the file exists and set the MGIVEN variable
+# If the file does not exist, MGIVEN is set to '.FALSE.'; otherwise, it's set to '.TRUE.'
+MGIVEN=$([ ! -e ${file} ] && echo '.FALSE.' || echo '.TRUE.')
+
+# The file gaussp.GYYYYY (binary and sequential)
+# contains Gaussian points and weights (arrays CosGaussColat
+# and GaussWeights from Utils.f90) for grids with YYYYY
+# latitudes (either regular or reduced).
+
+# Define the path for the gaussp file based on the number of latitudes (JMax)
+file="${PATHIN}/$(printf "gaussp.G%05g" ${JMax})"
+
+# If the file should be removed, delete it
+[ ${RMGAU} = '.TRUE.' ] && rm -fr ${file}
+
+# Check if the file exists and set the GAUSSGIVEN variable
+# If the file does not exist, GAUSSGIVEN is set to '.FALSE.'; otherwise, it's set to '.TRUE.'
+GAUSSGIVEN=$([ ! -e ${file} ] && echo '.FALSE.' || echo '.TRUE.')
+
+
+#
+# CREATE DIRETORY TO RUN BAM MODEL
+#
+
+if [ -e ${BAMRUN} ];then
+   rm -fr ${BAMRUN}
+else
+   mkdir -p ${BAMRUN}
+fi
+
+if [ ! -e ${BAMRUN}/setout ];then
+   mkdir -p ${BAMRUN}/setout
+fi
+
+#
+# CREATE DIRETORY TO OUTPUT MODEL
+#
+
+# Forecasts Files
+if [ ! -e ${PATHOU} ];then
+   mkdir -p ${PATHOU}
+fi
+
+# Restarts Files
+if [ ! -e ${RSTOU} ];then
+   mkdir -p ${RSTOU}
+fi
+
+# Define the model initialization parameters
+if [ $DAS = '.TRUE.' ]; then
+   # If DAS is enabled, set the prefix and time step values for the model
+   #PREFX='CPT'
+
+   # If Forecasting (FCT) is not enabled, set the integration time steps to 1800 seconds
+   if [ ${FCT} = '.FALSE.' ]; then
+      SWINT=1800.000  # Short integration time step
+      TRINT=1800.000  # Time step for restart
+   else
+      # If Forecasting (FCT) is enabled, set the integration time steps to 3600 and 10800 seconds
+      SWINT=3600.000  # Short integration time step
+      TRINT=10800.000 # Time step for restart
+   fi
+
+else
+   # If DAS is not enabled, set the prefix and time steps for the model
+   #PREFX='NMC'
+   SWINT=3600.000  # Short integration time step
+   TRINT=10800.000 # Time step for restart
+fi
+
+#
+# COPY BAM EXECUTABLE FILE
+#
+
+cp -pfr ${BAMEXE} ${BAMRUN}/
+
+#
+# GET NUMBER OF NODES
+#
+
+TasksPerNode=$((${MaxCoresPerNode}/${ThreadsPerMPITask})) # Number of Processors used by each MPI tasks
+PEs=$((${MPITasks}/${ThreadsPerMPITask}))
+Nodes=$(((${MPITasks}+${MaxCoresPerNode}-1)/${MaxCoresPerNode}))
+
+#
+# Sanity Check
+#
+sanity=$((${TasksPerNode}*${ThreadsPerMPITask}))
+if [ ${sanity} -ne ${MaxCoresPerNode} ];then
+   echo -e "\e[31;1m >> Erro: \e[m\e[33;1m Redefina Numero de Processos MPI e openMP\e[m"
+   echo -e "\e[31;1m MaxCoresPerNode = ${sanity}, should be\e[m \e[33;1m${MaxCoresPerNode}\e[m"
+   echo -e "\e[31;1m TasksPerNode = ${TasksPerNode}, ThreadsPerMPITask = ${ThreadsPerMPITask}\e[m"
+   exit -1
+fi
+
+
+
+#
+# CREATE/MODIFY MODELIN AND COPY TO BAMRUN DIR
+#
+
+sed  -e "s;#TRUNC#;${TRC};g" \
+     -e "s;#NLEV#;${LV};g" \
+     -e "s;#DELT#;${TimeStep};g" \
+     -e "s;#LABELI#;${LABELI:8:2},${LABELI:6:2},${LABELI:4:2},${LABELI:0:4};g" \
+     -e "s;#LABELW#;${LABELW:8:2},${LABELW:6:2},${LABELW:4:2},${LABELW:0:4};g" \
+     -e "s;#LABELF#;${LABELF:8:2},${LABELF:6:2},${LABELF:4:2},${LABELF:0:4};g" \
+     -e "s;#DHFCT#;${DHFCT};g" \
+     -e "s;#DHRES#;${DHRES};g" \
+     -e "s;#SLAGR#;${SLAGR};g" \
+     -e "s;#GENRST#;${GENRST};g" \
+     -e "s;#RMRST#;${RMRST};g" \
+     -e "s;#PREFX#;${PREFX};g" \
+     -e "s;#PREFY#;${PREFY};g" \
+     -e "s;#UNIFIED#;${UNIFIED};g" \
+     -e "s;#NMSST#;${NMSST};g" \
+     -e "s;#NMSOILM#;${NMSOILM};g" \
+     -e "s;#PATHIN#;${PATHIN};g" \
+     -e "s;#PATHOU#;${PATHOU};g" \
+     -e "s;#RSTIN#;${RSTIN};g" \
+     -e "s;#RSTOU#;${RSTOU};g" \
+     -e "s;#EIGENINIT#;${EIGENINIT};g" \
+     -e "s;#MGIVEN#;${MGIVEN};g" \
+     -e "s;#GAUSSGIVEN#;${GAUSSGIVEN};g" \
+     -e "s;#INITLZ#;${INITLZ};g" \
+     -e "s;#SWINT#;${SWINT};g" \
+     -e "s;#TRINT#;${TRINT};g" \
+     ${LOCALDIR}/${modelIn} > ${BAMRUN}/MODELIN
+
+
+#
+# BUILD SCRIPT TO SUBMIT BAM MODEL TO RUN IN EGEON or XC50
+#
+
+
+case ${hpc_name} in
+
+  egeon) cat << EOF1 > ${BAMSCP}
+#!/bin/bash
+#SBATCH --output=/${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#SBATCH --error=/${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#SBATCH --time=${walltime}
+#SBATCH --ntasks=${MPITasks}
+#SBATCH --ntasks-per-node=${TasksPerNode}    # Specify number of (MPI) tasks on each node
+#SBATCH --cpus-per-task=${ThreadsPerMPITask} # How many cores should get assigned to each (MPI) task
+##SBATCH --job-name=${queue_name}
+#SBATCH --job-name=BH${LABELI:4:6}
+#SBATCH --partition=${FILA}
+## SBATCH --account=CPTEC
+
+# cd \$PBS_O_WORKDIR
+cd ${BAMRUN}
+pwd
+####
+# Bind your OpenMP threads
+export OMP_NUM_THREADS=\$SLURM_CPUS_PER_TASK
+export KMP_AFFINITY=verbose,granularity=thread,compact,1
+
+
+export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+export I_MPI_COMPATIBILITY=4
+export MP_EUIDEVELOP=min
+
+#
+ulimit -s unlimited
+# ulimit -m unlimited
+ulimit -v unlimited
+
+module purge
+module load intel/2021.4.0
+module load mpi/2021.4.0 impi/2021.4.0
+module load netcdf/4.7.4 pnetcdf/1.12.2 netcdf-fortran/4.5.3
+
+module list
+
+export KMP_STACKSIZE=128m
+####
+echo mpirun -np ${MPITasks} ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1
+mpirun -np \$SLURM_NTASKS ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1
+
+EOF1
+    # submit Pre-process
+    echo -ne "\033[34;1m Running BAM \033[m"
+
+    cd ${BAMRUN}
+
+    PID=$(sbatch --wait ${BAMSCP}; exit ${PIPESTATUS[0]})
+    qstatus=$?
+  ;;
+  jaci) cat << EOF1 > ${BAMSCP}
+#!/bin/bash
+#PBS -o ${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#PBS -j oe
+#PBS -l walltime=${walltime}
+#PBS -l select=${Nodes}:ncpus=${MaxCoresPerNode}:mpiprocs=${TasksPerNode}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N BH${LABELI:4:6}
+#PBS -q ${queue}
+#PBS -l place=scatter:excl
+
+set -euo pipefail
+
+cd ${BAMRUN}
+pwd
+
+# Configuração de Threads OpenMP (Híbrido MPI + OpenMP)
+export OMP_NUM_THREADS=${ThreadsPerMPITask}
+export OMP_WAIT_POLICY=PASSIVE
+export KMP_AFFINITY=verbose,granularity=thread,compact,1
+export KMP_STACKSIZE=128m
+export MPICH_NO_BUFFER_ALIAS_CHECK=TRUE
+
+ulimit -s unlimited
+ulimit -v unlimited
+
+# Modulos do Ambiente Cray da Jaci
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-libpals cray-pals
+module load cray-hdf5 cray-netcdf cray-parallel-netcdf
+module list
+
+# Execucao do Modelo BAM via Cray PALS com afinidade de CPU por thread
+echo "time mpiexec -n ${MPITasks} --depth=${ThreadsPerMPITask} ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1"
+time mpiexec -n ${MPITasks} --depth=${ThreadsPerMPITask} ${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1
+
+EOF1
+
+    # Submissao do Job 
+    echo -ne "\033[34;1m Running BAM Model on JACI \033[m\n"
+
+    cd ${BAMRUN}
+
+    PID=$(qsub -W block=true ${BAMSCP}; exit ${PIPESTATUS[0]})
+    qstatus=$?
+  ;;
+  xc50) cat << EOF > ${BAMSCP}
+#!/bin/bash
+#PBS -o ${BAMRUN}/setout/Out.model.${PREFX}.${LABELI}.${tmstp}.MPI${MPITasks}.out
+#PBS -j oe
+#PBS -l walltime=${walltime}
+#PBS -l nodes=${Nodes}:ppn=${MaxCoresPerNode}
+#PBS -V
+#PBS -S /bin/bash
+#PBS -N ${queue_name}
+#PBS -q ${queue}
+#PBS -A ${QUOTA}
+
+
+# bypass the buffer aliasing error checking in MPI collective calls.
+export MPICH_NO_BUFFER_ALIAS_CHECK=1
+
+ulimit -s unlimited
+ulimit -c unlimited
+
+export HUGETLB_MORECORE=yes
+export HUGETLB_ELFMAP=W
+export HUGETLB_FORCE_ELFMAP=yes+
+export MPICH_ENV_DISPLAY=1
+export HUGETLB_DEFAULT_PAGE_SIZE=2m
+export OMP_NUM_THREADS=${ThreadsPerMPITask}
+export OMP_STACKSIZE=256M
+
+cd \$PBS_O_WORKDIR
+#--------------------------
+# para o cce
+export FILENV=.assign
+assign -R
+assign -N ieee g:all
+assign -I -N swap_endian g:all
+#assign -N ieee g:su
+#assign -N ieee g:du
+assign -V
+
+
+/usr/bin/time -v aprun -m1000h -n ${PEs} -N ${TasksPerNode} -d ${ThreadsPerMPITask} \
+${BAMRUN}/$(basename ${BAMEXE}) > ${BAMLOG} 2>&1
+
+EOF
+
+    # submit Job
+    echo -ne "\033[34;1m Running BAM \033[m"
+
+    cd ${BAMRUN}
+
+    PID=$(qsub -W block=true ${BAMSCP}; exit ${PIPESTATUS[0]})
+    qstatus=$?
+   ;;
+
+ esac
+
+
+if [ ${qstatus} -eq 0 ];then
+   echo -e "\033[34;1m [\033[m\033[32;2m OK \033[m\033[34;1m]\033[m"
+else
+   echo -e "\033[34;1m[\033[m\033[31;1m Fail \033[m\033[34;1m]\033[m"
+fi
+exit ${qstatus}
+

@@ -1,0 +1,67 @@
+===============================================================================
+===============================================================================
+HISTORICO:
+  OBJETIVO: 
+    Documentar todas as alteracoes nos arquivos do controle de versao
+  METODOLOGIA:
+   - Toda alteracao a ser incluida no controle de versoes devera ser comentada
+     nesta arquivo. Para simplicidade de uso, pede-se somente a data, o autor
+     e a mensagem utilizada no comando commit do cvs para o cabecalho.
+   - Este cabecalho deve ser copiado e alterado de acordo com a atualizacao.
+   - Apos o cabecalho deve ser incluido os comentarios sobre as alteracoes.
+
+  OBSERVACAO GERAL:
+   - Inclua seu historico no final destas instrucoes e antes do primeiro 
+     comentario. Desta forma, a alteracao mais recente estara' sempre no
+     inicio do arquivo e ao avancar a leitura dos historicos, tem-se 
+     acesso `as modificacoes mais recentes.
+
+Inclua seus comentarios apos esta linha, deixando os comentarios mais
+velhos abaixo.
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  01/12/2012
+  AUTOR:    "Atualizacao Paulo Kubota"
+
+MENSAGEM: "Correção da tsurf atualizada pelo gelo marinho "
+================================================================================
+
+ARQUIVO    
+
+Sfc_Ibis_Interface.f90
+Sfc_SSiB.f90
+Sfc_SiB2.f90
+
+
+       OBS : "há um indicio que o gelo reduz muito a temperatura"
+
+
+
+===============================================================================
+===============================================================================
+
+ATUALIZACAO:
+
+  DATA :  05/03/2013
+  AUTOR:    "Atualizacao Paulo Kubota"
+
+MENSAGEM: "Restart Parcial do Modelo para Assimilação"
+================================================================================
+
+ARQUIVOS   : 
+
+
+
+Atmos_Model.f90
+Options.f90
+Sfc_Ibis_Fiels.f90
+Sfc_SSiB.f90
+Sfc_SiB2.f90
+
+       OBS :  Inclução da opção initlz=-3 para restart com a leitura da sst do
+       arquivo do NCEP
+===============================================================================
+===============================================================================
