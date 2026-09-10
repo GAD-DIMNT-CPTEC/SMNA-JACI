@@ -25,13 +25,7 @@ Seguir os passos:
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717;
    ```
 
-3. Apontar para a branch de desenvolvimento da versão para a JACI:
-   
-   ```
-   git checkout JACI-SMNAv3;
-   ```
-
-4. Depois do repositório clonado fazer o lfs pull (passo importante):
+3. Depois do repositório clonado fazer o lfs pull (passo importante):
    ```
    git lfs pull
    ```
@@ -43,19 +37,19 @@ Seguir os passos:
    git lfs pull
    ```
  
-5. Configuração do SMNA:
+4. Configuração do SMNA:
    ```
    cd /p/projetos/monan_das/${USER}/SMNA_v3.0.0.t12717/SMG;
    ./config_smg.ksh configure
    ```
 **Obs1.** Caso tenha ou queira mais de uma versão edite arquivo `jaci_paths.conf` e ajustar a variável "nome_smg" para um outro nome desejado. A atual versão está como "SMNA_v3.0.0.t12717/SMG"
 
-6. Compilação do GSI e BAM:
+5. Compilação do GSI e BAM:
    ```
    remova de seu login os modules load setados para que a lista seja a mais proxima da original da maquina
    vim .bashrc.jaci
  
-   e remova a chamada do conda e comente os modules load
+ 6. Remova a chamada do conda e comente os modules load
  
    comente
    o module purge || true
