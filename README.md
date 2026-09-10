@@ -1,4 +1,10 @@
-# Versão SMNA da branch SVN ajustada no GitHub
+# Esse branch tem a finalidade de organizar a versão trunk para ficar apta a utilizar os dados do fluxo do INPE na JACI
+
+As modificações mais importantes se refere ao fluxo de dados que pode ser por duas vias NCEP e INPE setadas no RunGSI
+
+Tem um controle de fluxo que testa a rodada e manda email para os responsaveis pelos dados caso haja problemas.
+
+# Passo a passo para a istaçação é uso
 
 Repositório de origem no SVN: SMNA_v3.0.0.t12717:  
 https://svn.cptec.inpe.br/smna/branch/SMNA_v3.0.0.t12717
@@ -28,7 +34,7 @@ Seguir os passos:
 3. Apontar para a branch de desenvolvimento da versão para a JACI:
    
    ```
-   git checkout JACI-SMNAv3;
+   git checkout JACI-SMNAv3-FluxCPT;
    ```
 
 4. Depois do repositório clonado fazer o lfs pull (passo importante):
